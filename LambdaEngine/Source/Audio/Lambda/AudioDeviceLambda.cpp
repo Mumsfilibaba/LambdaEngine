@@ -65,7 +65,6 @@ namespace LambdaEngine
 		for (auto it = m_SoundInstances.begin(); it != m_SoundInstances.end(); it++)
 		{
 			SoundInstance3DLambda* pSoundInstance = *it;
-
 			pSoundInstance->UpdateVolume(m_MasterVolume, m_AudioListeners.data(), m_AudioListeners.size());
 		}
 	}
@@ -102,7 +101,7 @@ namespace LambdaEngine
 		m_AudioListeners[arrayIndex] = *pDesc;
 	}
 
-	uint32 AudioDeviceLambda::CreateAudioListener()
+	uint32 AudioDeviceLambda::CreateAudioListener() const
 	{
 		if (m_NumAudioListeners >= m_MaxNumAudioListeners)
 		{
@@ -120,12 +119,12 @@ namespace LambdaEngine
 		return index;
 	}
 
-	ISoundEffect3D* AudioDeviceLambda::CreateSoundEffect(const SoundEffect3DDesc* pDesc)
+	ISoundEffect3D* AudioDeviceLambda::CreateSoundEffect(const SoundEffect3DDesc* pDesc) const
 	{
 		VALIDATE(pDesc != nullptr);
 
 		SoundEffect3DLambda* pSoundEffect = DBG_NEW SoundEffect3DLambda(this);
-		m_SoundEffects.insert(pSoundEffect);
+		m_SoundEffects.emplace_back(pSoundEffect);
 
 		if (!pSoundEffect->Init(pDesc))
 		{
@@ -137,7 +136,7 @@ namespace LambdaEngine
 		}
 	}
 
-	ISoundInstance3D* AudioDeviceLambda::CreateSoundInstance(const SoundInstance3DDesc* pDesc)
+	ISoundInstance3D* AudioDeviceLambda::CreateSoundInstance(const SoundInstance3DDesc* pDesc) const
 	{
 		VALIDATE(pDesc != nullptr);
 
@@ -154,14 +153,14 @@ namespace LambdaEngine
 		}
 	}
 
-	IAudioGeometry* AudioDeviceLambda::CreateAudioGeometry(const AudioGeometryDesc* pDesc)
+	IAudioGeometry* AudioDeviceLambda::CreateAudioGeometry(const AudioGeometryDesc* pDesc) const
 	{
 		VALIDATE(pDesc != nullptr);
 
 		return nullptr;
 	}
 
-	IReverbSphere* AudioDeviceLambda::CreateReverbSphere(const ReverbSphereDesc* pDesc)
+	IReverbSphere* AudioDeviceLambda::CreateReverbSphere(const ReverbSphereDesc* pDesc) const
 	{
 		VALIDATE(pDesc != nullptr);
 

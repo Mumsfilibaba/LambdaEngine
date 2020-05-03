@@ -14,7 +14,7 @@ namespace LambdaEngine
 	class ISoundInstance3D;
 	class IAudioGeometry;
 	class IReverbSphere;
-	
+
 	enum class EAudioAPI
 	{
 		FMOD,
@@ -45,8 +45,8 @@ namespace LambdaEngine
 		
 		/*
 		* Initialize this AudioDeviceFMOD
-		*	pDesc - A description of initialization parameters
-		* return - true if the initialization was successful, otherwise returns false
+		*	pDesc	- A description of initialization parameters
+		*	return	- true if the initialization was successful, otherwise returns false
 		*/
 		virtual bool Init(const AudioDeviceDesc* pDesc) = 0;
 
@@ -57,8 +57,8 @@ namespace LambdaEngine
 
 		/*
 		* Load Music for streaming, only one music file can be loaded at any given time per AudioDeviceFMOD
-		*	pFilepath - A filepath to the audiofile
-		* return - true if the initialization was successfull, otherwise returns false
+		*	pFilepath	- A filepath to the audiofile
+		*	return		- true if the initialization was successfull, otherwise returns false
 		*/
 		virtual bool LoadMusic(const char* pFilepath) = 0;
 
@@ -79,15 +79,15 @@ namespace LambdaEngine
 
 		virtual void UpdateAudioListener(uint32 index, const AudioListenerDesc* pDesc) = 0;
 
-		virtual uint32				CreateAudioListener()									= 0;
-		virtual ISoundEffect3D*		CreateSoundEffect(const SoundEffect3DDesc* pDesc)		= 0;
-		virtual ISoundInstance3D*	CreateSoundInstance(const SoundInstance3DDesc* pDesc)	= 0;
-		virtual IAudioGeometry*		CreateAudioGeometry(const AudioGeometryDesc* pDesc)		= 0;
-		virtual IReverbSphere*		CreateReverbSphere(const ReverbSphereDesc* pDesc)		= 0;
+		virtual uint32				CreateAudioListener()									const = 0;
+		virtual ISoundEffect3D*		CreateSoundEffect(const SoundEffect3DDesc* pDesc)		const = 0;
+		virtual ISoundInstance3D*	CreateSoundInstance(const SoundInstance3DDesc* pDesc)	const = 0;
+		virtual IAudioGeometry*		CreateAudioGeometry(const AudioGeometryDesc* pDesc)		const = 0;
+		virtual IReverbSphere*		CreateReverbSphere(const ReverbSphereDesc* pDesc)		const = 0;
 
-		virtual void SetMasterVolume(float volume) = 0;
+		virtual void	SetMasterVolume(float volume) = 0;
 
-		virtual float GetMasterVolume() const = 0;
+		virtual float	GetMasterVolume() const = 0;
 	};
 
 	LAMBDA_API IAudioDevice* CreateAudioDevice(EAudioAPI api, const AudioDeviceDesc& desc);

@@ -138,18 +138,15 @@ void Sandbox::InitTestAudio()
 
 	m_AudioListenerIndex = AudioSystem::GetDevice()->CreateAudioListener();
 
-	m_ToneSoundEffectGUID = ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/noise.wav");
-	m_GunSoundEffectGUID = ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/GUN_FIRE-GoodSoundForYou.wav");
-
-	m_pToneSoundEffect = ResourceManager::GetSoundEffect(m_ToneSoundEffectGUID);
-	m_pGunSoundEffect = ResourceManager::GetSoundEffect(m_GunSoundEffectGUID);
+	m_MusicGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/avicii.wav");
+	m_pMusic	= ResourceManager::GetSoundEffect(m_MusicGUID);
 
 	SoundInstance3DDesc soundInstanceDesc = {};
-	soundInstanceDesc.pSoundEffect = m_pGunSoundEffect;
-	soundInstanceDesc.Flags = FSoundModeFlags::SOUND_MODE_LOOPING;
+	soundInstanceDesc.pSoundEffect	= m_pMusic;
+	soundInstanceDesc.Flags			= FSoundModeFlags::SOUND_MODE_LOOPING;
 
-	m_pToneSoundInstance = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
-	m_pToneSoundInstance->SetVolume(0.5f);
+	m_pMusicInstance = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
+	m_pMusicInstance->SetVolume(1.0f);
 }
 
 void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRepeat)
@@ -339,12 +336,6 @@ bool Sandbox::InitRendererForDeferred()
 	GUID_Lambda missShaderGUID					= ResourceManager::LoadShaderFromFile("../Assets/Shaders/miss.glsl",					FShaderStageFlags::SHADER_STAGE_FLAG_MISS_SHADER,			EShaderLang::GLSL);
 
 	GUID_Lambda postProcessShaderGUID			= ResourceManager::LoadShaderFromFile("../Assets/Shaders/postProcess.glsl",				FShaderStageFlags::SHADER_STAGE_FLAG_COMPUTE_SHADER,		EShaderLang::GLSL);
-
-	//GUID_Lambda geometryVertexShaderGUID		= ResourceManager::LoadShaderFromFile("../Assets/Shaders/geometryDefVertex.spv",			FShaderStageFlags::SHADER_STAGE_FLAG_VERTEX_SHADER,			EShaderLang::SPIRV);
-	//GUID_Lambda geometryPixelShaderGUID			= ResourceManager::LoadShaderFromFile("../Assets/Shaders/geometryDefPixel.spv",			FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,			EShaderLang::SPIRV);
-
-	//GUID_Lambda fullscreenQuadShaderGUID		= ResourceManager::LoadShaderFromFile("../Assets/Shaders/fullscreenQuad.spv",			FShaderStageFlags::SHADER_STAGE_FLAG_VERTEX_SHADER,			EShaderLang::SPIRV);
-	//GUID_Lambda shadingPixelShaderGUID			= ResourceManager::LoadShaderFromFile("../Assets/Shaders/shadingDefPixel.spv",			FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,			EShaderLang::SPIRV);
 	
 	std::vector<RenderStageDesc> renderStages;
 
@@ -380,7 +371,6 @@ bool Sandbox::InitRendererForDeferred()
 		renderStage.pName						= pGeometryRenderStageName;
 		renderStage.pAttachments				= geometryRenderStageAttachments.data();
 		renderStage.AttachmentCount				= (uint32)geometryRenderStageAttachments.size();
-		//renderStage.PushConstants				= pushConstants;
 
 		geometryPipelineStateDesc.pName				= "Geometry Pass Pipeline State";
 		geometryPipelineStateDesc.VertexShader		= geometryVertexShaderGUID;
@@ -419,7 +409,6 @@ bool Sandbox::InitRendererForDeferred()
 		renderStage.pName						= pRayTracingRenderStageName;
 		renderStage.pAttachments				= rayTracingRenderStageAttachments.data();
 		renderStage.AttachmentCount				= (uint32)rayTracingRenderStageAttachments.size();
-		//renderStage.PushConstants				= pushConstants;
 
 		rayTracingPipelineStateDesc.pName					= "Ray Tracing Pass Pipeline State";
 		rayTracingPipelineStateDesc.RaygenShader			= raygenShaderGUID;
@@ -463,7 +452,6 @@ bool Sandbox::InitRendererForDeferred()
 		renderStage.pName						= pShadingRenderStageName;
 		renderStage.pAttachments				= shadingRenderStageAttachments.data();
 		renderStage.AttachmentCount				= (uint32)shadingRenderStageAttachments.size();
-		//renderStage.PushConstants				= pushConstants;
 
 		shadingPipelineStateDesc.pName				= "Shading Pass Pipeline State";
 		shadingPipelineStateDesc.VertexShader		= fullscreenQuadShaderGUID;
@@ -497,7 +485,6 @@ bool Sandbox::InitRendererForDeferred()
 		renderStage.pName						= pPostProcessRenderStageName;
 		renderStage.pAttachments				= postProcessRenderStageAttachments.data();
 		renderStage.AttachmentCount				= (uint32)postProcessRenderStageAttachments.size();
-		//renderStage.PushConstants				= pushConstants;
 
 		postProcessPipelineStateDesc.pName		= "Post-Process Pass Pipeline State";
 		postProcessPipelineStateDesc.Shader		= postProcessShaderGUID;

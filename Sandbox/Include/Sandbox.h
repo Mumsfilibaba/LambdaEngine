@@ -55,12 +55,16 @@ private:
 private:
 	uint32									m_AudioListenerIndex	= 0;
 
-	GUID_Lambda								m_ToneSoundEffectGUID;
+	GUID_Lambda								m_ToneSoundEffectGUID	= 0;
 	LambdaEngine::ISoundEffect3D*			m_pToneSoundEffect		= nullptr;
 	LambdaEngine::ISoundInstance3D*			m_pToneSoundInstance	= nullptr;
 
-	GUID_Lambda								m_GunSoundEffectGUID;
+	GUID_Lambda								m_GunSoundEffectGUID	= 0;
 	LambdaEngine::ISoundEffect3D*			m_pGunSoundEffect		= nullptr;
+
+	GUID_Lambda								m_MusicGUID			= 0;
+	LambdaEngine::ISoundEffect3D*			m_pMusic			= nullptr;
+	LambdaEngine::ISoundInstance3D*			m_pMusicInstance	= nullptr;
 
 
 	LambdaEngine::IReverbSphere*			m_pReverbSphere			= nullptr;

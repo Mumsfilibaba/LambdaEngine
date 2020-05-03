@@ -6,13 +6,12 @@
 
 namespace LambdaEngine
 {
-	class IAudioDevice;
 	class AudioDeviceLambda;
 
 	class SoundEffect3DLambda : public ISoundEffect3D
 	{
 	public:
-		SoundEffect3DLambda(const IAudioDevice* pAudioDevice);
+		SoundEffect3DLambda(const AudioDeviceLambda* pDevice);
 		~SoundEffect3DLambda();
 
 		virtual bool Init(const SoundEffect3DDesc* pDesc) override final;

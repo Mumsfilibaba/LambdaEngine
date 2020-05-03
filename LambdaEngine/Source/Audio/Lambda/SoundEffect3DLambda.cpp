@@ -5,16 +5,14 @@
 
 namespace LambdaEngine
 {
-	SoundEffect3DLambda::SoundEffect3DLambda(const IAudioDevice* pAudioDevice) :
-		m_pAudioDevice(reinterpret_cast<const AudioDeviceLambda*>(pAudioDevice))
+	SoundEffect3DLambda::SoundEffect3DLambda(const AudioDeviceLambda* pAudioDevice) 
+		: m_pAudioDevice(pAudioDevice)
 	{
-		UNREFERENCED_VARIABLE(pAudioDevice);
 	}
 
 	SoundEffect3DLambda::~SoundEffect3DLambda()
 	{
 		m_pAudioDevice->DeleteSoundEffect(this);
-
 		SAFEDELETE_ARRAY(m_pWaveForm);
 	}
 
@@ -23,7 +21,6 @@ namespace LambdaEngine
         VALIDATE(pDesc);
 
 		int32 result = LoadWavFileFloat(pDesc->pFilepath, &m_pWaveForm, &m_Header);
-		
 		if (result != WAVE_SUCCESS)
 		{
 			return false;
