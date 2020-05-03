@@ -17,8 +17,8 @@ namespace LambdaEngine
 		virtual bool Init(const SoundEffect3DDesc* pDesc) override final;
 		virtual void PlayOnceAt(const glm::vec3& position, const glm::vec3& velocity, float volume, float pitch) override final;
 		
+		FORCEINLINE virtual float64 GetDuration() override final { return m_Duration; }
 		FMOD_SOUND* GetHandle();
-		uint32 GetLengthMS();
 
 	private:
 		//Engine
@@ -29,6 +29,6 @@ namespace LambdaEngine
 
 		//Local
 		const char*			m_pName;
-		uint32				m_LengthMS;
+		float64				m_Duration;
 	};
 }

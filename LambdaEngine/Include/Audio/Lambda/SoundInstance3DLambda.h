@@ -51,19 +51,23 @@ namespace LambdaEngine
 			void* pUserData);
 
 	private:
-		const AudioDeviceLambda* m_pAudioDevice;
+		const AudioDeviceLambda* m_pAudioDevice		= nullptr;
 
-		PaStream* m_pStream;
+		PaStream*	m_pStream						= nullptr;
 		
-		float32* m_pWaveForm;
-		uint32 m_SampleCount;
-		uint32 m_CurrentBufferIndex;
-		uint32 m_ChannelCount;
-		uint32 m_TotalSampleCount;
+		float32*	m_pWaveForm						= nullptr;
+		uint32		m_SampleCount					= 0;
+		uint32		m_CurrentBufferIndex			= 0;
+		uint32		m_ChannelCount					= 0;
+		uint32		m_TotalSampleCount				= 0;
 
-		glm::vec3	m_Position;
+		bool		m_Looping						= false;
+		bool		m_Playing						= false;
 
-		float m_Volume		= 1.0f;
-		float m_OutputVolume			= 1.0f;
+		glm::vec3	m_Position						= glm::vec3(0.0f);
+		//Pitch			
+		float		m_Volume						= 1.0f;
+
+		float		m_OutputVolume					= 1.0f;
 	};
 }

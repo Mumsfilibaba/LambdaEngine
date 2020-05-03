@@ -10,7 +10,7 @@ namespace LambdaEngine
 	
 	struct SoundInstance3DDesc
 	{
-		const char* pName					= "SoundInstance3DFMOD";
+		const char* pName					= "SoundInstance3D";
 		ISoundEffect3D* pSoundEffect		= nullptr;
 		uint32 Flags						= FSoundModeFlags::SOUND_MODE_NONE;
 	};

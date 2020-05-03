@@ -37,7 +37,11 @@ namespace LambdaEngine
 			return false;
 		}
 
-		FMOD_Sound_GetLength(m_pHandle, &m_LengthMS, FMOD_TIMEUNIT_MS);
+		uint32 durationMS = 0;
+		FMOD_Sound_GetLength(m_pHandle, &durationMS, FMOD_TIMEUNIT_MS);
+
+		m_Duration = (float64)durationMS / 1000.0;
+
 		return true;
 	}
 
@@ -59,10 +63,5 @@ namespace LambdaEngine
 	FMOD_SOUND* SoundEffect3DFMOD::GetHandle() 
 	{ 
 		return m_pHandle; 
-	}
-
-	uint32 SoundEffect3DFMOD::GetLengthMS() 
-	{ 
-		return m_LengthMS; 
 	}
 }

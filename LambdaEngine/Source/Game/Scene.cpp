@@ -28,6 +28,10 @@ namespace LambdaEngine
 
 	Scene::~Scene()
 	{
+		RenderSystem::GetGraphicsQueue()->Flush();
+		RenderSystem::GetComputeQueue()->Flush();
+		RenderSystem::GetCopyQueue()->Flush();
+
 		SAFERELEASE(m_pCopyCommandAllocator);
 		SAFERELEASE(m_pASBuildCommandAllocator);
 		SAFERELEASE(m_pCopyCommandList);
@@ -37,6 +41,8 @@ namespace LambdaEngine
 		SAFERELEASE(m_pSceneIndexCopyBuffer);
 		SAFERELEASE(m_pSceneInstanceCopyBuffer);
 		SAFERELEASE(m_pSceneMeshIndexCopyBuffer);
+		SAFERELEASE(m_pLightsCopyBuffer);
+		SAFERELEASE(m_pPerFrameCopyBuffer);
 		SAFERELEASE(m_pLightsBuffer);
 		SAFERELEASE(m_pPerFrameBuffer);
 		SAFERELEASE(m_pSceneMaterialProperties);

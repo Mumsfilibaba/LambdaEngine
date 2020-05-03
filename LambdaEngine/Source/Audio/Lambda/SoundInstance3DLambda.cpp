@@ -22,7 +22,7 @@ namespace LambdaEngine
 		result = Pa_CloseStream(m_pStream);
 		if (result != paNoError)
 		{
-			LOG_ERROR("[AudioDeviceLambda]: Could not close PortAudio stream, error: \"%s\"", Pa_GetErrorText(result));
+			LOG_ERROR("[SoundInstance3DLambda]: Could not close PortAudio stream, error: \"%s\"", Pa_GetErrorText(result));
 		}
 	}
 
@@ -36,7 +36,7 @@ namespace LambdaEngine
 		m_SampleCount		= pSoundEffect->GetSampleCount();
 		m_ChannelCount		= pSoundEffect->GetChannelCount();
 		m_TotalSampleCount	= m_SampleCount * m_ChannelCount;
-		m_pWaveForm			= new float32[m_TotalSampleCount];
+		m_pWaveForm			= DBG_NEW float32[m_TotalSampleCount];
 		memcpy(m_pWaveForm, pSoundEffect->GetWaveform(), sizeof(float32) * m_TotalSampleCount);
 
 		PaError result;
@@ -48,7 +48,7 @@ namespace LambdaEngine
 			m_ChannelCount,          /* stereo output */
 			paFloat32,  /* 32 bit floating point output */
 			pSoundEffect->GetSampleRate(),
-			128,	/* frames per buffer, i.e. the number
+			paFramesPerBufferUnspecified,	/* frames per buffer, i.e. the number
 							   of sample frames that PortAudio will
 							   request from the callback. Many apps
 							   may want to use
@@ -71,23 +71,84 @@ namespace LambdaEngine
 			return false;
 		}
 
+		if (pDesc->Flags & FSoundModeFlags::SOUND_MODE_LOOPING)
+		{
+			m_Looping = true;
+		}
+
+		m_Playing = true;
+
 		return true;
 	}
 
 	void SoundInstance3DLambda::Play()
 	{
+		if (m_pStream == nullptr)
+			return;
+
+		if (!m_Playing)
+		{
+			PaError paResult;
+			paResult = Pa_StartStream(m_pStream);
+			if (paResult != paNoError)
+			{
+				LOG_ERROR("[SoundInstance3DLambda]: Could not start PortAudio stream, error: \"%s\"", Pa_GetErrorText(paResult));
+			}
+
+			m_Playing = true;
+		}
 	}
 
 	void SoundInstance3DLambda::Pause()
 	{
+		if (m_pStream == nullptr)
+			return;
+
+		if (m_Playing)
+		{
+			PaError paResult;
+			paResult = Pa_StopStream(m_pStream);
+			if (paResult != paNoError)
+			{
+				LOG_ERROR("[SoundInstance3DLambda]: Could not stop PortAudio stream, error: \"%s\"", Pa_GetErrorText(paResult));
+			}
+
+			m_Playing = false;
+		}
 	}
 
 	void SoundInstance3DLambda::Stop()
 	{
+		if (m_pStream == nullptr)
+			return;
+
+		if (m_Playing)
+		{
+			PaError paResult;
+			paResult = Pa_StopStream(m_pStream);
+			if (paResult != paNoError)
+			{
+				LOG_ERROR("[SoundInstance3DLambda]: Could not stop PortAudio stream, error: \"%s\"", Pa_GetErrorText(paResult));
+			}
+
+			m_Playing = false;
+			m_CurrentBufferIndex = 0;
+		}
 	}
 
 	void SoundInstance3DLambda::Toggle()
 	{
+		if (m_pStream == nullptr)
+			return;
+
+		if (m_Playing)
+		{
+			Pause();
+		}
+		else
+		{
+			Play();
+		}
 	}
 
 	void SoundInstance3DLambda::SetPosition(const glm::vec3& position)
@@ -122,6 +183,29 @@ namespace LambdaEngine
 
 	void SoundInstance3DLambda::UpdateVolume(float masterVolume, const AudioListenerDesc* pAudioListeners, uint32 count)
 	{
+		//Todo: How to deal with multiple listeners?
+
+		if (count > 1)
+		{
+			LOG_WARNING("[SoundInstance3DLambda]: Update3D called with multiple AudioListeners, this is currently not supported!");
+			return;
+		}
+
+		float localVolume = masterVolume * m_Volume;
+
+		m_OutputVolume = 0.0f;
+
+		for (uint32 i = 0; i < count; i++)
+		{
+			const AudioListenerDesc* pAudioListener = &pAudioListeners[i];
+
+			float distance = glm::max(pAudioListener->AttenuationStartDistance, glm::distance(pAudioListener->Position, m_Position));
+			float attenuation = pAudioListener->AttenuationStartDistance / (pAudioListener->AttenuationStartDistance + pAudioListener->AttenuationRollOffFactor * (distance - pAudioListener->AttenuationStartDistance));
+
+			float globalVolume = localVolume * pAudioListener->Volume;
+
+			m_OutputVolume += globalVolume * attenuation;
+		}
 	}
 
 	int32 SoundInstance3DLambda::LocalAudioCallback(float* pOutputBuffer, unsigned long framesPerBuffer)
@@ -135,7 +219,15 @@ namespace LambdaEngine
 			}
 
 			if (m_CurrentBufferIndex == m_TotalSampleCount)
+			{
 				m_CurrentBufferIndex = 0;
+
+				if (!m_Looping)
+				{
+					m_Playing = false;
+					return paComplete;
+				}
+			}
 		}
 
 		return paNoError;

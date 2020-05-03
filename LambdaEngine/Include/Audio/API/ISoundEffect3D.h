@@ -31,5 +31,9 @@ namespace LambdaEngine
 		*/
 		virtual void PlayOnceAt(const glm::vec3& position, const glm::vec3& velocity = glm::vec3(0.0f), float volume = 1.0f, float pitch = 1.0f) = 0;
 
+		/*
+		* Returns the duration of the sound effect in seconds
+		*/
+		virtual float64 GetDuration() = 0;
 	};
 }

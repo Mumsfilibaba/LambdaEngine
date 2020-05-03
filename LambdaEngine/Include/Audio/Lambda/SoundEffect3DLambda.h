@@ -18,6 +18,8 @@ namespace LambdaEngine
 		virtual bool Init(const SoundEffect3DDesc* pDesc) override final;
 		virtual void PlayOnceAt(const glm::vec3& position, const glm::vec3& velocity, float volume, float pitch) override final;
 
+		FORCEINLINE virtual float64 GetDuration() override final { return (float64)m_Header.Duration; }
+
 		FORCEINLINE const float32* GetWaveform()	const { return m_pWaveForm; }
 		FORCEINLINE uint32 GetSampleCount()			const { return m_Header.SampleCount; }
 		FORCEINLINE uint32 GetSampleRate()			const { return m_Header.SampleRate; }
