@@ -101,6 +101,9 @@ namespace LambdaEngine
 
 	int32 ManagedSoundInstance3DLambda::LocalAudioCallback(float* pOutputBuffer, unsigned long framesPerBuffer)
 	{
+		if (m_pWaveForm == nullptr)
+			return paComplete;
+
 		for (uint32 f = 0; f < framesPerBuffer; f++)
 		{
 			for (uint32 c = 0; c < m_ChannelCount; c++)
@@ -110,7 +113,10 @@ namespace LambdaEngine
 			}
 
 			if (m_CurrentBufferIndex == m_TotalSampleCount)
+			{
 				m_CurrentBufferIndex = 0;
+				return paComplete;
+			}
 		}
 
 		return paNoError;

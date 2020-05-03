@@ -17,6 +17,7 @@ namespace LambdaEngine
 	class RenderGraph;
 	class Renderer;
 	class ResourceManager;
+	class IMusic;
 	class ISoundEffect3D;
 	class ISoundInstance3D;
 	class IAudioGeometry;
@@ -71,6 +72,7 @@ private:
 	GUID_Lambda								m_GunSoundEffectGUID;
 	LambdaEngine::ISoundEffect3D*			m_pGunSoundEffect		= nullptr;
 
+	LambdaEngine::IMusic*					m_pMusic				= nullptr;
 
 	LambdaEngine::IReverbSphere*			m_pReverbSphere			= nullptr;
 	LambdaEngine::IAudioGeometry*			m_pAudioGeometry		= nullptr;

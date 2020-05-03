@@ -56,12 +56,12 @@ namespace LambdaEngine
 		/*
 		* Set the volume of the sound instance in the range [-Inf, Inf]
 		*/
-		virtual void SetVolume(float volume) = 0;
+		virtual void SetVolume(float32 volume) = 0;
 
 		/*
 		* Set the pitch of the sound instance in the range [-Inf, Inf]
 		*/
-		virtual void SetPitch(float pitch) = 0;
+		virtual void SetPitch(float32 pitch) = 0;
 
 		virtual const glm::vec3& GetPosition()	const = 0;
 		virtual float GetVolume()				const = 0;

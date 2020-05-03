@@ -110,7 +110,7 @@ namespace LambdaEngine
 			paResult = Pa_StopStream(m_pStream);
 			if (paResult != paNoError)
 			{
-				LOG_ERROR("[SoundInstance3DLambda]: Could not stop PortAudio stream, error: \"%s\"", Pa_GetErrorText(paResult));
+				LOG_ERROR("[SoundInstance3DLambda]: Could not pause PortAudio stream, error: \"%s\"", Pa_GetErrorText(paResult));
 			}
 
 			m_Playing = false;
@@ -156,29 +156,14 @@ namespace LambdaEngine
 		m_Position = position;
 	}
 
-	void SoundInstance3DLambda::SetVolume(float volume)
+	void SoundInstance3DLambda::SetVolume(float32 volume)
 	{
 		m_Volume = volume;
 	}
 
-	void SoundInstance3DLambda::SetPitch(float pitch)
+	void SoundInstance3DLambda::SetPitch(float32 pitch)
 	{
 		UNREFERENCED_VARIABLE(pitch);
-	}
-
-	const glm::vec3& SoundInstance3DLambda::GetPosition() const
-	{
-		return m_Position;
-	}
-
-	float SoundInstance3DLambda::GetVolume() const
-	{
-		return m_Volume;
-	}
-
-	float SoundInstance3DLambda::GetPitch() const
-	{
-		return 1.0f;
 	}
 
 	void SoundInstance3DLambda::UpdateVolume(float masterVolume, const AudioListenerDesc* pAudioListeners, uint32 count)
@@ -210,6 +195,9 @@ namespace LambdaEngine
 
 	int32 SoundInstance3DLambda::LocalAudioCallback(float* pOutputBuffer, unsigned long framesPerBuffer)
 	{
+		if (m_pWaveForm == nullptr)
+			return paComplete;
+
 		for (uint32 f = 0; f < framesPerBuffer; f++)
 		{
 			for (uint32 c = 0; c < m_ChannelCount; c++)

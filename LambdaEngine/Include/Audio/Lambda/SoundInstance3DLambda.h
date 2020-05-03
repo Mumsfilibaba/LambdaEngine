@@ -24,12 +24,12 @@ namespace LambdaEngine
 		virtual void Toggle()	override final;
 
 		virtual void SetPosition(const glm::vec3& position) override final;
-		virtual void SetVolume(float volume)				override final;
-		virtual void SetPitch(float pitch)					override final;
+		virtual void SetVolume(float32 volume)				override final;
+		virtual void SetPitch(float32 pitch)					override final;
 
-		virtual const glm::vec3&	GetPosition()	const override final;
-		virtual float				GetVolume()		const override final;
-		virtual float				GetPitch()		const override final;
+		FORCEINLINE virtual const glm::vec3&	GetPosition()	const override final { return m_Position;	}
+		FORCEINLINE virtual float32				GetVolume()		const override final { return m_Volume;		}
+		FORCEINLINE virtual float32				GetPitch()		const override final { return 1.0f;			}
 
 		void UpdateVolume(float masterVolume, const AudioListenerDesc* pAudioListeners, uint32 count);
 
@@ -66,8 +66,8 @@ namespace LambdaEngine
 
 		glm::vec3	m_Position						= glm::vec3(0.0f);
 		//Pitch			
-		float		m_Volume						= 1.0f;
+		float32		m_Volume						= 1.0f;
 
-		float		m_OutputVolume					= 1.0f;
+		float32		m_OutputVolume					= 1.0f;
 	};
 }

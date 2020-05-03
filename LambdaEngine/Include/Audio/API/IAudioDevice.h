@@ -26,7 +26,7 @@ namespace LambdaEngine
 	struct AudioDeviceDesc
 	{
 		const char*		pName					= "Audio Device";
-		float			MasterVolume			= 1.0f;
+		float32			MasterVolume			= 1.0f;
 		bool			Debug					= true;
 		uint32			MaxNumAudioListeners	= 1;
 		float			MaxWorldSize			= 100.0f;

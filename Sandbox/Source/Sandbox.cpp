@@ -161,6 +161,7 @@ Sandbox::~Sandbox()
 	SAFERELEASE(m_pNearestSampler);
 
 	SAFEDELETE(m_pToneSoundInstance);
+	SAFEDELETE(m_pMusic);
 
 	SAFEDELETE(m_pRenderGraph);
 	SAFEDELETE(m_pRenderer);
@@ -189,7 +190,7 @@ void Sandbox::InitTestAudio()
 	musicDesc.Volume		= 0.5f;
 	musicDesc.Pitch			= 1.0f;
 
-	AudioSystem::GetDevice()->CreateMusic(&musicDesc);
+	m_pMusic = AudioSystem::GetDevice()->CreateMusic(&musicDesc);
 
 	/*m_SpawnPlayAts = false;
 	m_GunshotTimer = 0.0f;
@@ -324,7 +325,7 @@ void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRep
 
 	if (key == EKey::KEY_KEYPAD_1)
 	{
-		AudioSystem::GetDevice()->ToggleMusic();
+		m_pMusic->Toggle();
 	}
 	else if (key == EKey::KEY_KEYPAD_3)
 	{
