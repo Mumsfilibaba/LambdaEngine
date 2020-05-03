@@ -126,119 +126,6 @@ namespace LambdaEngine
 		}
 	}
 
-	bool AudioDeviceLambda::LoadMusic(const char* pFilepath)
-	{
-		VALIDATE(pFilepath);
-
-		SAFEDELETE_ARRAY(m_Music.pWaveForm);
-
-		PaError paResult;
-
-		if (m_Music.pStream != nullptr)
-		{
-			paResult = Pa_CloseStream(m_Music.pStream);
-
-			if (paResult != paNoError)
-			{
-				LOG_ERROR("[AudioDeviceLambda]: Could not close PortAudio stream, error: \"%s\"", Pa_GetErrorText(paResult));
-				return false;
-			}
-
-			m_Music.pStream = nullptr;
-		}
-
-		WaveFile waveHeader = {};
-
-		if (LoadWavFileFloat(pFilepath, &m_Music.pWaveForm, &waveHeader) != WAVE_SUCCESS)
-		{
-			LOG_ERROR("[AudioDeviceLambda]: Could not load music \"%s\"", pFilepath);
-			return false;
-		}
-
-		m_Music.CurrentBufferIndex	= 0;
-		m_Music.SampleCount			= waveHeader.SampleCount;
-		m_Music.ChannelCount		= waveHeader.ChannelCount;
-		m_Music.TotalSampleCount	= m_Music.SampleCount * m_Music.ChannelCount;
-
-		paResult = Pa_OpenDefaultStream(
-			&m_Music.pStream,
-			0,
-			m_Music.ChannelCount,
-			paFloat32,
-			waveHeader.SampleRate,
-			paFramesPerBufferUnspecified,
-			PortAudioCallback,
-			this);
-
-		if (paResult != paNoError)
-		{
-			LOG_ERROR("[AudioDeviceLambda]: Could not open PortAudio stream, error: \"%s\"", Pa_GetErrorText(paResult));
-			return false;
-		}
-
-		paResult = Pa_StartStream(m_Music.pStream);
-		if (paResult != paNoError)
-		{
-			LOG_ERROR("[AudioDeviceLambda]: Could not start PortAudio stream, error: \"%s\"", Pa_GetErrorText(paResult));
-			return false;
-		}
-
-		m_Music.Playing = true;
-
-		return false;
-	}
-
-	void AudioDeviceLambda::PlayMusic()
-	{
-		if (m_Music.pStream == nullptr)
-			return;
-
-		if (!m_Music.Playing)
-		{
-			PaError paResult;
-			paResult = Pa_StartStream(m_Music.pStream);
-			if (paResult != paNoError)
-			{
-				LOG_ERROR("[AudioDeviceLambda]: Could not start PortAudio stream, error: \"%s\"", Pa_GetErrorText(paResult));
-			}
-
-			m_Music.Playing = true;
-		}
-	}
-
-	void AudioDeviceLambda::PauseMusic()
-	{
-		if (m_Music.pStream == nullptr)
-			return;
-
-		if (m_Music.Playing)
-		{
-			PaError paResult;
-			paResult = Pa_StopStream(m_Music.pStream);
-			if (paResult != paNoError)
-			{
-				LOG_ERROR("[AudioDeviceLambda]: Could not stop PortAudio stream, error: \"%s\"", Pa_GetErrorText(paResult));
-			}
-
-			m_Music.Playing = false;
-		}
-	}
-
-	void AudioDeviceLambda::ToggleMusic()
-	{
-		if (m_Music.pStream == nullptr)
-			return;
-
-		if (m_Music.Playing)
-		{
-			PauseMusic();
-		}
-		else
-		{
-			PlayMusic();
-		}
-	}
-
 	void AudioDeviceLambda::UpdateAudioListener(uint32 index, const AudioListenerDesc* pDesc)
 	{
 		auto it = m_AudioListenerMap.find(index);
@@ -269,6 +156,11 @@ namespace LambdaEngine
 		m_AudioListenerMap[index] = m_AudioListeners.size() - 1;
 
 		return index;
+	}
+
+	IMusic* AudioDeviceLambda::CreateMusic(const MusicDesc* pDesc)
+	{
+		return nullptr;
 	}
 
 	ISoundEffect3D* AudioDeviceLambda::CreateSoundEffect(const SoundEffect3DDesc* pDesc)

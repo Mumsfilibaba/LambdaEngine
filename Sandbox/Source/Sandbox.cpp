@@ -21,6 +21,7 @@
 #include "Audio/API/ISoundInstance3D.h"
 #include "Audio/API/IAudioGeometry.h"
 #include "Audio/API/IReverbSphere.h"
+#include "Audio/API/IMusic.h"
 
 #include "Application/API/IWindow.h"
 
@@ -183,8 +184,12 @@ void Sandbox::InitTestAudio()
 
 	//m_pToneSoundInstance = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
 	//m_pToneSoundInstance->SetVolume(0.5f);
+	MusicDesc musicDesc = {};
+	musicDesc.pFilepath		= "../Assets/Sounds/halo_theme.wav";
+	musicDesc.Volume		= 0.5f;
+	musicDesc.Pitch			= 1.0f;
 
-	AudioSystem::GetDevice()->LoadMusic("../Assets/Sounds/halo_theme.wav");
+	AudioSystem::GetDevice()->CreateMusic(&musicDesc);
 
 	/*m_SpawnPlayAts = false;
 	m_GunshotTimer = 0.0f;

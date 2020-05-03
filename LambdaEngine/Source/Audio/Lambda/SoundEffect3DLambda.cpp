@@ -23,13 +23,19 @@ namespace LambdaEngine
 	{
 		VALIDATE(pDesc);
 
-		if (LoadWavFileFloat(pDesc->pFilepath, &m_pWaveForm, &m_Header) != WAVE_SUCCESS)
+		int32 result = WavLibLoadFileFloat(pDesc->pFilepath, &m_pWaveForm, &m_Header);
+		if (result != WAVE_SUCCESS)
 		{
-			LOG_ERROR("[SoundEffect3DLambda]: Could not load sound effect \"%s\"", pDesc->pFilepath);
+			const char* pError = WavLibGetError(result);
+
+			LOG_ERROR("[SoundEffect3DLambda]: Failed to load file '%s'. Error: %s", pDesc->pFilepath, pError);
 			return false;
 		}
-
-		return true;
+		else
+		{
+			D_LOG_MESSAGE("[SoundEffect3DLambda]: Loaded file '%s'", pDesc->pFilepath);
+			return true;
+		}
 	}
 
 	void SoundEffect3DLambda::PlayOnceAt(const glm::vec3& position, const glm::vec3& velocity, float volume, float pitch)
