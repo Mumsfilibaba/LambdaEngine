@@ -21,6 +21,7 @@
 #include "Audio/API/ISoundInstance3D.h"
 #include "Audio/API/IAudioGeometry.h"
 #include "Audio/API/IReverbSphere.h"
+#include "Audio/API/IMusic.h"
 
 #include "Application/API/IWindow.h"
 
@@ -135,8 +136,6 @@ Sandbox::~Sandbox()
 void Sandbox::InitTestAudio()
 {
 	using namespace LambdaEngine;
-
-	m_AudioListenerIndex = AudioSystem::GetDevice()->CreateAudioListener();
 
 	m_MusicGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/avicii.wav");
 	m_pMusic	= ResourceManager::GetSoundEffect(m_MusicGUID);

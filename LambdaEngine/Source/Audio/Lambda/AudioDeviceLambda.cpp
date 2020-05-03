@@ -69,24 +69,6 @@ namespace LambdaEngine
 		}
 	}
 
-	bool AudioDeviceLambda::LoadMusic(const char* pFilepath)
-	{
-		UNREFERENCED_VARIABLE(pFilepath);
-		return false;
-	}
-
-	void AudioDeviceLambda::PlayMusic()
-	{
-	}
-
-	void AudioDeviceLambda::PauseMusic()
-	{
-	}
-
-	void AudioDeviceLambda::ToggleMusic()
-	{
-	}
-
 	void AudioDeviceLambda::UpdateAudioListener(uint32 index, const AudioListenerDesc* pDesc)
 	{
 		auto it = m_AudioListenerMap.find(index);
@@ -119,7 +101,12 @@ namespace LambdaEngine
 		return index;
 	}
 
-	ISoundEffect3D* AudioDeviceLambda::CreateSoundEffect(const SoundEffect3DDesc* pDesc) const
+	IMusic* AudioDeviceLambda::CreateMusic(const MusicDesc* pDesc)
+	{
+		return nullptr;
+	}
+
+	ISoundEffect3D* AudioDeviceLambda::CreateSoundEffect(const SoundEffect3DDesc* pDesc)
 	{
 		VALIDATE(pDesc != nullptr);
 

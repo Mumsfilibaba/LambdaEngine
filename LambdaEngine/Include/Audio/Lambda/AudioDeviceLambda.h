@@ -21,19 +21,15 @@ namespace LambdaEngine
 		virtual bool Init(const AudioDeviceDesc* pDesc) override final;
 
 		virtual void Tick() override final;
-
-		virtual bool LoadMusic(const char* pFilepath) override final;
-		virtual void PlayMusic() override final;
-		virtual void PauseMusic() override final;
-		virtual void ToggleMusic() override final;
 			 
 		virtual void UpdateAudioListener(uint32 index, const AudioListenerDesc* pDesc) override final;
 
-		virtual uint32				CreateAudioListener()									const override final;
-		virtual ISoundEffect3D*		CreateSoundEffect(const SoundEffect3DDesc* pDesc)		const override final;
-		virtual ISoundInstance3D*	CreateSoundInstance(const SoundInstance3DDesc* pDesc)	const override final;
-		virtual IAudioGeometry*		CreateAudioGeometry(const AudioGeometryDesc* pDesc)		const override final;
-		virtual IReverbSphere*		CreateReverbSphere(const ReverbSphereDesc* pDesc)		const override final;
+		virtual uint32				CreateAudioListener()									override final;
+		virtual IMusic*				CreateMusic(const MusicDesc* pDesc)						override final;
+		virtual ISoundEffect3D*		CreateSoundEffect(const SoundEffect3DDesc* pDesc)		override final;
+		virtual ISoundInstance3D*	CreateSoundInstance(const SoundInstance3DDesc* pDesc)	override final;
+		virtual IAudioGeometry*		CreateAudioGeometry(const AudioGeometryDesc* pDesc)		override final;
+		virtual IReverbSphere*		CreateReverbSphere(const ReverbSphereDesc* pDesc)		override final;
 
 		void DeleteSoundEffect(SoundEffect3DLambda* pSoundEffect) const;
 		void DeleteSoundInstance(SoundInstance3DLambda* pSoundInstance) const;
