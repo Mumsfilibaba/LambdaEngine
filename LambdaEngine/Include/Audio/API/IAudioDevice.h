@@ -1,6 +1,7 @@
 #pragma once
 
 #include "LambdaEngine.h"
+#include "AudioTypes.h"
 #include "Math/Math.h"
 
 namespace LambdaEngine
@@ -26,8 +27,9 @@ namespace LambdaEngine
 	struct AudioDeviceDesc
 	{
 		const char*		pName					= "Audio Device";
-		float32			MasterVolume			= 1.0f;
 		bool			Debug					= true;
+		ESpeakerSetup	SpeakerSetup			= ESpeakerSetup::NONE;
+		float32			MasterVolume			= 1.0f;
 		uint32			MaxNumAudioListeners	= 1;
 		float			MaxWorldSize			= 100.0f;
 	};
@@ -36,6 +38,7 @@ namespace LambdaEngine
 	{
 		glm::vec3	Position					= glm::vec3(0.0f);
 		glm::vec3	Forward						= glm::vec3(1.0f, 0.0f, 0.0f);
+		glm::vec3	Right						= glm::vec3(0.0f, 0.0f, 1.0f);
 		glm::vec3	Up							= glm::vec3(0.0f, 1.0f, 0.0f);
 		float		Volume						= 1.0f;
 		float		AttenuationRollOffFactor	= 1.0f;

@@ -16,8 +16,6 @@ namespace LambdaEngine
 	{
 		m_pAudioDevice->DeleteMusicInstance(this);
 
-		SAFEDELETE_ARRAY(m_pWaveForm);
-
 		PaError result;
 
 		result = Pa_CloseStream(m_pStream);
@@ -25,6 +23,8 @@ namespace LambdaEngine
 		{
 			LOG_ERROR("[MusicLambda]: Could not close PortAudio stream, error: \"%s\"", Pa_GetErrorText(result));
 		}
+
+		SAFEDELETE_ARRAY(m_pWaveForm);
 	}
 
 	bool MusicLambda::Init(const MusicDesc* pDesc)
@@ -33,7 +33,7 @@ namespace LambdaEngine
 
 		WaveFile waveHeader = {};
 
-		int32 result = WavLibLoadFileFloat(pDesc->pFilepath, &m_pWaveForm, &waveHeader);
+		int32 result = WavLibLoadFileFloat(pDesc->pFilepath, &m_pWaveForm, &waveHeader, WAV_LIB_FLAG_NONE);
 		if (result != WAVE_SUCCESS)
 		{
 			const char* pError = WavLibGetError(result);
@@ -42,20 +42,31 @@ namespace LambdaEngine
 			return false;
 		}
 
-		m_CurrentBufferIndex	= 0;
-		m_SampleCount			= waveHeader.SampleCount;
-		m_ChannelCount			= waveHeader.ChannelCount;
-		m_TotalSampleCount		= m_SampleCount * m_ChannelCount;
-
 		PaError paResult;
 
-		paResult = Pa_OpenDefaultStream(
+		m_CurrentBufferIndex	= 0;
+		m_SampleCount			= waveHeader.SampleCount;
+		m_ChannelCount			= waveHeader.ChannelCount; //For Music, open up as many channels as the music has, assume device can support it, Todo: What if device can't?
+		m_TotalSampleCount		= m_SampleCount * m_ChannelCount;
+
+
+		PaStreamParameters outputParameters = {};
+		outputParameters.device						= m_pAudioDevice->GetDeviceIndex();
+		outputParameters.channelCount				= m_ChannelCount;
+		outputParameters.sampleFormat				= paFloat32;
+		outputParameters.suggestedLatency			= m_pAudioDevice->GetDefaultHighOutputLatency();
+		outputParameters.hostApiSpecificStreamInfo	= nullptr;
+
+		PaStreamFlags streamFlags = paNoFlag;
+
+		/* Open an audio I/O stream. */
+		paResult = Pa_OpenStream(
 			&m_pStream,
-			0,
-			m_ChannelCount,
-			paFloat32,
+			nullptr,
+			&outputParameters,
 			waveHeader.SampleRate,
-			paFramesPerBufferUnspecified,	
+			paFramesPerBufferUnspecified,
+			streamFlags,
 			PortAudioCallback,
 			this);
 
@@ -145,9 +156,6 @@ namespace LambdaEngine
 
 	int32 MusicLambda::LocalAudioCallback(float* pOutputBuffer, unsigned long framesPerBuffer)
 	{
-		if (m_pWaveForm == nullptr)
-			return paComplete;
-
 		for (uint32 f = 0; f < framesPerBuffer; f++)
 		{
 			for (uint32 c = 0; c < m_ChannelCount; c++)

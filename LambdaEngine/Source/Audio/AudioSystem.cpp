@@ -12,6 +12,8 @@ namespace LambdaEngine
 		AudioDeviceDesc audioDeviceDesc = {};
 		audioDeviceDesc.pName					= "Main AudioDeviceFMOD";
 		audioDeviceDesc.Debug					= true;
+		audioDeviceDesc.SpeakerSetup			= ESpeakerSetup::STEREO_HEADPHONES;
+		audioDeviceDesc.MasterVolume			= 1.0f;
 		audioDeviceDesc.MaxNumAudioListeners	= 1;
 		audioDeviceDesc.MaxWorldSize			= 200;
 

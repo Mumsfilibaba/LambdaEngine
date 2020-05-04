@@ -4,6 +4,8 @@
 #include "Audio/Lambda/SoundInstance3DLambda.h"
 #include "Audio/Lambda/ManagedSoundInstance3DLambda.h"
 
+#include "Audio/API/AudioHelpers.h"
+
 #include "Engine/EngineLoop.h"
 
 #include "Log/Log.h"
@@ -23,6 +25,10 @@ namespace LambdaEngine
 		for (auto it = m_ManagedInstances.begin(); it != m_ManagedInstances.end(); it++)
 		{
 			ManagedSoundInstance3DLambda* pManagedSoundInstance = it->second;
+
+			while (!pManagedSoundInstance->HasCompleted())
+				LOG_WARNING("[AudioDeviceLambda]: Waiting for Managed Sound Instance to Complete, this is not a good solution...");
+
 			SAFEDELETE(pManagedSoundInstance);
 		}
 		m_ManagedInstances.clear();
@@ -60,6 +66,24 @@ namespace LambdaEngine
 			return false;
 		}
 
+		PaDeviceIndex deviceIndex		= Pa_GetDefaultOutputDevice();
+		const PaDeviceInfo* pDeviceInfo = Pa_GetDeviceInfo(deviceIndex);
+
+		m_SpeakerSetup					= pDesc->SpeakerSetup;
+		int32 outputChannelCount		= ConvertSpeakerSetupToChannelCount(m_SpeakerSetup);
+
+		if (outputChannelCount > pDeviceInfo->maxOutputChannels)
+		{
+			LOG_WARNING("[AudioDeviceLambda]: Speaker Setup requires a higher channel count %u than the default device can handle %u", outputChannelCount, pDeviceInfo->maxOutputChannels);
+			outputChannelCount	= 2;
+			m_SpeakerSetup		= ESpeakerSetup::STEREO_SOUND_SYSTEM;
+		}
+
+		m_DeviceIndex					= deviceIndex;
+		m_OutputChannelCount			= outputChannelCount;
+		m_DefaultLowOutputLatency		= pDeviceInfo->defaultLowOutputLatency;
+		m_DefaultHighOutputLatency		= pDeviceInfo->defaultHighOutputLatency;
+
 		return true;
 	}
 
@@ -71,14 +95,14 @@ namespace LambdaEngine
 		{
 			ManagedSoundInstance3DLambda* pManagedSoundInstance = it->second;
 
-			if (elapsedSinceStart >= it->first)
+			if (elapsedSinceStart >= it->first && pManagedSoundInstance->HasCompleted())
 			{
 				SAFEDELETE(pManagedSoundInstance);
 				it = m_ManagedInstances.erase(it);
 			}
 			else
 			{
-				pManagedSoundInstance->UpdateVolume(m_MasterVolume, m_AudioListeners.data(), m_AudioListeners.size());
+				pManagedSoundInstance->UpdateVolume(m_MasterVolume, m_AudioListeners.data(), m_AudioListeners.size(), m_SpeakerSetup);
 				it++;
 			}
 		}
@@ -112,7 +136,7 @@ namespace LambdaEngine
 		{
 			SoundInstance3DLambda* pSoundInstance = *it;
 
-			pSoundInstance->UpdateVolume(m_MasterVolume, m_AudioListeners.data(), m_AudioListeners.size());
+			pSoundInstance->UpdateVolume(m_MasterVolume, m_AudioListeners.data(), m_AudioListeners.size(), m_SpeakerSetup);
 		}
 	}
 

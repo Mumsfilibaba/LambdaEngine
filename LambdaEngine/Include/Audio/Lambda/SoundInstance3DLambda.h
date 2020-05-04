@@ -31,7 +31,7 @@ namespace LambdaEngine
 		FORCEINLINE virtual float32				GetVolume()		const override final { return m_Volume;		}
 		FORCEINLINE virtual float32				GetPitch()		const override final { return 1.0f;			}
 
-		void UpdateVolume(float masterVolume, const AudioListenerDesc* pAudioListeners, uint32 count);
+		void UpdateVolume(float masterVolume, const AudioListenerDesc* pAudioListeners, uint32 count, ESpeakerSetup speakerSetup);
 
 	private:
 		int32 LocalAudioCallback(float* pOutputBuffer, unsigned long framesPerBuffer);
@@ -57,9 +57,8 @@ namespace LambdaEngine
 		
 		float32*	m_pWaveForm						= nullptr;
 		uint32		m_SampleCount					= 0;
-		uint32		m_CurrentBufferIndex			= 0;
 		uint32		m_ChannelCount					= 0;
-		uint32		m_TotalSampleCount				= 0;
+		uint32		m_CurrentBufferIndex			= 0;
 
 		bool		m_Looping						= false;
 		bool		m_Playing						= false;
@@ -68,6 +67,6 @@ namespace LambdaEngine
 		//Pitch			
 		float32		m_Volume						= 1.0f;
 
-		float32		m_OutputVolume					= 1.0f;
+		float32*	m_pOutputVolumes				= nullptr;
 	};
 }

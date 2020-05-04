@@ -68,7 +68,7 @@ Sandbox::Sandbox()
 	bunnyGameObject.Mesh = bunnyMeshGUID;
 	bunnyGameObject.Material = DEFAULT_MATERIAL;
 
-	m_pScene->AddDynamicGameObject(bunnyGameObject, glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f)));
+	m_pScene->AddDynamicGameObject(bunnyGameObject, glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)));
 
 	uint32 gunMeshGUID = ResourceManager::LoadMeshFromFile("../Assets/Meshes/gun.obj");
 
@@ -329,7 +329,7 @@ void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRep
 	}
 	else if (key == EKey::KEY_KEYPAD_3)
 	{
-		m_pGunSoundEffect->PlayOnceAt(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f), 1.0f);
+		m_pGunSoundEffect->PlayOnceAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), 1.0f);
 	}
 	else if (key == EKey::KEY_KEYPAD_5)
 	{
@@ -515,6 +515,7 @@ void Sandbox::Tick(LambdaEngine::Timestamp delta)
 	AudioListenerDesc listenerDesc = {};
 	listenerDesc.Position		= m_pCamera->GetPosition();
 	listenerDesc.Forward		= m_pCamera->GetForwardVec();
+	listenerDesc.Right			= m_pCamera->GetRightVec();
 	listenerDesc.Up				= m_pCamera->GetUpVec();
 
 	AudioSystem::GetDevice()->UpdateAudioListener(m_AudioListenerIndex, &listenerDesc);

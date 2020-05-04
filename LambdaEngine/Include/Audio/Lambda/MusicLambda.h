@@ -43,19 +43,19 @@ namespace LambdaEngine
 	private:
 		const AudioDeviceLambda* m_pAudioDevice = nullptr;
 
-		PaStream* m_pStream = nullptr;
+		PaStream*	m_pStream					= nullptr;
 
-		float32* m_pWaveForm = nullptr;
-		uint32		m_SampleCount = 0;
-		uint32		m_CurrentBufferIndex = 0;
-		uint32		m_ChannelCount = 0;
-		uint32		m_TotalSampleCount = 0;
+		float32*	m_pWaveForm					= nullptr;
+		uint32		m_SampleCount				= 0;
+		uint32		m_CurrentBufferIndex		= 0;
+		uint32		m_ChannelCount				= 0;
+		uint32		m_TotalSampleCount			= 0;
 
-		bool		m_Playing = false;
+		bool		m_Playing					= false;
 
-		float		m_Volume = 1.0f;
+		float		m_Volume					= 1.0f;
 		//Pitch
 
-		float		m_OutputVolume = 1.0f;
+		float		m_OutputVolume				= 1.0f;
 	};
 }
