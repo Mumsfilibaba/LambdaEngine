@@ -54,9 +54,9 @@ namespace LambdaEngine
 		virtual void SetPosition(const glm::vec3& position) = 0;
 
 		/*
-		* Set the volume of the sound instance in the range [-Inf, Inf]
+		* Set the volume of the sound instance in the range [-1.0, 1.0]
 		*/
-		virtual void SetVolume(float32 volume) = 0;
+		virtual void SetVolume(float64 volume) = 0;
 
 		/*
 		* Set the pitch of the sound instance in the range [-Inf, Inf]
@@ -64,7 +64,7 @@ namespace LambdaEngine
 		virtual void SetPitch(float32 pitch) = 0;
 
 		virtual const glm::vec3& GetPosition()	const = 0;
-		virtual float GetVolume()				const = 0;
-		virtual float GetPitch()				const = 0;
+		virtual float64 GetVolume()				const = 0;
+		virtual float32 GetPitch()				const = 0;
 	};
 }

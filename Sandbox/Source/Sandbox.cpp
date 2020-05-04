@@ -173,8 +173,8 @@ void Sandbox::InitTestAudio()
 
 	m_AudioListenerIndex = AudioSystem::GetDevice()->CreateAudioListener();
 
-	m_ToneSoundEffectGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/noise.wav");
-	m_GunSoundEffectGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/GUN_FIRE-GoodSoundForYou.wav");
+	m_ToneSoundEffectGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/dahlle.wav");
+	m_GunSoundEffectGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/chrille.wav");
 
 	m_pToneSoundEffect	= ResourceManager::GetSoundEffect(m_ToneSoundEffectGUID);
 	m_pGunSoundEffect	= ResourceManager::GetSoundEffect(m_GunSoundEffectGUID);
@@ -183,11 +183,11 @@ void Sandbox::InitTestAudio()
 	soundInstanceDesc.pSoundEffect		= m_pToneSoundEffect;
 	soundInstanceDesc.Flags				= FSoundModeFlags::SOUND_MODE_LOOPING;
 
-	m_pToneSoundInstance = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
-	m_pToneSoundInstance->SetVolume(0.5f);
+	//m_pToneSoundInstance = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
+	//m_pToneSoundInstance->SetVolume(0.5f);
 
 	MusicDesc musicDesc = {};
-	musicDesc.pFilepath		= "../Assets/Sounds/halo_theme.wav";
+	musicDesc.pFilepath		= "../Assets/Sounds/avicii.wav";
 	musicDesc.Volume		= 0.5f;
 	musicDesc.Pitch			= 1.0f;
 
@@ -334,6 +334,12 @@ void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRep
 	else if (key == EKey::KEY_KEYPAD_3)
 	{
 		m_pGunSoundEffect->PlayOnceAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), 1.0f);
+	}
+	else if (key == EKey::KEY_KEYPAD_4)
+	{
+		float32 masterVolume = AudioSystem::GetDevice()->GetMasterVolume();
+		AudioSystem::GetDevice()->SetMasterVolume(masterVolume + 0.1f);
+		LOG_WARNING("Master Volume: %f", masterVolume);
 	}
 	else if (key == EKey::KEY_KEYPAD_5)
 	{

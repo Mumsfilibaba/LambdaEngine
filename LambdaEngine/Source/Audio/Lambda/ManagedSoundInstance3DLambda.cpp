@@ -32,7 +32,7 @@ namespace LambdaEngine
 		return true;
 	}
 
-	void ManagedSoundInstance3DLambda::UpdateVolume(float masterVolume, const AudioListenerDesc* pAudioListeners, uint32 audioListenerCount, ESpeakerSetup speakerSetup)
+	void ManagedSoundInstance3DLambda::UpdateVolume(float64 masterVolume, const AudioListenerDesc* pAudioListeners, uint32 audioListenerCount, ESpeakerSetup speakerSetup)
 	{
 		//Todo: How to deal with multiple listeners?
 
@@ -42,7 +42,7 @@ namespace LambdaEngine
 			return;
 		}
 
-		float32 localVolume = masterVolume * m_Volume;
+		float64 localVolume = masterVolume * m_Volume;
 
 		for (uint32 i = 0; i < audioListenerCount; i++)
 		{

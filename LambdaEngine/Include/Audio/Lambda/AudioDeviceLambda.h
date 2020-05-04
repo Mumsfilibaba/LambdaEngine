@@ -37,9 +37,9 @@ namespace LambdaEngine
 		virtual IAudioGeometry*		CreateAudioGeometry(const AudioGeometryDesc* pDesc)		override final;
 		virtual IReverbSphere*		CreateReverbSphere(const ReverbSphereDesc* pDesc)		override final;
 
-		virtual void SetMasterVolume(float volume) override final;
+		virtual void SetMasterVolume(float64 volume) override final;
 
-		FORCEINLINE virtual float GetMasterVolume() const override final { return m_MasterVolume; }
+		FORCEINLINE virtual float64 GetMasterVolume() const override final { return m_MasterVolume; }
 
 		void AddManagedSoundInstance(const ManagedSoundInstance3DDesc* pDesc) const;
 
@@ -90,7 +90,7 @@ namespace LambdaEngine
 		uint32			m_WaveFormReadIndex			= 0;
 
 		//Settings
-		float32			m_MasterVolume				= 1.0f;
+		float64			m_MasterVolume				= 1.0;
 
 		uint32			m_MaxNumAudioListeners		= 0;
 		uint32			m_NumAudioListeners			= 0;

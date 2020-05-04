@@ -25,12 +25,12 @@ namespace LambdaEngine
 		virtual void Toggle() override final;
 		
 		virtual void SetPosition(const glm::vec3& position) override final;
-		virtual void SetVolume(float volume) override final;
-		virtual void SetPitch(float pitch) override final;
+		virtual void SetVolume(float64 volume) override final;
+		virtual void SetPitch(float32 pitch) override final;
 		
 		virtual const glm::vec3& GetPosition()	const override final;
-		virtual float GetVolume()				const override final;
-		virtual float GetPitch()				const override final;
+		virtual float64 GetVolume()				const override final;
+		virtual float32 GetPitch()				const override final;
 		
 	private:
 		bool IsPlaying();
@@ -48,7 +48,7 @@ namespace LambdaEngine
 		//Local
 		const char*			m_pName;
 		glm::vec3			m_Position;
-		float				m_Volume;
-		float				m_Pitch;
+		float64				m_Volume;
+		float32				m_Pitch;
 	};
 }

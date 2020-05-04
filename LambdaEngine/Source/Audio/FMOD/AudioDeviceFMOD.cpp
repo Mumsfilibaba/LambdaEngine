@@ -202,12 +202,13 @@ namespace LambdaEngine
 		}
 	}
 
-	void AudioDeviceFMOD::SetMasterVolume(float volume)
+	void AudioDeviceFMOD::SetMasterVolume(float64 volume)
 	{
+		UNREFERENCED_VARIABLE(volume);
 		LOG_WARNING("[AudioDeviceFMOD]: SetMasterVolume called but not implemented!");
 	}
 
-	float AudioDeviceFMOD::GetMasterVolume() const
+	float64 AudioDeviceFMOD::GetMasterVolume() const
 	{
 		LOG_WARNING("[AudioDeviceFMOD]: GetMasterVolume called but not implemented!");
 		return 0;

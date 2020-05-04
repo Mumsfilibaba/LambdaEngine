@@ -37,7 +37,7 @@ namespace LambdaEngine
 		return true;
 	}
 
-	void SoundEffect3DLambda::PlayOnceAt(const glm::vec3& position, const glm::vec3& velocity, float volume, float pitch)
+	void SoundEffect3DLambda::PlayOnceAt(const glm::vec3& position, const glm::vec3& velocity, float64 volume, float pitch)
 	{
 		UNREFERENCED_VARIABLE(velocity);
 

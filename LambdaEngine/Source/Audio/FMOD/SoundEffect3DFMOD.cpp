@@ -45,7 +45,7 @@ namespace LambdaEngine
 		return true;
 	}
 
-	void SoundEffect3DFMOD::PlayOnceAt(const glm::vec3& position, const glm::vec3& velocity, float volume, float pitch)
+	void SoundEffect3DFMOD::PlayOnceAt(const glm::vec3& position, const glm::vec3& velocity, float64 volume, float pitch)
 	{
 		FMOD_CHANNEL* pChannel = nullptr;
 		FMOD_VECTOR fmodPosition = { position.x, position.y, position.z };

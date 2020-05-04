@@ -21,11 +21,11 @@ namespace LambdaEngine
 		virtual void Pause()	override final;
 		virtual void Toggle()	override final;
 
-		virtual void SetVolume(float volume)				override final;
-		virtual void SetPitch(float pitch)					override final;
+		virtual void SetVolume(float64 volume)				override final;
+		virtual void SetPitch(float32 pitch)					override final;
 
-		FORCEINLINE virtual float	GetVolume()		const override final	{ return m_Volume;	}
-		FORCEINLINE virtual float	GetPitch()		const override final	{ return 1.0f;		}	
+		FORCEINLINE virtual float64	GetVolume()		const override final	{ return m_Volume;	}
+		FORCEINLINE virtual float32	GetPitch()		const override final	{ return 1.0f;		}	
 
 		void Resample();
 		void AddToBuffer(double** ppOutputChannels, uint32 channelCount, uint32 sampleCount);
@@ -47,9 +47,7 @@ namespace LambdaEngine
 
 		bool		m_Playing					= false;
 
-		float		m_Volume					= 1.0f;
+		float64		m_Volume					= 1.0;
 		//Pitch
-
-		float		m_OutputVolume				= 1.0f;
 	};
 }

@@ -8,7 +8,7 @@ namespace LambdaEngine
 	struct MusicDesc
 	{
 		const char*		pFilepath		= "";
-		float32			Volume			= 1.0f;
+		float64			Volume			= 1.0f;
 		float32			Pitch			= 1.0f;
 	};
 
@@ -40,17 +40,17 @@ namespace LambdaEngine
 		virtual void Toggle() = 0;
 
 		/*
-		* Set the volume of the music in the range [-Inf, Inf]
+		* Set the volume of the music in the range [-1.0, 1.0]
 		*/
-		virtual void SetVolume(float volume) = 0;
+		virtual void SetVolume(float64 volume) = 0;
 
 		/*
 		* Set the pitch of the music in the range [-Inf, Inf]
 		*/
-		virtual void SetPitch(float pitch) = 0;
+		virtual void SetPitch(float32 pitch) = 0;
 
-		virtual float GetVolume()				const = 0;
-		virtual float GetPitch()				const = 0;
+		virtual float64 GetVolume()				const = 0;
+		virtual float32 GetPitch()				const = 0;
 
 	};
 }

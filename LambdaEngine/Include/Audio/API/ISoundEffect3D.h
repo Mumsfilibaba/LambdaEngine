@@ -26,10 +26,10 @@ namespace LambdaEngine
 		* Play and forget, plays a single sound instance using this sound with the given properties
 		*	position - The world space position, should be given in meters 
 		*	velocity - The velocity that the sound instance is travelling at when emitted
-		*	volume - The volume that the sound should be played at in the range [-Inf, Inf]
+		*	volume - The volume that the sound should be played at in the range [-1.0, 1.0]
 		*	pitch - The pitch that the sound should be played at in the range [-Inf, Inf]
 		*/
-		virtual void PlayOnceAt(const glm::vec3& position, const glm::vec3& velocity = glm::vec3(0.0f), float volume = 1.0f, float pitch = 1.0f) = 0;
+		virtual void PlayOnceAt(const glm::vec3& position, const glm::vec3& velocity = glm::vec3(0.0f), float64 volume = 1.0f, float pitch = 1.0f) = 0;
 
 		/*
 		* Returns the duration of the sound effect in seconds

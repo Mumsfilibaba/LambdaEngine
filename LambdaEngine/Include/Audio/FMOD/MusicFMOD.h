@@ -20,10 +20,10 @@ namespace LambdaEngine
 		virtual void Pause() override final;
 		virtual void Toggle() override final;
 		
-		virtual void SetVolume(float volume)	override final;
+		virtual void SetVolume(float64 volume)	override final;
 		virtual void SetPitch(float pitch)		override final;
 		
-		FORCEINLINE virtual float GetVolume()	const override final { return m_Volume; }
+		FORCEINLINE virtual float64 GetVolume()	const override final { return m_Volume; }
 		FORCEINLINE virtual float GetPitch()	const override final { return m_Pitch; }
 
 		FORCEINLINE FMOD_SOUND* GetHandle() { return m_pHandle; }
@@ -39,7 +39,7 @@ namespace LambdaEngine
 
 		//Local
 		const char*		m_pName					= "";
-		float			m_Volume				= 1.0f;
+		float64			m_Volume				= 1.0;
 		float			m_Pitch					= 1.0f;
 	};
 }

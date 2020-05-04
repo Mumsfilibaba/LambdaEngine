@@ -92,7 +92,7 @@ namespace LambdaEngine
 		}
 	}
 
-	void SoundInstance3DFMOD::SetVolume(float volume)
+	void SoundInstance3DFMOD::SetVolume(float64 volume)
 	{
 		m_Volume = volume;
 
@@ -105,7 +105,7 @@ namespace LambdaEngine
 		}
 	}
 
-	void SoundInstance3DFMOD::SetPitch(float pitch)
+	void SoundInstance3DFMOD::SetPitch(float32 pitch)
 	{
 		m_Pitch = pitch;
 
@@ -123,12 +123,12 @@ namespace LambdaEngine
 		return m_Position;
 	}
 
-	float SoundInstance3DFMOD::GetVolume() const
+	float64 SoundInstance3DFMOD::GetVolume() const
 	{
 		return m_Volume;
 	}
 
-	float SoundInstance3DFMOD::GetPitch() const
+	float32 SoundInstance3DFMOD::GetPitch() const
 	{
 		return m_Pitch;
 	}

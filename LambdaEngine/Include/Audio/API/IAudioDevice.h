@@ -30,7 +30,7 @@ namespace LambdaEngine
 		const char*		pName					= "Audio Device";
 		bool			Debug					= true;
 		ESpeakerSetup	SpeakerSetup			= ESpeakerSetup::NONE;
-		float32			MasterVolume			= 1.0f;
+		float64			MasterVolume			= 1.0f;
 		uint32			MaxNumAudioListeners	= 1;
 		float			MaxWorldSize			= 100.0f;
 	};
@@ -41,7 +41,7 @@ namespace LambdaEngine
 		glm::vec3	Forward						= glm::vec3(1.0f, 0.0f, 0.0f);
 		glm::vec3	Right						= glm::vec3(0.0f, 0.0f, 1.0f);
 		glm::vec3	Up							= glm::vec3(0.0f, 1.0f, 0.0f);
-		float		Volume						= 1.0f;
+		float64		Volume						= 1.0f;
 		float		AttenuationRollOffFactor	= 1.0f;
 		float		AttenuationStartDistance	= 1.0f;
 	};
@@ -72,9 +72,9 @@ namespace LambdaEngine
 		virtual IAudioGeometry*		CreateAudioGeometry(const AudioGeometryDesc* pDesc)		= 0;
 		virtual IReverbSphere*		CreateReverbSphere(const ReverbSphereDesc* pDesc)		= 0;
 
-		virtual void SetMasterVolume(float volume) = 0;
+		virtual void SetMasterVolume(float64 volume) = 0;
 
-		virtual float GetMasterVolume() const = 0;
+		virtual float64 GetMasterVolume() const = 0;
 	};
 
 	LAMBDA_API IAudioDevice* CreateAudioDevice(EAudioAPI api, const AudioDeviceDesc& desc);

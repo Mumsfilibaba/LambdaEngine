@@ -65,6 +65,7 @@ namespace LambdaEngine
 		VALIDATE(pDesc);
 
 		m_pName = pDesc->pName;
+		m_MasterVolume = glm::clamp(pDesc->MasterVolume, -1.0, 1.0);
 		m_MaxNumAudioListeners = pDesc->MaxNumAudioListeners;
 
 		if (pDesc->MaxNumAudioListeners > 1)
@@ -280,9 +281,9 @@ namespace LambdaEngine
 		return nullptr;
 	}
 
-	void AudioDeviceLambda::SetMasterVolume(float volume)
+	void AudioDeviceLambda::SetMasterVolume(float64 volume)
 	{
-		m_MasterVolume = volume;
+		m_MasterVolume = glm::clamp(volume, -1.0, 1.0);
 	}
 
 	void AudioDeviceLambda::AddManagedSoundInstance(const ManagedSoundInstance3DDesc* pDesc) const

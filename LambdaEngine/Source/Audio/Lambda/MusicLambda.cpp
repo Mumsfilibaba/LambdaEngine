@@ -42,10 +42,9 @@ namespace LambdaEngine
 			return false;
 		}
 
+		m_Volume = glm::clamp(pDesc->Volume, -1.0, 1.0);
 		m_CurrentWaveFormIndex	= 0;
-
 		m_Playing = true;
-		m_Volume = 1.0f;
 
 		return true;
 	}
@@ -72,12 +71,12 @@ namespace LambdaEngine
 		}
 	}
 
-	void MusicLambda::SetVolume(float volume)
+	void MusicLambda::SetVolume(float64 volume)
 	{
-		m_Volume = volume;
+		m_Volume = glm::clamp(volume, -1.0, 1.0);
 	}
 
-	void MusicLambda::SetPitch(float pitch)
+	void MusicLambda::SetPitch(float32 pitch)
 	{
 		UNREFERENCED_VARIABLE(pitch);
 	}

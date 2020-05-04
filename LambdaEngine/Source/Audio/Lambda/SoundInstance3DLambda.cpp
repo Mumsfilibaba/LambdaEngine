@@ -74,9 +74,9 @@ namespace LambdaEngine
 		m_Position = position;
 	}
 
-	void SoundInstance3DLambda::SetVolume(float32 volume)
+	void SoundInstance3DLambda::SetVolume(float64 volume)
 	{
-		m_Volume = volume;
+		m_Volume = glm::clamp(volume, -1.0, 1.0);
 	}
 
 	void SoundInstance3DLambda::SetPitch(float32 pitch)

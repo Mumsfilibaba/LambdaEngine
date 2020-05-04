@@ -61,7 +61,7 @@ namespace LambdaEngine
 		FMOD_Channel_SetPaused(m_pChannel, (paused ^ 0x1));
 	}
 
-	void MusicFMOD::SetVolume(float volume)
+	void MusicFMOD::SetVolume(float64 volume)
 	{
 		m_Volume = volume;
 
