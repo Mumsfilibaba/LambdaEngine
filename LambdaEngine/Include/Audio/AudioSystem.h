@@ -12,7 +12,7 @@ namespace LambdaEngine
 		static bool Init();
 		static bool Release();
 
-		static void Tick();
+		static void FixedTick(Timestamp delta);
 
 		FORCEINLINE static IAudioDevice* GetDevice()
 		{

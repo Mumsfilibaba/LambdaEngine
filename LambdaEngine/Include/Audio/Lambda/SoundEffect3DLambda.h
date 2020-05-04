@@ -19,15 +19,22 @@ namespace LambdaEngine
 
 		FORCEINLINE virtual float64 GetDuration() override final { return (float64)m_Header.Duration; }
 
-		FORCEINLINE const float32* GetWaveform()	const { return m_pWaveForm; }
-		FORCEINLINE uint32 GetSampleCount()			const { return m_Header.SampleCount; }
-		FORCEINLINE uint32 GetSampleRate()			const { return m_Header.SampleRate; }
-		FORCEINLINE uint32 GetChannelCount()		const { return m_Header.ChannelCount; }
+		void Resample();
+
+		FORCEINLINE const float64* GetWaveform()		const { return m_pResampledWaveForm; }
+
+		FORCEINLINE uint32 GetResampledSampleCount()	const { return m_ResampledSampleCount; }
+
+		FORCEINLINE uint32 GetSrcSampleCount()			const { return m_Header.SampleCount; }
+		FORCEINLINE uint32 GetSrcSampleRate()			const { return m_Header.SampleRate; }
+		FORCEINLINE uint32 GetSrcChannelCount()			const { return m_Header.ChannelCount; }
 		
 	private:		
 		const AudioDeviceLambda* m_pAudioDevice;
 
-		float32* m_pWaveForm;
-		WaveFile m_Header;
+		float64*	m_pSrcWaveForm				= nullptr;
+		float64*	m_pResampledWaveForm		= nullptr;
+		uint32		m_ResampledSampleCount		= 0;
+		WaveFile	m_Header;
 	};
 }

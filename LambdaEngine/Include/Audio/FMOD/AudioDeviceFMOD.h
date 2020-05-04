@@ -18,7 +18,7 @@ namespace LambdaEngine
 
 		virtual bool Init(const AudioDeviceDesc* pDesc) override final;
 
-		virtual void Tick() override final;
+		virtual void FixedTick(Timestamp delta) override final;
 
 		virtual void UpdateAudioListener(uint32 index, const AudioListenerDesc* pDesc) override final;
 

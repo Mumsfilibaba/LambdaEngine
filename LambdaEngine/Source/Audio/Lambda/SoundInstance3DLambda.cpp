@@ -15,15 +15,6 @@ namespace LambdaEngine
 	{
 		m_pAudioDevice->DeleteSoundInstance(this);
 	
-		PaError result;
-
-		result = Pa_CloseStream(m_pStream);
-		if (result != paNoError)
-		{
-			LOG_ERROR("[SoundInstance3DLambda]: Could not close PortAudio stream, error: \"%s\"", Pa_GetErrorText(result));
-		}
-
-		SAFEDELETE_ARRAY(m_pWaveForm);
 		SAFEDELETE_ARRAY(m_pOutputVolumes);
 	}
 
@@ -33,48 +24,12 @@ namespace LambdaEngine
 
 		const SoundEffect3DLambda* pSoundEffect = reinterpret_cast<const SoundEffect3DLambda*>(pDesc->pSoundEffect);
 
-		m_CurrentBufferIndex	= 0;
-		m_SampleCount			= pSoundEffect->GetSampleCount();
+		m_pSoundEffect			= pSoundEffect;
+		m_CurrentWaveFormIndex	= 0;
+		m_SampleCount			= pSoundEffect->GetResampledSampleCount();
 		m_ChannelCount			= m_pAudioDevice->GetOutputChannelCount(); //For 3D Sounds, open up max Output Channels, assume WaveForm is mono
-		m_pWaveForm				= DBG_NEW float32[m_SampleCount];
-		memcpy(m_pWaveForm, pSoundEffect->GetWaveform(), sizeof(float32) * m_SampleCount);
-
-		m_pOutputVolumes		= DBG_NEW float32[m_ChannelCount];
-
-		PaError paResult;
-
-		PaStreamParameters outputParameters = {};
-		outputParameters.device						= m_pAudioDevice->GetDeviceIndex();
-		outputParameters.channelCount				= m_ChannelCount;
-		outputParameters.sampleFormat				= paFloat32;
-		outputParameters.suggestedLatency			= m_pAudioDevice->GetDefaultLowOutputLatency();
-		outputParameters.hostApiSpecificStreamInfo	= nullptr;
-
-		PaStreamFlags streamFlags = paNoFlag;
-
-		/* Open an audio I/O stream. */
-		paResult = Pa_OpenStream(
-			&m_pStream,
-			nullptr,
-			&outputParameters,
-			pSoundEffect->GetSampleRate(),
-			paFramesPerBufferUnspecified,
-			streamFlags,
-			PortAudioCallback,
-			this);
-
-		if (paResult != paNoError)
-		{
-			LOG_ERROR("[SoundInstance3DLambda]: Could not open PortAudio stream, error: \"%s\"", Pa_GetErrorText(paResult));
-			return false;
-		}
-
-		paResult = Pa_StartStream(m_pStream);
-		if (paResult != paNoError)
-		{
-			LOG_ERROR("[SoundInstance3DLambda]: Could not start PortAudio stream, error: \"%s\"", Pa_GetErrorText(paResult));
-			return false;
-		}
+		
+		m_pOutputVolumes		= DBG_NEW float64[m_ChannelCount];
 
 		if (pDesc->Flags & FSoundModeFlags::SOUND_MODE_LOOPING)
 		{
@@ -88,64 +43,22 @@ namespace LambdaEngine
 
 	void SoundInstance3DLambda::Play()
 	{
-		if (m_pStream == nullptr)
-			return;
-
-		if (!m_Playing)
-		{
-			PaError paResult;
-			paResult = Pa_StartStream(m_pStream);
-			if (paResult != paNoError)
-			{
-				LOG_ERROR("[SoundInstance3DLambda]: Could not start PortAudio stream, error: \"%s\"", Pa_GetErrorText(paResult));
-			}
-
-			m_Playing = true;
-		}
+		m_Playing = true;
 	}
 
 	void SoundInstance3DLambda::Pause()
 	{
-		if (m_pStream == nullptr)
-			return;
-
-		if (m_Playing)
-		{
-			PaError paResult;
-			paResult = Pa_StopStream(m_pStream);
-			if (paResult != paNoError)
-			{
-				LOG_ERROR("[SoundInstance3DLambda]: Could not pause PortAudio stream, error: \"%s\"", Pa_GetErrorText(paResult));
-			}
-
-			m_Playing = false;
-		}
+		m_Playing = false;
 	}
 
 	void SoundInstance3DLambda::Stop()
 	{
-		if (m_pStream == nullptr)
-			return;
-
-		if (m_Playing)
-		{
-			PaError paResult;
-			paResult = Pa_StopStream(m_pStream);
-			if (paResult != paNoError)
-			{
-				LOG_ERROR("[SoundInstance3DLambda]: Could not stop PortAudio stream, error: \"%s\"", Pa_GetErrorText(paResult));
-			}
-
-			m_Playing = false;
-			m_CurrentBufferIndex = 0;
-		}
+		m_Playing = false;
+		m_CurrentWaveFormIndex = 0;
 	}
 
 	void SoundInstance3DLambda::Toggle()
 	{
-		if (m_pStream == nullptr)
-			return;
-
 		if (m_Playing)
 		{
 			Pause();
@@ -200,7 +113,7 @@ namespace LambdaEngine
 			float32 theta					= soundAngle - rightAngle;
 
 			float32 attenuation				= pAudioListener->AttenuationStartDistance / (pAudioListener->AttenuationStartDistance + pAudioListener->AttenuationRollOffFactor * (clampedDistance - pAudioListener->AttenuationStartDistance));
-			float32 globalVolume			= attenuation * pAudioListener->Volume * localVolume;
+			float64 globalVolume			= (float64)attenuation * pAudioListener->Volume * localVolume;
 
 			switch (speakerSetup)
 			{
@@ -209,10 +122,10 @@ namespace LambdaEngine
 					float leftSpeakerAngle	= 3.0f * glm::quarter_pi<float>();
 					float rightSpeakerAngle = glm::quarter_pi<float>();
 
-					float panning = (theta - leftSpeakerAngle) / (rightSpeakerAngle - leftSpeakerAngle);
+					float64 panning = (float64)(theta - rightSpeakerAngle) / (leftSpeakerAngle - rightSpeakerAngle);
 
-					m_pOutputVolumes[0] = globalVolume * glm::abs(sin(glm::half_pi<float>() * panning));
-					m_pOutputVolumes[1] = globalVolume * glm::abs(cos(glm::half_pi<float>() * panning));
+					m_pOutputVolumes[0] = globalVolume * glm::abs(sin(glm::half_pi<double>() * panning));
+					m_pOutputVolumes[1] = globalVolume * glm::abs(cos(glm::half_pi<double>() * panning));
 
 					break;
 				}
@@ -221,10 +134,10 @@ namespace LambdaEngine
 					float leftSpeakerAngle = glm::pi<float>();
 					float rightSpeakerAngle = 0.0f;
 
-					float panning = (theta - rightSpeakerAngle) / (leftSpeakerAngle - rightSpeakerAngle);
+					float64 panning = (float64)(theta - rightSpeakerAngle) / (leftSpeakerAngle - rightSpeakerAngle);
 
-					m_pOutputVolumes[0] = globalVolume * glm::abs(sin(glm::half_pi<float>() * panning));
-					m_pOutputVolumes[1] = globalVolume * glm::abs(cos(glm::half_pi<float>() * panning));
+					m_pOutputVolumes[0] = globalVolume * glm::abs(sin(glm::half_pi<double>() * panning));
+					m_pOutputVolumes[1] = globalVolume * glm::abs(cos(glm::half_pi<double>() * panning));
 
 					break;
 				}
@@ -236,7 +149,7 @@ namespace LambdaEngine
 
 					for (uint32 c = 0; c < m_ChannelCount; c++)
 					{
-						m_pOutputVolumes[c] = globalVolume;
+						m_pOutputVolumes[c] = (float64)globalVolume;
 					}
 
 					break;
@@ -245,42 +158,32 @@ namespace LambdaEngine
 		}
 	}
 
-	int32 SoundInstance3DLambda::LocalAudioCallback(float* pOutputBuffer, unsigned long framesPerBuffer)
+	void SoundInstance3DLambda::AddToBuffer(double** ppOutputChannels, uint32 channelCount, uint32 outputSampleCount)
 	{
-		for (uint32 f = 0; f < framesPerBuffer; f++)
+		if (m_Playing)
 		{
-			float sample = m_pWaveForm[m_CurrentBufferIndex++];
+			const float64* pResampledWaveForm = m_pSoundEffect->GetWaveform();
 
-			for (uint32 c = 0; c < m_ChannelCount; c++)
+			for (uint32 s = 0; s < outputSampleCount; s++)
 			{
-				(*(pOutputBuffer++)) = m_pOutputVolumes[c] * sample;
-			}
-
-			if (m_CurrentBufferIndex == m_SampleCount)
-			{
-				m_CurrentBufferIndex = 0;
-
-				if (!m_Looping)
+				for (uint32 c = 0; c < channelCount; c++)
 				{
-					m_Playing = false;
-					return paComplete;
+					double* pOutputChannel = ppOutputChannels[c];
+					pOutputChannel[s] += m_pOutputVolumes[c] * pResampledWaveForm[m_CurrentWaveFormIndex];
+				}
+
+				m_CurrentWaveFormIndex++;
+				if (m_CurrentWaveFormIndex == m_SampleCount)
+				{
+					m_CurrentWaveFormIndex = 0;
+					
+					if (!m_Looping)
+					{
+						m_Playing = false;
+						return;
+					}
 				}
 			}
 		}
-
-		return paNoError;
-	}
-
-
-	int32 SoundInstance3DLambda::PortAudioCallback(const void* pInputBuffer, void* pOutputBuffer, unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* pTimeInfo, PaStreamCallbackFlags statusFlags, void* pUserData)
-	{
-		UNREFERENCED_VARIABLE(pInputBuffer);
-		UNREFERENCED_VARIABLE(pTimeInfo);
-		UNREFERENCED_VARIABLE(statusFlags);
-
-		SoundInstance3DLambda* pInstance = reinterpret_cast<SoundInstance3DLambda*>(pUserData);
-		VALIDATE(pInstance != nullptr);
-
-		return pInstance->LocalAudioCallback(reinterpret_cast<float32*>(pOutputBuffer), framesPerBuffer);
 	}
 }

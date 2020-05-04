@@ -2,6 +2,7 @@
 
 #include "LambdaEngine.h"
 #include "AudioTypes.h"
+#include "Time/API/Timestamp.h"
 #include "Math/Math.h"
 
 namespace LambdaEngine
@@ -60,7 +61,7 @@ namespace LambdaEngine
 		/*
 		* Tick the audio device
 		*/
-		virtual void Tick() = 0;
+		virtual void FixedTick(Timestamp delta) = 0;
 
 		virtual void UpdateAudioListener(uint32 index, const AudioListenerDesc* pDesc) = 0;
 

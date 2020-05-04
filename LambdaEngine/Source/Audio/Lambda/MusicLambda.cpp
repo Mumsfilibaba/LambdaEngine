@@ -1,5 +1,6 @@
 #include "Audio/Lambda/MusicLambda.h"
 #include "Audio/Lambda/AudioDeviceLambda.h"
+#include "Audio/Lambda/LambdaAudio.h"
 
 #include "Log/Log.h"
 
@@ -16,24 +17,23 @@ namespace LambdaEngine
 	{
 		m_pAudioDevice->DeleteMusicInstance(this);
 
-		PaError result;
+		SAFEDELETE_ARRAY(m_pSrcWaveForm);
 
-		result = Pa_CloseStream(m_pStream);
-		if (result != paNoError)
+		for (uint32 c = 0; c < m_Header.ChannelCount; c++)
 		{
-			LOG_ERROR("[MusicLambda]: Could not close PortAudio stream, error: \"%s\"", Pa_GetErrorText(result));
+			SAFEDELETE_ARRAY(m_pResampledWaveForms[c]);
 		}
 
-		SAFEDELETE_ARRAY(m_pWaveForm);
+		SAFEDELETE_ARRAY(m_pResampledWaveForms);
 	}
 
 	bool MusicLambda::Init(const MusicDesc* pDesc)
 	{
 		VALIDATE(pDesc);
 
-		WaveFile waveHeader = {};
+		uint32 waveFlags = WAV_LIB_FLAG_MONO;
 
-		int32 result = WavLibLoadFileFloat(pDesc->pFilepath, &m_pWaveForm, &waveHeader, WAV_LIB_FLAG_NONE);
+		int32 result = WavLibLoadFileFloat64(pDesc->pFilepath, &m_pSrcWaveForm, &m_Header, waveFlags);
 		if (result != WAVE_SUCCESS)
 		{
 			const char* pError = WavLibGetError(result);
@@ -42,93 +42,26 @@ namespace LambdaEngine
 			return false;
 		}
 
-		PaError paResult;
-
-		m_CurrentBufferIndex	= 0;
-		m_SampleCount			= waveHeader.SampleCount;
-		m_ChannelCount			= waveHeader.ChannelCount; //For Music, open up as many channels as the music has, assume device can support it, Todo: What if device can't?
-		m_TotalSampleCount		= m_SampleCount * m_ChannelCount;
-
-
-		PaStreamParameters outputParameters = {};
-		outputParameters.device						= m_pAudioDevice->GetDeviceIndex();
-		outputParameters.channelCount				= m_ChannelCount;
-		outputParameters.sampleFormat				= paFloat32;
-		outputParameters.suggestedLatency			= m_pAudioDevice->GetDefaultHighOutputLatency();
-		outputParameters.hostApiSpecificStreamInfo	= nullptr;
-
-		PaStreamFlags streamFlags = paNoFlag;
-
-		/* Open an audio I/O stream. */
-		paResult = Pa_OpenStream(
-			&m_pStream,
-			nullptr,
-			&outputParameters,
-			waveHeader.SampleRate,
-			paFramesPerBufferUnspecified,
-			streamFlags,
-			PortAudioCallback,
-			this);
-
-		if (paResult != paNoError)
-		{
-			LOG_ERROR("[MusicLambda]: Could not open PortAudio stream, error: \"%s\"", Pa_GetErrorText(result));
-			return false;
-		}
-
-		paResult = Pa_StartStream(m_pStream);
-		if (paResult != paNoError)
-		{
-			LOG_ERROR("[MusicLambda]: Could not start PortAudio stream, error: \"%s\"", Pa_GetErrorText(result));
-			return false;
-		}
+		m_CurrentWaveFormIndex	= 0;
 
 		m_Playing = true;
+		m_Volume = 1.0f;
 
 		return true;
 	}
 
 	void MusicLambda::Play()
 	{
-		if (m_pStream == nullptr)
-			return;
-
-		if (!m_Playing)
-		{
-			PaError paResult;
-			paResult = Pa_StartStream(m_pStream);
-			if (paResult != paNoError)
-			{
-				LOG_ERROR("[SoundInstance3DLambda]: Could not start PortAudio stream, error: \"%s\"", Pa_GetErrorText(paResult));
-			}
-
-			m_Playing = true;
-		}
+		m_Playing = true;
 	}
 
 	void MusicLambda::Pause()
 	{
-		if (m_pStream == nullptr)
-			return;
-
-		if (m_Playing)
-		{
-			PaError paResult;
-			paResult = Pa_StopStream(m_pStream);
-			if (paResult != paNoError)
-			{
-				LOG_ERROR("[SoundInstance3DLambda]: Could not pause PortAudio stream, error: \"%s\"", Pa_GetErrorText(paResult));
-			}
-
-			m_Playing = false;
-		}
+		m_Playing = false;
 	}
 
 	void MusicLambda::Toggle()
 	{
-		if (m_pStream == nullptr)
-			return;
-
 		if (m_Playing)
 		{
 			Pause();
@@ -149,37 +82,50 @@ namespace LambdaEngine
 		UNREFERENCED_VARIABLE(pitch);
 	}
 
-	void MusicLambda::UpdateVolume(float masterVolume)
+	void MusicLambda::Resample()
 	{
-		m_OutputVolume = masterVolume * m_Volume;
-	}
+		r8b::CDSPResampler* pResampler = m_pAudioDevice->GetResampler(m_Header.SampleRate);
 
-	int32 MusicLambda::LocalAudioCallback(float* pOutputBuffer, unsigned long framesPerBuffer)
-	{
-		for (uint32 f = 0; f < framesPerBuffer; f++)
+		float64* pChannelWaveForm = DBG_NEW float64[m_Header.SampleCount];
+
+		m_pResampledWaveForms = DBG_NEW float64* [m_Header.ChannelCount];
+
+		m_ResampledSampleCount = (uint32)glm::ceil(m_Header.SampleCount * (float)m_pAudioDevice->GetSampleRate() / (float)m_Header.SampleRate);
+
+		for (uint32 c = 0; c < m_Header.ChannelCount; c++)
 		{
-			for (uint32 c = 0; c < m_ChannelCount; c++)
+			for (uint32 s = 0; s < m_Header.SampleCount; s++)
 			{
-				float sample = m_pWaveForm[m_CurrentBufferIndex++];
-				(*(pOutputBuffer++)) = m_OutputVolume * sample;
+				pChannelWaveForm[s] = m_pSrcWaveForm[c + s * m_Header.ChannelCount];
 			}
 
-			if (m_CurrentBufferIndex == m_TotalSampleCount)
-				m_CurrentBufferIndex = 0;
+			float64* pResampledWaveForm = DBG_NEW float64[m_ResampledSampleCount];
+			pResampler->oneshot(pChannelWaveForm, m_Header.SampleCount, pResampledWaveForm, m_ResampledSampleCount);
+			m_pResampledWaveForms[c] = pResampledWaveForm;
 		}
 
-		return paNoError;
+		SAFEDELETE_ARRAY(pChannelWaveForm);
 	}
 
-	int32 MusicLambda::PortAudioCallback(const void* pInputBuffer, void* pOutputBuffer, unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* pTimeInfo, PaStreamCallbackFlags statusFlags, void* pUserData)
+	void MusicLambda::AddToBuffer(double** ppOutputChannels, uint32 channelCount, uint32 outputSampleCount)
 	{
-		UNREFERENCED_VARIABLE(pInputBuffer);
-		UNREFERENCED_VARIABLE(pTimeInfo);
-		UNREFERENCED_VARIABLE(statusFlags);
+		if (m_Playing)
+		{
+			//Todo: What if not mono
+			float64* pResampledWaveForm = m_pResampledWaveForms[0];
 
-		MusicLambda* pMusic = reinterpret_cast<MusicLambda*>(pUserData);
-		VALIDATE(pMusic != nullptr);
+			for (uint32 s = 0; s < outputSampleCount; s++)
+			{
+				for (uint32 c = 0; c < channelCount; c++)
+				{
+					double* pOutputChannel = ppOutputChannels[c];
+					pOutputChannel[s] += m_Volume * pResampledWaveForm[m_CurrentWaveFormIndex];
+				}
 
-		return pMusic->LocalAudioCallback(reinterpret_cast<float32*>(pOutputBuffer), framesPerBuffer);
+				m_CurrentWaveFormIndex++;
+				if (m_CurrentWaveFormIndex == m_ResampledSampleCount)
+					m_CurrentWaveFormIndex = 0;
+			}
+		}
 	}
 }

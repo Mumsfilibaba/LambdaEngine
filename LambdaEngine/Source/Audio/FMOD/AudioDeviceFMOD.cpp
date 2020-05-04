@@ -96,7 +96,7 @@ namespace LambdaEngine
 		return true;
 	}
 
-	void AudioDeviceFMOD::Tick()
+	void AudioDeviceFMOD::FixedTick(Timestamp delta)
 	{
 		FMOD_System_Update(pSystem);
 	}

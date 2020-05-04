@@ -131,6 +131,49 @@ workspace "LambdaEngine"
 				"Dependencies/tinyobjloader/tiny_obj_loader.h",
 				"Dependencies/tinyobjloader/tiny_obj_loader.cc",
 			}
+			
+		-- r8brain-src Project
+		project "r8brain-src"
+			kind "StaticLib"
+			language "C++"
+			cppdialect "C++17"
+			systemversion "latest"
+			location "Dependencies/projectfiles/r8brain-src"
+			
+			filter "configurations:Debug or Release"
+				symbols "on"
+				runtime "Release"
+				optimize "Full"
+			filter{}
+			
+			filter "configurations:Production"
+				symbols "off"
+				runtime "Release"
+				optimize "Full"
+			filter{}
+			
+			undefines
+			{
+				"_CRTDBG_MAP_ALLOC",
+			}
+			
+			-- Targets
+			targetdir ("Dependencies/bin/r8brain-src/" .. outputdir)
+			objdir ("Dependencies/bin-int/r8brain-src/" .. outputdir)
+					
+			-- Files
+			files 
+			{
+				"Dependencies/r8brain-src/**.h",
+				"Dependencies/r8brain-src/**.cpp",
+			}
+			
+			removefiles
+            {
+				"Dependencies/r8brain-src/bench/**",
+				"Dependencies/r8brain-src/other/**",
+				"Dependencies/r8brain-src/example.cpp",
+			}
 	group ""
 
     -- Engine Project
@@ -231,12 +274,14 @@ workspace "LambdaEngine"
 			"Dependencies/stb",
 			"Dependencies/portaudio/include",
 			"Dependencies/glslang/include",
+			"Dependencies/r8brain-src",
 		}
         
 		links 
 		{ 
 			"tinyobjloader",
 			"WavLib",
+			"r8brain-src"
 		}
 		
 		-- Win32

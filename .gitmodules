@@ -7,3 +7,6 @@
 [submodule "Dependencies/WavLib"]
 	path = Dependencies/WavLib
 	url = https://github.com/Mumsfilibaba/WavLib
+[submodule "Dependencies/r8brain-src"]
+	path = Dependencies/r8brain-src
+	url = https://github.com/avaneev/r8brain-free-src.git

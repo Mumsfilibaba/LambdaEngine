@@ -1,6 +1,6 @@
 #pragma once
 
-#include "PortAudio.h"
+#include "LambdaAudio.h"
 #include "Audio/API/IAudioDevice.h"
 #include "Audio/API/AudioTypes.h"
 
@@ -26,7 +26,7 @@ namespace LambdaEngine
 
 		virtual bool Init(const AudioDeviceDesc* pDesc) override final;
 
-		virtual void Tick() override final;
+		virtual void FixedTick(Timestamp delta) override final;
 			 
 		virtual void UpdateAudioListener(uint32 index, const AudioListenerDesc* pDesc) override final;
 
@@ -47,24 +47,56 @@ namespace LambdaEngine
 		void DeleteSoundEffect(SoundEffect3DLambda* pSoundEffect) const;
 		void DeleteSoundInstance(SoundInstance3DLambda* pSoundInstance) const;
 
-		FORCEINLINE PaDeviceIndex	GetDeviceIndex()				const { return m_DeviceIndex;				}
-		FORCEINLINE int				GetOutputChannelCount()			const { return m_OutputChannelCount;		}
-		FORCEINLINE PaTime			GetDefaultLowOutputLatency()	const { return m_DefaultLowOutputLatency;	}
-		FORCEINLINE PaTime			GetDefaultHighOutputLatency()	const { return m_DefaultHighOutputLatency;	}
+		FORCEINLINE r8b::CDSPResampler* GetResampler(uint32 sampleRate) const	{ return m_Resamplers[sampleRate]; }
+
+		FORCEINLINE PaDeviceIndex	GetDeviceIndex()				const { return m_DeviceIndex;			}
+		FORCEINLINE uint32			GetSampleRate()					const { return m_SampleRate;			}
+		FORCEINLINE int				GetOutputChannelCount()			const { return m_OutputChannelCount;	}
+		FORCEINLINE PaTime			GetDefaultOutputLatency()		const { return m_DefaultOutputLatency;	}
 
 	private:
-		const char*		m_pName;
+		bool InitStream();
+		void UpdateWaveForm();
 
-		PaDeviceIndex	m_DeviceIndex;
-		ESpeakerSetup	m_SpeakerSetup;
-		int				m_OutputChannelCount;
-		PaTime			m_DefaultLowOutputLatency;
-		PaTime			m_DefaultHighOutputLatency;
+		int32 LocalAudioCallback(float* pOutputBuffer, unsigned long framesPerBuffer);
 
-		float32			m_MasterVolume			= 1.0f;
+	private:
+		static int32 PortAudioCallback(
+			const void* pInputBuffer,
+			void* pOutputBuffer,
+			unsigned long framesPerBuffer,
+			const PaStreamCallbackTimeInfo* pTimeInfo,
+			PaStreamCallbackFlags statusFlags,
+			void* pUserData);
 
-		uint32			m_MaxNumAudioListeners	= 0;
-		uint32			m_NumAudioListeners		= 0;
+	private:
+		const char*		m_pName						= "";
+
+		//Device
+		PaDeviceIndex	m_DeviceIndex				= 0;
+		ESpeakerSetup	m_SpeakerSetup				= ESpeakerSetup::NONE;
+		int				m_OutputChannelCount		= 0;
+		uint32			m_SampleRate				= 0;
+		PaTime			m_DefaultOutputLatency		= 0.0;
+
+		//Stream
+		PaStream*		m_pStream					= nullptr;
+
+		float64**		m_ppWriteBuffers			= nullptr;
+		float32**		m_ppWaveForms				= nullptr;
+		uint32			m_WriteBufferSampleCount	= 0;
+		uint32			m_WaveFormSampleCount		= 0;
+		uint32			m_WaveFormWriteIndex		= 0;
+		uint32			m_WaveFormReadIndex			= 0;
+
+		//Settings
+		float32			m_MasterVolume				= 1.0f;
+
+		uint32			m_MaxNumAudioListeners		= 0;
+		uint32			m_NumAudioListeners			= 0;
+
+		//Internal
+		mutable THashTable<uint32, r8b::CDSPResampler*>		m_Resamplers;
 
 		THashTable<uint32, uint32>	m_AudioListenerMap;
 		TArray<AudioListenerDesc>	m_AudioListeners;

@@ -12,7 +12,7 @@ namespace LambdaEngine
 		AudioDeviceDesc audioDeviceDesc = {};
 		audioDeviceDesc.pName					= "Main AudioDeviceFMOD";
 		audioDeviceDesc.Debug					= true;
-		audioDeviceDesc.SpeakerSetup			= ESpeakerSetup::STEREO_HEADPHONES;
+		audioDeviceDesc.SpeakerSetup			= ESpeakerSetup::STEREO_SOUND_SYSTEM;
 		audioDeviceDesc.MasterVolume			= 1.0f;
 		audioDeviceDesc.MaxNumAudioListeners	= 1;
 		audioDeviceDesc.MaxWorldSize			= 200;
@@ -28,8 +28,8 @@ namespace LambdaEngine
 		return true;
 	}
 
-	void AudioSystem::Tick()
+	void AudioSystem::FixedTick(Timestamp delta)
 	{
-		s_pAudioDevice->Tick();
+		s_pAudioDevice->FixedTick(delta);
 	}
 }

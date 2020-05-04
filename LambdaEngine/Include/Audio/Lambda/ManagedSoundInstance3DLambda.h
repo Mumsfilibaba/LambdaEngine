@@ -1,7 +1,7 @@
 #pragma once
 
 #include "LambdaEngine.h"
-#include "PortAudio.h"
+#include "LambdaAudio.h"
 
 #include "Audio/API/AudioTypes.h"
 
@@ -14,6 +14,7 @@ namespace LambdaEngine
 	class IAudioDevice;
 	class AudioDeviceLambda;
 	class ISoundEffect3D;
+	class SoundEffect3DLambda;
 
 	struct ManagedSoundInstance3DDesc
 	{
@@ -35,42 +36,23 @@ namespace LambdaEngine
 		bool Init(const ManagedSoundInstance3DDesc* pDesc);
 
 		void UpdateVolume(float masterVolume, const AudioListenerDesc* pAudioListeners, uint32 audioListenerCount, ESpeakerSetup speakerSetup);
-
-		FORCEINLINE bool HasCompleted() const { return m_Completed; }
-
-	private:
-		int32 LocalAudioCallback(float* pOutputBuffer, unsigned long framesPerBuffer);
-
-	private:
-		/*
-		* This routine will be called by the PortAudio engine when audio is needed.
-		* It may called at interrupt level on some machines so don't do anything
-		*  that could mess up the system like calling malloc() or free().
-		*/
-		static int32 PortAudioCallback(
-			const void* pInputBuffer,
-			void* pOutputBuffer,
-			unsigned long framesPerBuffer,
-			const PaStreamCallbackTimeInfo* pTimeInfo,
-			PaStreamCallbackFlags statusFlags,
-			void* pUserData);
+		void AddToBuffer(double** ppOutputChannels, uint32 channelCount, uint32 outputSampleCount);
 
 	private:
 		const AudioDeviceLambda* m_pAudioDevice		= nullptr;
-
-		PaStream*	m_pStream						= nullptr;
-		bool		m_Completed						= false;
+		const SoundEffect3DLambda* m_pSoundEffect	= nullptr;
 		
-		float32*	m_pWaveForm						= nullptr;
+		bool		m_Completed						= false;
+
 		uint32		m_SampleCount					= 0;
 		uint32		m_ChannelCount					= 0;
-		uint32		m_CurrentBufferIndex			= 0;
+		uint32		m_CurrentWaveFormIndex			= 0;
 
 		glm::vec3	m_Position						= glm::vec3(0.0f);
 		//Velocity
 		//Pitch			
 		float		m_Volume						= 1.0f;
 
-		float32*	m_pOutputVolumes				= nullptr;
+		float64*	m_pOutputVolumes				= nullptr;
 	};
 }

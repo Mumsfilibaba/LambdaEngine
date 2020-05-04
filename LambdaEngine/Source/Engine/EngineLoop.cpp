@@ -69,8 +69,6 @@ namespace LambdaEngine
             return false;
         }
 
-		AudioSystem::Tick();
-
         // Tick game
         Game::Get()->Tick(delta);
         
@@ -79,6 +77,8 @@ namespace LambdaEngine
 
     void EngineLoop::FixedTick(Timestamp delta)
     {
+		AudioSystem::FixedTick(delta);
+
         // Tick game
         Game::Get()->FixedTick(delta);
         

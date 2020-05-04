@@ -1,7 +1,8 @@
 #pragma once
 
-#include "PortAudio.h"
 #include "Audio/API/IMusic.h"
+
+#include <WavLib.h>
 
 namespace LambdaEngine
 {
@@ -26,30 +27,23 @@ namespace LambdaEngine
 		FORCEINLINE virtual float	GetVolume()		const override final	{ return m_Volume;	}
 		FORCEINLINE virtual float	GetPitch()		const override final	{ return 1.0f;		}	
 
-		void UpdateVolume(float masterVolume);
+		void Resample();
+		void AddToBuffer(double** ppOutputChannels, uint32 channelCount, uint32 sampleCount);
 
-	private:
-		int32 LocalAudioCallback(float* pOutputBuffer, unsigned long framesPerBuffer);
+		FORCEINLINE uint32 GetResampledSampleCount()	const { return m_ResampledSampleCount; }
 
-	private:
-		static int32 PortAudioCallback(
-			const void* pInputBuffer,
-			void* pOutputBuffer,
-			unsigned long framesPerBuffer,
-			const PaStreamCallbackTimeInfo* pTimeInfo,
-			PaStreamCallbackFlags statusFlags,
-			void* pUserData);
+		FORCEINLINE uint32 GetSrcSampleCount()			const { return m_Header.SampleCount; }
+		FORCEINLINE uint32 GetSrcSampleRate()			const { return m_Header.SampleRate; }
+		FORCEINLINE uint32 GetSrcChannelCount()			const { return m_Header.ChannelCount; }
 
 	private:
 		const AudioDeviceLambda* m_pAudioDevice = nullptr;
 
-		PaStream*	m_pStream					= nullptr;
-
-		float32*	m_pWaveForm					= nullptr;
-		uint32		m_SampleCount				= 0;
-		uint32		m_CurrentBufferIndex		= 0;
-		uint32		m_ChannelCount				= 0;
-		uint32		m_TotalSampleCount			= 0;
+		float64*	m_pSrcWaveForm				= nullptr;
+		float64**	m_pResampledWaveForms		= nullptr;
+		uint32		m_CurrentWaveFormIndex		= 0;
+		uint32		m_ResampledSampleCount		= 0;
+		WaveFile	m_Header;
 
 		bool		m_Playing					= false;
 

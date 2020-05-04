@@ -1,6 +1,6 @@
 #pragma once
 
-#include "PortAudio.h"
+#include "LambdaAudio.h"
 #include "Audio/API/ISoundInstance3D.h"
 
 namespace LambdaEngine
@@ -9,6 +9,8 @@ namespace LambdaEngine
 
 	class IAudioDevice;
 	class AudioDeviceLambda;
+	class ISoundEffect3D;
+	class SoundEffect3DLambda;
 	
 	class SoundInstance3DLambda : public ISoundInstance3D
 	{
@@ -31,34 +33,16 @@ namespace LambdaEngine
 		FORCEINLINE virtual float32				GetVolume()		const override final { return m_Volume;		}
 		FORCEINLINE virtual float32				GetPitch()		const override final { return 1.0f;			}
 
-		void UpdateVolume(float masterVolume, const AudioListenerDesc* pAudioListeners, uint32 count, ESpeakerSetup speakerSetup);
-
-	private:
-		int32 LocalAudioCallback(float* pOutputBuffer, unsigned long framesPerBuffer);
-		
-	private:
-		/*
-		* This routine will be called by the PortAudio engine when audio is needed.
-		* It may called at interrupt level on some machines so don't do anything
-		*  that could mess up the system like calling malloc() or free().
-		*/ 
-		static int32 PortAudioCallback(
-			const void* pInputBuffer,
-			void* pOutputBuffer,
-			unsigned long framesPerBuffer,
-			const PaStreamCallbackTimeInfo* pTimeInfo,
-			PaStreamCallbackFlags statusFlags,
-			void* pUserData);
+		void UpdateVolume(float masterVolume, const AudioListenerDesc* pAudioListeners, uint32 audioListenerCount, ESpeakerSetup speakerSetup);
+		void AddToBuffer(double** ppOutputChannels, uint32 channelCount, uint32 outputSampleCount);
 
 	private:
 		const AudioDeviceLambda* m_pAudioDevice		= nullptr;
+		const SoundEffect3DLambda* m_pSoundEffect	= nullptr;
 
-		PaStream*	m_pStream						= nullptr;
-		
-		float32*	m_pWaveForm						= nullptr;
 		uint32		m_SampleCount					= 0;
 		uint32		m_ChannelCount					= 0;
-		uint32		m_CurrentBufferIndex			= 0;
+		uint32		m_CurrentWaveFormIndex			= 0;
 
 		bool		m_Looping						= false;
 		bool		m_Playing						= false;
@@ -67,6 +51,6 @@ namespace LambdaEngine
 		//Pitch			
 		float32		m_Volume						= 1.0f;
 
-		float32*	m_pOutputVolumes				= nullptr;
+		float64*	m_pOutputVolumes				= nullptr;
 	};
 }

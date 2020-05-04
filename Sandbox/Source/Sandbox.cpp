@@ -183,8 +183,9 @@ void Sandbox::InitTestAudio()
 	soundInstanceDesc.pSoundEffect		= m_pToneSoundEffect;
 	soundInstanceDesc.Flags				= FSoundModeFlags::SOUND_MODE_LOOPING;
 
-	//m_pToneSoundInstance = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
-	//m_pToneSoundInstance->SetVolume(0.5f);
+	m_pToneSoundInstance = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
+	m_pToneSoundInstance->SetVolume(0.5f);
+
 	MusicDesc musicDesc = {};
 	musicDesc.pFilepath		= "../Assets/Sounds/halo_theme.wav";
 	musicDesc.Volume		= 0.5f;
@@ -192,13 +193,12 @@ void Sandbox::InitTestAudio()
 
 	m_pMusic = AudioSystem::GetDevice()->CreateMusic(&musicDesc);
 
-	/*m_SpawnPlayAts = false;
+	m_SpawnPlayAts = false;
 	m_GunshotTimer = 0.0f;
 	m_GunshotDelay = 1.0f;
 	m_Timer = 0.0f;
 
-
-	m_pAudioListener = AudioSystem::GetDevice()->CreateAudioListener();
+	/*m_pAudioListener = AudioSystem::GetDevice()->CreateAudioListener();
 	m_pAudioListener->Update(glm::vec3(0.0f, 0.0f, -3.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 	m_pReverbSphere = AudioSystem::GetDevice()->CreateReverbSphere();
@@ -326,6 +326,10 @@ void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRep
 	if (key == EKey::KEY_KEYPAD_1)
 	{
 		m_pMusic->Toggle();
+	}
+	else if (key == EKey::KEY_KEYPAD_2)
+	{
+		m_SpawnPlayAts = !m_SpawnPlayAts;
 	}
 	else if (key == EKey::KEY_KEYPAD_3)
 	{
