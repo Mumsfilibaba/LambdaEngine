@@ -1,7 +1,7 @@
 #pragma once
+#include "Audio/API/ISoundEffect3D.h"
 
 #include "FMOD.h"
-#include "Audio/API/ISoundEffect3D.h"
 
 namespace LambdaEngine
 {
@@ -14,11 +14,13 @@ namespace LambdaEngine
 		SoundEffect3DFMOD(const IAudioDevice* pAudioDevice);
 		~SoundEffect3DFMOD();
 
-		virtual bool Init(const SoundEffect3DDesc* pDesc) override final;
-		virtual void PlayOnceAt(const glm::vec3& position, const glm::vec3& velocity, float volume, float pitch) override final;
-		
+		bool Init(const SoundEffect3DDesc* pDesc);
+				
 		FMOD_SOUND* GetHandle();
 		uint32 GetLengthMS();
+
+		// ISoundEffect3D interface
+		virtual SoundDesc GetDesc() const override final;
 
 	private:
 		//Engine
@@ -30,5 +32,7 @@ namespace LambdaEngine
 		//Local
 		const char*			m_pName;
 		uint32				m_LengthMS;
+
+		SoundDesc m_Desc;
 	};
 }

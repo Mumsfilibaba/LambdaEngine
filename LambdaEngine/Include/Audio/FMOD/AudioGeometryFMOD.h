@@ -1,7 +1,7 @@
 #pragma once
+#include "Audio/API/IAudioGeometry.h"
 
 #include "FMOD.h"
-#include "Audio/API/IAudioGeometry.h"
 
 namespace LambdaEngine
 {
@@ -13,8 +13,10 @@ namespace LambdaEngine
 	public:
 		AudioGeometryFMOD(const IAudioDevice* pAudioDevice);
 		~AudioGeometryFMOD();
+		
+		bool Init(const AudioGeometryDesc* pDesc);
 
-		virtual bool Init(const AudioGeometryDesc* pDesc) override final;
+		// IAudioGeometry interface
 		virtual void SetActive(bool active) override final;
 		virtual void SetPosition(const glm::vec3& position) override final;
 		virtual void SetRotation(const glm::vec3& forward, const glm::vec3& up) override final;

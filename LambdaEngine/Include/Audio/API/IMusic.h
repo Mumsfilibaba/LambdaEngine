@@ -1,7 +1,9 @@
 #pragma once
+#include "Core/RefCountedObject.h"
 
-#include "LambdaEngine.h"
 #include "Math/Math.h"
+
+#include "AudioTypes.h"
 
 namespace LambdaEngine
 {
@@ -12,17 +14,10 @@ namespace LambdaEngine
 		float32			Pitch			= 1.0f;
 	};
 
-	class IMusic
+	class IMusic : public RefCountedObject
 	{
 	public:
 		DECL_INTERFACE(IMusic);
-
-		/*
-		* Initialize this Music
-		*	pDesc - A description of initialization parameters
-		* return - true if the initialization was successfull, otherwise returns false
-		*/
-		virtual bool Init(const MusicDesc* pDesc) = 0;
 
 		/*
 		* Play the music
@@ -49,8 +44,9 @@ namespace LambdaEngine
 		*/
 		virtual void SetPitch(float pitch) = 0;
 
-		virtual float GetVolume()				const = 0;
-		virtual float GetPitch()				const = 0;
+		virtual float GetVolume() const = 0;
+		virtual float GetPitch()  const = 0;
 
+		virtual SoundDesc GetDesc() const = 0;
 	};
 }

@@ -8,16 +8,14 @@ namespace LambdaEngine
 
 	bool AudioSystem::Init()
 	{
-
 		AudioDeviceDesc audioDeviceDesc = {};
-		audioDeviceDesc.pName					= "Main AudioDeviceFMOD";
+		audioDeviceDesc.pName					= "Main AudioDevice";
 		audioDeviceDesc.Debug					= true;
 		audioDeviceDesc.MaxNumAudioListeners	= 1;
 		audioDeviceDesc.MaxWorldSize			= 200;
 
-		s_pAudioDevice = CreateAudioDevice(EAudioAPI::FMOD, audioDeviceDesc);
-
-		return true;
+		s_pAudioDevice = CreateAudioDevice(EAudioAPI::LAMBDA, audioDeviceDesc);
+		return s_pAudioDevice != nullptr;
 	}
 
 	bool AudioSystem::Release()

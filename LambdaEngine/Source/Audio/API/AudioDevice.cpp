@@ -7,24 +7,31 @@ namespace LambdaEngine
 {
 	IAudioDevice* CreateAudioDevice(EAudioAPI api, const AudioDeviceDesc& desc)
 	{
-		IAudioDevice* pDevice;
-		
 		if (api == EAudioAPI::FMOD)
 		{
-			pDevice = DBG_NEW AudioDeviceFMOD();
+			AudioDeviceFMOD* pFMODDevice = DBG_NEW AudioDeviceFMOD();
+			if (pFMODDevice->Init(&desc))
+			{
+				return pFMODDevice;
+			}
+			else
+			{
+				SAFEDELETE(pFMODDevice);
+				return nullptr;
+			}
 		}
 		else if (api == EAudioAPI::LAMBDA)
 		{
-			pDevice = DBG_NEW AudioDeviceLambda();	
-		}
-		else
-		{
-			return nullptr;
-		}
-
-		if (pDevice->Init(&desc))
-		{
-			return pDevice;
+			AudioDeviceLambda* pDevice = DBG_NEW AudioDeviceLambda();
+			if (pDevice->Init(&desc))
+			{
+				return pDevice;
+			}
+			else
+			{
+				SAFEDELETE(pDevice);
+				return nullptr;
+			}
 		}
 		else
 		{

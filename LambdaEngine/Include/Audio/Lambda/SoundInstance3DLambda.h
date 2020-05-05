@@ -7,63 +7,53 @@ namespace LambdaEngine
 {
 	struct AudioListenerDesc;
 
-	class IAudioDevice;
 	class AudioDeviceLambda;
+	class SoundEffect3DLambda;
 	
 	class SoundInstance3DLambda : public ISoundInstance3D
 	{
 	public:
-		SoundInstance3DLambda(const IAudioDevice* pAudioDevice);
+		SoundInstance3DLambda(AudioDeviceLambda* pAudioDevice);
 		~SoundInstance3DLambda();
 
-		virtual bool Init(const SoundInstance3DDesc* pDesc) override final;
+		bool Init(const SoundInstance3DDesc* pDesc);
 
+		void UpdateVolume(float32 masterVolume, const AudioListenerDesc* pAudioListeners, uint32 count);
+		
+		// ISoundInstance3D interface
 		virtual void Play()		override final;
 		virtual void Pause()	override final;
 		virtual void Stop()		override final;
 		virtual void Toggle()	override final;
 
-		virtual void SetPosition(const glm::vec3& position) override final;
-		virtual void SetVolume(float volume)				override final;
-		virtual void SetPitch(float pitch)					override final;
+		virtual void SetPosition(const glm::vec3& position)				override final;
+		virtual void SetVolume(float32 volume)							override final;
+		virtual void SetPitch(float32 pitch)							override final;
+		virtual void SetReferenceDistance(float32 referenceDistance)	override final;
+		virtual void SetMaxDistance(float32 maxDistance)				override final;
 
-		virtual const glm::vec3&	GetPosition()	const override final;
-		virtual float				GetVolume()		const override final;
-		virtual float				GetPitch()		const override final;
+		virtual const glm::vec3&	GetPosition()			const override final;
+		virtual float32				GetVolume()				const override final;
+		virtual float32				GetPitch()				const override final;
+		virtual float32				GetMaxDistance()		const override final;
+		virtual float32				GetReferenceDistance()	const override final;
 
-		void UpdateVolume(float masterVolume, const AudioListenerDesc* pAudioListeners, uint32 count);
-
-	private:
-		int32 LocalAudioCallback(float* pOutputBuffer, unsigned long framesPerBuffer);
+	public:
+		float32*	pWaveForm	= nullptr;
+		bool		IsPlaying	= false;
 		
-	private:
-		/*
-		* This routine will be called by the PortAudio engine when audio is needed.
-		* It may called at interrupt level on some machines so don't do anything
-		*  that could mess up the system like calling malloc() or free().
-		*/ 
-		static int32 PortAudioCallback(
-			const void* pInputBuffer,
-			void* pOutputBuffer,
-			unsigned long framesPerBuffer,
-			const PaStreamCallbackTimeInfo* pTimeInfo,
-			PaStreamCallbackFlags statusFlags,
-			void* pUserData);
+		uint32 TotalSampleCount		= 0;
+		uint32 CurrentBufferIndex	= 0;
+
+		float32	Volume				= 1.0f;
+		float32 MaxDistance			= 1.0f;
+		float32 ReferenceDistance	= 1.0f;
+
+		glm::vec3 Position;
+		SoundDesc Desc;
 
 	private:
-		const AudioDeviceLambda* m_pAudioDevice;
-
-		PaStream* m_pStream;
-		
-		float32* m_pWaveForm;
-		uint32 m_SampleCount;
-		uint32 m_CurrentBufferIndex;
-		uint32 m_ChannelCount;
-		uint32 m_TotalSampleCount;
-
-		glm::vec3	m_Position;
-
-		float m_Volume		= 1.0f;
-		float m_OutputVolume			= 1.0f;
+		AudioDeviceLambda*		m_pAudioDevice	= nullptr;
+		SoundEffect3DLambda*	m_pEffect		= nullptr;
 	};
 }

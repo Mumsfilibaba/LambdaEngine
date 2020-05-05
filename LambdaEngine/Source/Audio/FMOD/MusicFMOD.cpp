@@ -80,4 +80,19 @@ namespace LambdaEngine
 			D_LOG_WARNING("[MusicFMOD]: Pitch could not be set for %s", m_pName);
 		}
 	}
+	
+	float MusicFMOD::GetVolume() const
+	{
+		return m_Volume;
+	}
+	
+	float MusicFMOD::GetPitch() const
+	{
+		return m_Pitch;
+	}
+
+	SoundDesc MusicFMOD::GetDesc() const
+	{
+		return SoundDesc();
+	}
 }

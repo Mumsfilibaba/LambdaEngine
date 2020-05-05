@@ -31,13 +31,6 @@ namespace LambdaEngine
 		DECL_INTERFACE(IAudioGeometry);
 
 		/*
-		* Initialize this AudioGeometryFMOD
-		*	pDesc - A description of initialization parameters
-		* return - true if the initialization was successfull, otherwise returns false
-		*/
-		virtual bool Init(const AudioGeometryDesc* pDesc) = 0;
-
-		/*
 		* Set whether the geometry should be processed by the audio engine
 		*/
 		virtual void SetActive(bool active) = 0;

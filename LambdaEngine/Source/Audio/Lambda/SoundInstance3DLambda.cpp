@@ -4,115 +4,93 @@
 
 #include "Log/Log.h"
 
+#include "Math/Math.h"
+
 namespace LambdaEngine
 {
-	SoundInstance3DLambda::SoundInstance3DLambda(const IAudioDevice* pAudioDevice) :
-		m_pAudioDevice(reinterpret_cast<const AudioDeviceLambda*>(pAudioDevice))
+	SoundInstance3DLambda::SoundInstance3DLambda(AudioDeviceLambda* pAudioDevice) 
+		: m_pAudioDevice(pAudioDevice)
 	{
 	}
 
 	SoundInstance3DLambda::~SoundInstance3DLambda()
 	{
-		m_pAudioDevice->DeleteSoundInstance(this);
-		
-		SAFEDELETE_ARRAY(m_pWaveForm);
-
-		PaError result;
-
-		result = Pa_CloseStream(m_pStream);
-		if (result != paNoError)
-		{
-			LOG_ERROR("[AudioDeviceLambda]: Could not close PortAudio stream, error: \"%s\"", Pa_GetErrorText(result));
-		}
+		SAFEDELETE_ARRAY(pWaveForm);
 	}
 
 	bool SoundInstance3DLambda::Init(const SoundInstance3DDesc* pDesc)
 	{
-		VALIDATE(pDesc);
+		VALIDATE(pDesc					!= nullptr);
+		VALIDATE(pDesc->pSoundEffect	!= nullptr);
 
-		const SoundEffect3DLambda* pSoundEffect = reinterpret_cast<const SoundEffect3DLambda*>(pDesc->pSoundEffect);
+		SoundEffect3DLambda* pSoundEffect = reinterpret_cast<SoundEffect3DLambda*>(pDesc->pSoundEffect);
+		pSoundEffect->AddRef();
 
-		m_CurrentBufferIndex		= 0;
-		m_SampleCount		= pSoundEffect->GetSampleCount();
-		m_ChannelCount		= pSoundEffect->GetChannelCount();
-		m_TotalSampleCount	= m_SampleCount * m_ChannelCount;
-		m_pWaveForm			= new float32[m_TotalSampleCount];
-		memcpy(m_pWaveForm, pSoundEffect->GetWaveform(), sizeof(float32) * m_TotalSampleCount);
-
-		PaError result;
-
-		/* Open an audio I/O stream. */
-		result = Pa_OpenDefaultStream(
-			&m_pStream,
-			0,          /* no input channels */
-			m_ChannelCount,          /* stereo output */
-			paFloat32,  /* 32 bit floating point output */
-			pSoundEffect->GetSampleRate(),
-			128,	/* frames per buffer, i.e. the number
-							   of sample frames that PortAudio will
-							   request from the callback. Many apps
-							   may want to use
-							   paFramesPerBufferUnspecified, which
-							   tells PortAudio to pick the best,
-							   possibly changing, buffer size.*/
-			PortAudioCallback, /* this is your callback function */
-			this); /*This is a pointer that will be passed to your callback*/
-
-		if (result != paNoError)
-		{
-			LOG_ERROR("[SoundInstance3DLambda]: Could not open PortAudio stream, error: \"%s\"", Pa_GetErrorText(result));
-			return false;
-		}
-
-		result = Pa_StartStream(m_pStream);
-		if (result != paNoError)
-		{
-			LOG_ERROR("[SoundInstance3DLambda]: Could not start PortAudio stream, error: \"%s\"", Pa_GetErrorText(result));
-			return false;
-		}
+		m_pEffect			= pSoundEffect;
+		Desc				= m_pEffect->GetDesc();
+		ReferenceDistance	= pDesc->ReferenceDistance;
+		MaxDistance			= pDesc->MaxDistance;
+		TotalSampleCount	= Desc.SampleCount * Desc.ChannelCount;
+		pWaveForm			= new float32[TotalSampleCount];
+		memcpy(pWaveForm, pSoundEffect->GetWaveform(), sizeof(float32) * TotalSampleCount);
 
 		return true;
 	}
 
 	void SoundInstance3DLambda::Play()
 	{
+		IsPlaying = true;
 	}
 
 	void SoundInstance3DLambda::Pause()
 	{
+		IsPlaying = false;
 	}
 
 	void SoundInstance3DLambda::Stop()
 	{
+		Pause();
+		CurrentBufferIndex = 0;
 	}
 
 	void SoundInstance3DLambda::Toggle()
 	{
+		IsPlaying = !IsPlaying;
 	}
 
 	void SoundInstance3DLambda::SetPosition(const glm::vec3& position)
 	{
-		m_Position = position;
+		Position = position;
 	}
 
-	void SoundInstance3DLambda::SetVolume(float volume)
+	void SoundInstance3DLambda::SetVolume(float32 volume)
 	{
-		m_Volume = volume;
+		Volume = glm::max(glm::min(volume, 1.0f), 0.0f);
 	}
 
-	void SoundInstance3DLambda::SetPitch(float pitch)
+	void SoundInstance3DLambda::SetPitch(float32 pitch)
 	{
 		UNREFERENCED_VARIABLE(pitch);
 	}
 
+	void SoundInstance3DLambda::SetReferenceDistance(float32 referenceDistance)
+	{
+		ReferenceDistance = referenceDistance;
+	}
+
+	void SoundInstance3DLambda::SetMaxDistance(float32 maxDistance)
+	{
+		MaxDistance = maxDistance;
+	}
+
 	const glm::vec3& SoundInstance3DLambda::GetPosition() const
 	{
-		return m_Position;
+		return Position;
 	}
 
 	float SoundInstance3DLambda::GetVolume() const
 	{
-		return m_Volume;
+		return Volume;
 	}
 
 	float SoundInstance3DLambda::GetPitch() const
@@ -120,42 +98,17 @@ namespace LambdaEngine
 		return 1.0f;
 	}
 
-	void SoundInstance3DLambda::UpdateVolume(float masterVolume, const AudioListenerDesc* pAudioListeners, uint32 count)
+	float32 SoundInstance3DLambda::GetMaxDistance() const
 	{
+		return MaxDistance;
 	}
 
-	int32 SoundInstance3DLambda::LocalAudioCallback(float* pOutputBuffer, unsigned long framesPerBuffer)
+	float32 SoundInstance3DLambda::GetReferenceDistance() const
 	{
-		for (uint32 f = 0; f < framesPerBuffer; f++)
-		{
-			for (uint32 c = 0; c < m_ChannelCount; c++)
-			{
-				float sample = m_pWaveForm[m_CurrentBufferIndex++];
-				(*(pOutputBuffer++)) = m_OutputVolume * sample;
-			}
-
-			if (m_CurrentBufferIndex == m_TotalSampleCount)
-				m_CurrentBufferIndex = 0;
-		}
-
-		return paNoError;
+		return ReferenceDistance;
 	}
 
-	int32 SoundInstance3DLambda::PortAudioCallback(
-		const void* pInputBuffer, 
-		void* pOutputBuffer,
-		unsigned long framesPerBuffer, 
-		const PaStreamCallbackTimeInfo* pTimeInfo, 
-		PaStreamCallbackFlags statusFlags,
-		void* pUserData)
+	void SoundInstance3DLambda::UpdateVolume(float32 masterVolume, const AudioListenerDesc* pAudioListeners, uint32 count)
 	{
-		UNREFERENCED_VARIABLE(pInputBuffer);
-		UNREFERENCED_VARIABLE(pTimeInfo);
-		UNREFERENCED_VARIABLE(statusFlags);
-
-		SoundInstance3DLambda* pInstance = reinterpret_cast<SoundInstance3DLambda*>(pUserData);
-		VALIDATE(pInstance != nullptr);
-
-		return pInstance->LocalAudioCallback(reinterpret_cast<float32*>(pOutputBuffer), framesPerBuffer);
 	}
 }

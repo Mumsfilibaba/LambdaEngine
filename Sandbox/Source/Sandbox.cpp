@@ -22,6 +22,7 @@
 #include "Audio/API/IAudioGeometry.h"
 #include "Audio/API/IReverbSphere.h"
 #include "Audio/API/IMusic.h"
+#include "Audio/API/IAudioListener.h"
 
 #include "Application/API/IWindow.h"
 
@@ -141,23 +142,55 @@ void Sandbox::InitTestAudio()
 	m_pMusic	= ResourceManager::GetSoundEffect(m_MusicGUID);
 
 	SoundInstance3DDesc soundInstanceDesc = {};
-	soundInstanceDesc.pSoundEffect	= m_pMusic;
-	soundInstanceDesc.Flags			= FSoundModeFlags::SOUND_MODE_LOOPING;
+	soundInstanceDesc.pSoundEffect		= m_pMusic;
+	soundInstanceDesc.Mode				= ESoundMode::SOUND_MODE_LOOPING;
+	soundInstanceDesc.ReferenceDistance = 2.0f;
+	soundInstanceDesc.MaxDistance		= 10.0f;
 
 	m_pMusicInstance = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
-	m_pMusicInstance->SetVolume(1.0f);
+	m_pMusicInstance->SetVolume(0.5f);
+	m_pMusicInstance->SetPosition(glm::vec3(0.0f));
+	m_pMusicInstance->Play();
+
+	AudioListenerDesc listenerDesc = { };
+	listenerDesc.Position	= glm::vec3(0.0f);
+	listenerDesc.Volume		= 1.0f;
+	listenerDesc.Forward	= glm::vec3(0.0f, 0.0f, 1.0f);
+	listenerDesc.Up			= glm::vec3(0.0f, 1.0f, 0.0f);
+	m_pListener = AudioSystem::GetDevice()->CreateAudioListener(&listenerDesc);
 }
 
 void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRepeat)
 {
     using namespace LambdaEngine;
 
-	if (key == EKey::KEY_KEYPAD_5 && !isRepeat)
+	if (!isRepeat)
 	{
-		RenderSystem::GetGraphicsQueue()->Flush();
-		RenderSystem::GetComputeQueue()->Flush();
-		ResourceManager::ReloadAllShaders();
-		PipelineStateManager::ReloadPipelineStates();
+		if (key == EKey::KEY_KEYPAD_7)
+		{
+			float32 volume = m_pMusicInstance->GetVolume() - 0.025f;
+			LOG_INFO("Music Volume: %.4f", volume);
+
+			m_pMusicInstance->SetVolume(volume);
+		}
+		else if (key == EKey::KEY_KEYPAD_8)
+		{
+			m_pMusicInstance->Toggle();
+		}
+		else if (key == EKey::KEY_KEYPAD_9)
+		{
+			float32 volume = m_pMusicInstance->GetVolume() + 0.025f;
+			LOG_INFO("Music Volume: %.4f", volume);
+
+			m_pMusicInstance->SetVolume(volume);
+		}
+		else if (key == EKey::KEY_KEYPAD_5)
+		{
+			RenderSystem::GetGraphicsQueue()->Flush();
+			RenderSystem::GetComputeQueue()->Flush();
+			ResourceManager::ReloadAllShaders();
+			PipelineStateManager::ReloadPipelineStates();
+		}
 	}
 }
 
@@ -214,32 +247,8 @@ void Sandbox::Tick(LambdaEngine::Timestamp delta)
 {
 	using namespace LambdaEngine;
 
-    //LOG_MESSAGE("Delta: %.6f ms", delta.AsMilliSeconds());
-    
 	float dt = (float)delta.AsSeconds();
 	m_Timer += dt;
-
-	if (m_pGunSoundEffect != nullptr)
-	{
-		if (m_SpawnPlayAts)
-		{
-			m_GunshotTimer += dt;
-
-			if (m_GunshotTimer > m_GunshotDelay)
-			{
-
-				glm::vec3 gunPosition(glm::cos(m_Timer), 0.0f, glm::sin(m_Timer));
-				m_pGunSoundEffect->PlayOnceAt(gunPosition, glm::vec3(0.0f), 0.5f);
-				m_GunshotTimer = 0.0f;
-			}
-		}
-	}
-
-	if (m_pToneSoundInstance != nullptr)
-	{
-		glm::vec3 tonePosition(glm::cos(m_Timer), 0.0f, glm::sin(m_Timer));
-		m_pToneSoundInstance->SetPosition(tonePosition);
-	}
 
 	constexpr float CAMERA_MOVEMENT_SPEED = 1.4f;
 	constexpr float CAMERA_ROTATION_SPEED = 45.0f;
@@ -291,12 +300,8 @@ void Sandbox::Tick(LambdaEngine::Timestamp delta)
 
 	m_pCamera->Update();
 	
-	AudioListenerDesc listenerDesc = {};
-	listenerDesc.Position		= m_pCamera->GetPosition();
-	listenerDesc.Forward		= m_pCamera->GetForwardVec();
-	listenerDesc.Up				= m_pCamera->GetUpVec();
-
-	AudioSystem::GetDevice()->UpdateAudioListener(m_AudioListenerIndex, &listenerDesc);
+	m_pListener->SetDirectionVectors(m_pCamera->GetUpVec(), m_pCamera->GetForwardVec());
+	m_pListener->SetPosition(m_pCamera->GetPosition());
 
 	m_pScene->UpdateCamera(m_pCamera);
 		

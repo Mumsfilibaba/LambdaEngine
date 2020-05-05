@@ -101,27 +101,6 @@ namespace LambdaEngine
 		FMOD_System_Update(pSystem);
 	}
 
-	void AudioDeviceFMOD::UpdateAudioListener(uint32 index, const AudioListenerDesc* pDesc)
-	{
-		FMOD_VECTOR fmodPosition	= { pDesc->Position.x,		pDesc->Position.y,		pDesc->Position.z };
-		FMOD_VECTOR fmodVelocity	= { 0.0f,					0.0f,					0.0f };
-		FMOD_VECTOR fmodForward		= { pDesc->Forward.x,		pDesc->Forward.y,		pDesc->Forward.z };
-		FMOD_VECTOR fmodUp			= { pDesc->Up.x,			pDesc->Up.y,			pDesc->Up.z };
-
-		FMOD_System_Set3DListenerAttributes(pSystem, index, &fmodPosition, &fmodVelocity, &fmodForward, &fmodUp);
-	}
-
-	uint32 AudioDeviceFMOD::CreateAudioListener()
-	{
-		if (m_NumAudioListeners >= m_MaxNumAudioListeners)
-		{
-			LOG_WARNING("[AudioDeviceFMOD]: Audio Listener could not be created, max amount reached for %s!", m_pName);
-			return UINT32_MAX;
-		}
-
-		return m_NumAudioListeners++;
-	}
-
 	IMusic* AudioDeviceFMOD::CreateMusic(const MusicDesc* pDesc)
 	{
 		VALIDATE(pDesc != nullptr);
@@ -138,12 +117,16 @@ namespace LambdaEngine
 		}
 	}
 
+	IAudioListener* AudioDeviceFMOD::CreateAudioListener(const AudioListenerDesc* pDesc)
+	{
+		return nullptr;
+	}
+
 	ISoundEffect3D* AudioDeviceFMOD::CreateSoundEffect(const SoundEffect3DDesc* pDesc)
 	{
 		VALIDATE(pDesc != nullptr);
 
 		SoundEffect3DFMOD* pSoundEffect = DBG_NEW SoundEffect3DFMOD(this);
-
 		if (!pSoundEffect->Init(pDesc))
 		{
 			return nullptr;
@@ -159,7 +142,6 @@ namespace LambdaEngine
 		VALIDATE(pDesc != nullptr);
 
 		SoundInstance3DFMOD* pSoundInstance = DBG_NEW SoundInstance3DFMOD(this);
-
 		if (!pSoundInstance->Init(pDesc))
 		{
 			return nullptr;
@@ -175,7 +157,6 @@ namespace LambdaEngine
 		VALIDATE(pDesc != nullptr);
 
 		AudioGeometryFMOD* pAudioGeometry = DBG_NEW AudioGeometryFMOD(this);
-
 		if (!pAudioGeometry->Init(pDesc))
 		{
 			return nullptr;
@@ -191,7 +172,6 @@ namespace LambdaEngine
 		VALIDATE(pDesc != nullptr);
 
 		ReverbSphereFMOD* pReverbSphere = DBG_NEW ReverbSphereFMOD(this);
-
 		if (!pReverbSphere->Init(pDesc))
 		{
 			return nullptr;

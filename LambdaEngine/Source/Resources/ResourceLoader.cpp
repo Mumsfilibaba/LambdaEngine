@@ -723,7 +723,6 @@ namespace LambdaEngine
 		soundDesc.pFilepath = pFilepath;
 
 		ISoundEffect3D* pSound = AudioSystem::GetDevice()->CreateSoundEffect(&soundDesc);
-
 		if (pSound == nullptr)
 		{
 			LOG_ERROR("[ResourceLoader]: Failed to initialize sound \"%s\"", pFilepath);

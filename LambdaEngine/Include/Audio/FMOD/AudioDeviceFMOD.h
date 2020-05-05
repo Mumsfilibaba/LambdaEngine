@@ -1,7 +1,7 @@
 #pragma once
+#include "Audio/API/IAudioDevice.h"
 
 #include "FMOD.h"
-#include "Audio/API/IAudioDevice.h"
 
 namespace LambdaEngine
 {
@@ -16,14 +16,13 @@ namespace LambdaEngine
 		AudioDeviceFMOD();
 		~AudioDeviceFMOD();
 
-		virtual bool Init(const AudioDeviceDesc* pDesc) override final;
+		bool Init(const AudioDeviceDesc* pDesc);
 
+		// IAudioDevice
 		virtual void Tick() override final;
 
-		virtual void UpdateAudioListener(uint32 index, const AudioListenerDesc* pDesc) override final;
-
-		virtual uint32				CreateAudioListener()									override final;
 		virtual IMusic*				CreateMusic(const MusicDesc* pDesc)						override final;
+		virtual IAudioListener*		CreateAudioListener(const AudioListenerDesc* pDesc)		override final;
 		virtual ISoundEffect3D*		CreateSoundEffect(const SoundEffect3DDesc* pDesc)		override final;
 		virtual ISoundInstance3D*	CreateSoundInstance(const SoundInstance3DDesc* pDesc)	override final;
 		virtual IAudioGeometry*		CreateAudioGeometry(const AudioGeometryDesc* pDesc)		override final;

@@ -1,7 +1,7 @@
 #pragma once
+#include "Audio/API/ISoundInstance3D.h"
 
 #include "FMOD.h"
-#include "Audio/API/ISoundInstance3D.h"
 
 namespace LambdaEngine
 {
@@ -17,20 +17,25 @@ namespace LambdaEngine
 		SoundInstance3DFMOD(const IAudioDevice* pAudioDevice);
 		~SoundInstance3DFMOD();
 
-		virtual bool Init(const SoundInstance3DDesc* pDesc) override final;
-
+		bool Init(const SoundInstance3DDesc* pDesc);
+	
+		// ISoundInstance3D interface
 		virtual void Play() override final;
 		virtual void Pause() override final;
 		virtual void Stop() override final;
 		virtual void Toggle() override final;
 		
-		virtual void SetPosition(const glm::vec3& position) override final;
-		virtual void SetVolume(float volume) override final;
-		virtual void SetPitch(float pitch) override final;
-		
-		virtual const glm::vec3& GetPosition()	const override final;
-		virtual float GetVolume()				const override final;
-		virtual float GetPitch()				const override final;
+		virtual void SetPosition(const glm::vec3& position)				override final;
+		virtual void SetVolume(float32 volume)							override final;
+		virtual void SetPitch(float32 pitch)							override final;
+		virtual void SetReferenceDistance(float32 referenceDistance)	override final;
+		virtual void SetMaxDistance(float32 maxDistance)				override final;
+
+		virtual const glm::vec3& GetPosition()				const override final;
+		virtual float32				GetVolume()				const override final;
+		virtual float32				GetPitch()				const override final;
+		virtual float32				GetMaxDistance()		const override final;
+		virtual float32				GetReferenceDistance()	const override final;
 		
 	private:
 		bool IsPlaying();

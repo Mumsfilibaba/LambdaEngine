@@ -1,8 +1,9 @@
 #pragma once
+#include "Core/RefCountedObject.h"
 
-#include "LambdaEngine.h"
-#include "AudioTypes.h"
 #include "Math/Math.h"
+
+#include "AudioTypes.h"
 
 namespace LambdaEngine
 {
@@ -10,22 +11,17 @@ namespace LambdaEngine
 	
 	struct SoundInstance3DDesc
 	{
-		const char* pName					= "SoundInstance3DFMOD";
+		const char*		pName				= "";
 		ISoundEffect3D* pSoundEffect		= nullptr;
-		uint32 Flags						= FSoundModeFlags::SOUND_MODE_NONE;
+		ESoundMode		Mode				= ESoundMode::SOUND_MODE_NONE;
+		float32			ReferenceDistance	= 6.0f;		// The distance were the attenutation-volume is 1.0f
+		float32			MaxDistance			= 20.0f;	// The distance were the attenutation-volume is 0.0f
 	};
 	
-	class ISoundInstance3D
+	class ISoundInstance3D : public RefCountedObject
 	{
 	public:
 		DECL_INTERFACE(ISoundInstance3D);
-
-		/*
-		* Initialize this SoundInstance3D
-		*	pDesc - A description of initialization parameters
-		* return - true if the initialization was successfull, otherwise returns false
-		*/
-		virtual bool Init(const SoundInstance3DDesc* pDesc) = 0;
 
 		/*
 		* Play the sound instance
@@ -54,17 +50,29 @@ namespace LambdaEngine
 		virtual void SetPosition(const glm::vec3& position) = 0;
 
 		/*
-		* Set the volume of the sound instance in the range [-Inf, Inf]
+		* Set the volume of the sound instance in the range [-1.0, 1.0]
 		*/
-		virtual void SetVolume(float volume) = 0;
+		virtual void SetVolume(float32 volume) = 0;
+
+		/*
+		* Set the distance at were the volume will be 1.0
+		*/
+		virtual void SetReferenceDistance(float32 referenceDistance) = 0;
+
+		/*
+		* Set the distance at were the volume will be 0.0
+		*/
+		virtual void SetMaxDistance(float32 maxDistance) = 0;
 
 		/*
 		* Set the pitch of the sound instance in the range [-Inf, Inf]
 		*/
-		virtual void SetPitch(float pitch) = 0;
+		virtual void SetPitch(float32 pitch) = 0;
 
-		virtual const glm::vec3& GetPosition()	const = 0;
-		virtual float GetVolume()				const = 0;
-		virtual float GetPitch()				const = 0;
+		virtual const glm::vec3&	GetPosition()			const = 0;
+		virtual float32				GetVolume()				const = 0;
+		virtual float32				GetPitch()				const = 0;
+		virtual float32				GetMaxDistance()		const = 0;
+		virtual float32				GetReferenceDistance()	const = 0;
 	};
 }

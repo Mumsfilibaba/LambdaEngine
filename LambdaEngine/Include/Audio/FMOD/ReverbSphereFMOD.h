@@ -1,7 +1,7 @@
 #pragma once
+#include "Audio/API/IReverbSphere.h"
 
 #include "FMOD.h"
-#include "Audio/API/IReverbSphere.h"
 
 namespace LambdaEngine
 {
@@ -14,7 +14,9 @@ namespace LambdaEngine
 		ReverbSphereFMOD(const IAudioDevice* pAudioDevice);
 		~ReverbSphereFMOD();
 
-		virtual bool Init(const ReverbSphereDesc* pDesc) override final;
+		bool Init(const ReverbSphereDesc* pDesc);
+		
+		// IReverbSphere interface
 		virtual void SetActive(bool active) override final;
 		virtual void Set3DAttributes(const glm::vec3 position, float minDistance, float maxDistance) override final;
 		virtual void SetReverbSetting(EReverbSetting reverbSetting) override final;

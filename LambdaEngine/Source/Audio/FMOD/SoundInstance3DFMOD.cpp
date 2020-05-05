@@ -36,8 +36,7 @@ namespace LambdaEngine
 		m_pSoundEffect	= reinterpret_cast<SoundEffect3DFMOD*>(pDesc->pSoundEffect);
 		
 		m_Mode = FMOD_3D;
-
-		if (pDesc->Flags & FSoundModeFlags::SOUND_MODE_LOOPING)
+		if (pDesc->Mode == ESoundMode::SOUND_MODE_LOOPING)
 		{
 			m_Mode |= FMOD_LOOP_NORMAL;
 		}
@@ -92,7 +91,15 @@ namespace LambdaEngine
 		}
 	}
 
-	void SoundInstance3DFMOD::SetVolume(float volume)
+	void SoundInstance3DFMOD::SetReferenceDistance(float32 referenceDistance)
+	{
+	}
+
+	void SoundInstance3DFMOD::SetMaxDistance(float32 maxDistance)
+	{
+	}
+
+	void SoundInstance3DFMOD::SetVolume(float32 volume)
 	{
 		m_Volume = volume;
 
@@ -105,7 +112,7 @@ namespace LambdaEngine
 		}
 	}
 
-	void SoundInstance3DFMOD::SetPitch(float pitch)
+	void SoundInstance3DFMOD::SetPitch(float32 pitch)
 	{
 		m_Pitch = pitch;
 
@@ -131,6 +138,16 @@ namespace LambdaEngine
 	float SoundInstance3DFMOD::GetPitch() const
 	{
 		return m_Pitch;
+	}
+
+	float32 SoundInstance3DFMOD::GetMaxDistance() const
+	{
+		return float32();
+	}
+
+	float32 SoundInstance3DFMOD::GetReferenceDistance() const
+	{
+		return float32();
 	}
 
 	bool SoundInstance3DFMOD::IsPlaying()

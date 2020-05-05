@@ -41,21 +41,6 @@ namespace LambdaEngine
 		return true;
 	}
 
-	void SoundEffect3DFMOD::PlayOnceAt(const glm::vec3& position, const glm::vec3& velocity, float volume, float pitch)
-	{
-		FMOD_CHANNEL* pChannel = nullptr;
-		FMOD_VECTOR fmodPosition = { position.x, position.y, position.z };
-		FMOD_VECTOR fmodVelocity = { velocity.x, velocity.y, velocity.z };
-
-		FMOD_System_PlaySound(m_pAudioDevice->pSystem, m_pHandle, nullptr, true, &pChannel);
-
-		FMOD_Channel_Set3DAttributes(pChannel, &fmodPosition, &fmodVelocity);
-		FMOD_Channel_SetVolume(pChannel, volume);
-		FMOD_Channel_SetPitch(pChannel, pitch);
-
-		FMOD_Channel_SetPaused(pChannel, 0);
-	}
-
 	FMOD_SOUND* SoundEffect3DFMOD::GetHandle() 
 	{ 
 		return m_pHandle; 
@@ -64,5 +49,10 @@ namespace LambdaEngine
 	uint32 SoundEffect3DFMOD::GetLengthMS() 
 	{ 
 		return m_LengthMS; 
+	}
+	
+	SoundDesc SoundEffect3DFMOD::GetDesc() const
+	{
+		return SoundDesc();
 	}
 }

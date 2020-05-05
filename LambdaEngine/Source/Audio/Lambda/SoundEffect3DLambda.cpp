@@ -3,16 +3,17 @@
 
 #include "Log/Log.h"
 
+#include <WavLib.h>
+
 namespace LambdaEngine
 {
-	SoundEffect3DLambda::SoundEffect3DLambda(const AudioDeviceLambda* pAudioDevice) 
-		: m_pAudioDevice(pAudioDevice)
+	SoundEffect3DLambda::SoundEffect3DLambda(AudioDeviceLambda* pDevice) 
+		: m_pAudioDevice(pDevice)
 	{
 	}
 
 	SoundEffect3DLambda::~SoundEffect3DLambda()
 	{
-		m_pAudioDevice->DeleteSoundEffect(this);
 		SAFEDELETE_ARRAY(m_pWaveForm);
 	}
 
@@ -20,26 +21,28 @@ namespace LambdaEngine
 	{
         VALIDATE(pDesc);
 
-		int32 result = WavLibLoadFileFloat(pDesc->pFilepath, &m_pWaveForm, &m_Header);
+		WaveFile header = { };
+		int32	 result = WavLibLoadFileFloat32(pDesc->pFilepath, &m_pWaveForm, &header, WAV_LIB_FLAG_MONO);
 		if (result != WAVE_SUCCESS)
 		{
 			const char* pError = WavLibGetError(result);
-
 			LOG_ERROR("[SoundEffect3DLambda]: Failed to load file '%s'. Error: %s", pDesc->pFilepath, pError);
+
 			return false;
 		}
 		else
 		{
-			D_LOG_MESSAGE("[SoundEffect3DLambda]: Loaded file '%s'", pDesc->pFilepath);
+			m_Desc.SampleCount	= header.SampleCount;
+			m_Desc.ChannelCount = header.ChannelCount;
+			m_Desc.SampleRate	= header.SampleRate;
+
+			D_LOG_MESSAGE("[SoundEffect3DLambda]: Loaded file '%s'. BitsPerSample=%u, SampleCount=%u, ChannelCount=%u, SampleRate=%u", pDesc->pFilepath, header.OriginalBitsPerSample, m_Desc.SampleCount, m_Desc.ChannelCount, m_Desc.SampleRate);
 			return true;
 		}
 	}
-
-	void SoundEffect3DLambda::PlayOnceAt(const glm::vec3& position, const glm::vec3& velocity, float volume, float pitch)
+	
+	SoundDesc SoundEffect3DLambda::GetDesc() const
 	{
-		UNREFERENCED_VARIABLE(position);
-		UNREFERENCED_VARIABLE(velocity);
-		UNREFERENCED_VARIABLE(volume);
-		UNREFERENCED_VARIABLE(pitch);
+		return m_Desc;
 	}
 }

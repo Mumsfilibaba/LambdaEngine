@@ -1,6 +1,6 @@
 #pragma once
-
 #include "FMOD.h"
+
 #include "Audio/API/IMusic.h"
 
 namespace LambdaEngine
@@ -14,8 +14,12 @@ namespace LambdaEngine
 		MusicFMOD(const IAudioDevice* pAudioDevice);
 		~MusicFMOD();
 
-		virtual bool Init(const MusicDesc *pDesc) override final;
+		bool Init(const MusicDesc *pDesc);
 
+		FORCEINLINE FMOD_SOUND*		GetHandle()		{ return m_pHandle; }
+		FORCEINLINE FMOD_CHANNEL*	GetChannel()	{ return m_pChannel; }
+
+		// IMusic Interface
 		virtual void Play() override final;
 		virtual void Pause() override final;
 		virtual void Toggle() override final;
@@ -23,11 +27,9 @@ namespace LambdaEngine
 		virtual void SetVolume(float volume)	override final;
 		virtual void SetPitch(float pitch)		override final;
 		
-		FORCEINLINE virtual float GetVolume()	const override final { return m_Volume; }
-		FORCEINLINE virtual float GetPitch()	const override final { return m_Pitch; }
-
-		FORCEINLINE FMOD_SOUND* GetHandle() { return m_pHandle; }
-		FORCEINLINE FMOD_CHANNEL* GetChannel() { return m_pChannel; }
+		virtual float		GetVolume()	const override final;
+		virtual float		GetPitch()	const override final;
+		virtual SoundDesc	GetDesc()	const override final;
 
 	private:
 		//Engine

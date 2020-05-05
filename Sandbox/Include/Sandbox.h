@@ -24,6 +24,7 @@ namespace LambdaEngine
 	class Scene;
 	class Camera;
 	class ISampler;
+	class IAudioListener;
 }
 
 class Sandbox : public LambdaEngine::Game, public LambdaEngine::IKeyboardHandler, public LambdaEngine::IMouseHandler
@@ -53,34 +54,33 @@ private:
 	bool InitRendererForDeferred();
 
 private:
-	uint32									m_AudioListenerIndex	= 0;
+	GUID_Lambda						m_ToneSoundEffectGUID	= 0;
+	LambdaEngine::ISoundEffect3D*	m_pToneSoundEffect		= nullptr;
+	LambdaEngine::ISoundInstance3D*	m_pToneSoundInstance	= nullptr;
 
-	GUID_Lambda								m_ToneSoundEffectGUID	= 0;
-	LambdaEngine::ISoundEffect3D*			m_pToneSoundEffect		= nullptr;
-	LambdaEngine::ISoundInstance3D*			m_pToneSoundInstance	= nullptr;
+	GUID_Lambda					  m_GunSoundEffectGUID	= 0;
+	LambdaEngine::ISoundEffect3D* m_pGunSoundEffect		= nullptr;
 
-	GUID_Lambda								m_GunSoundEffectGUID	= 0;
-	LambdaEngine::ISoundEffect3D*			m_pGunSoundEffect		= nullptr;
+	GUID_Lambda						m_MusicGUID			= 0;
+	LambdaEngine::ISoundEffect3D*	m_pMusic			= nullptr;
+	LambdaEngine::ISoundInstance3D*	m_pMusicInstance	= nullptr;
 
-	GUID_Lambda								m_MusicGUID			= 0;
-	LambdaEngine::ISoundEffect3D*			m_pMusic			= nullptr;
-	LambdaEngine::ISoundInstance3D*			m_pMusicInstance	= nullptr;
+	LambdaEngine::IAudioListener* m_pListener = nullptr;
 
+	LambdaEngine::IReverbSphere*  m_pReverbSphere			= nullptr;
+	LambdaEngine::IAudioGeometry* m_pAudioGeometry		= nullptr;
 
-	LambdaEngine::IReverbSphere*			m_pReverbSphere			= nullptr;
-	LambdaEngine::IAudioGeometry*			m_pAudioGeometry		= nullptr;
+	LambdaEngine::Scene*	m_pScene				= nullptr;
+	LambdaEngine::Camera*	m_pCamera				= nullptr;
+	LambdaEngine::ISampler*	m_pLinearSampler		= nullptr;
+	LambdaEngine::ISampler*	m_pNearestSampler		= nullptr;
 
-	LambdaEngine::Scene*					m_pScene				= nullptr;
-	LambdaEngine::Camera*					m_pCamera				= nullptr;
-	LambdaEngine::ISampler*					m_pLinearSampler		= nullptr;
-	LambdaEngine::ISampler*					m_pNearestSampler		= nullptr;
+	LambdaEngine::RenderGraph*	m_pRenderGraph			= nullptr;
+	LambdaEngine::Renderer*		m_pRenderer				= nullptr;
 
-	LambdaEngine::RenderGraph*				m_pRenderGraph			= nullptr;
-	LambdaEngine::Renderer*					m_pRenderer				= nullptr;
-
-	bool									m_SpawnPlayAts;
-	float									m_GunshotTimer;
-	float									m_GunshotDelay;
-	float									m_Timer;
+	bool  m_SpawnPlayAts;
+	float m_GunshotTimer;
+	float m_GunshotDelay;
+	float m_Timer;
 
 };
