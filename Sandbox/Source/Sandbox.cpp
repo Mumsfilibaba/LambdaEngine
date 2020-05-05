@@ -145,10 +145,11 @@ void Sandbox::InitTestAudio()
 	soundInstanceDesc.pSoundEffect		= m_pMusic;
 	soundInstanceDesc.Mode				= ESoundMode::SOUND_MODE_LOOPING;
 	soundInstanceDesc.ReferenceDistance = 2.0f;
-	soundInstanceDesc.MaxDistance		= 10.0f;
+	soundInstanceDesc.MaxDistance		= 15.0f;
+	soundInstanceDesc.RollOff			= 10.0f;
 
 	m_pMusicInstance = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
-	m_pMusicInstance->SetVolume(0.5f);
+	m_pMusicInstance->SetVolume(1.0f);
 	m_pMusicInstance->SetPosition(glm::vec3(0.0f));
 	m_pMusicInstance->Play();
 

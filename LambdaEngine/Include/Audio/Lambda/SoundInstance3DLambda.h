@@ -48,6 +48,7 @@ namespace LambdaEngine
 		float32	Volume				= 1.0f;
 		float32 MaxDistance			= 1.0f;
 		float32 ReferenceDistance	= 1.0f;
+		float32 RollOff				= 1.0f;
 
 		glm::vec3 Position;
 		SoundDesc Desc;

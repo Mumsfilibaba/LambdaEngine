@@ -89,11 +89,10 @@ namespace LambdaEngine
 				{
 					// Calculate volume
 					float32 volume		= pListener->Desc.Volume * pInstance->Volume;
+					float32 refDist		= pInstance->ReferenceDistance;
 					float32 distance	= glm::length(pListener->Desc.Position - pInstance->Position);
-					distance			= glm::max(distance - pInstance->ReferenceDistance, 0.0f);
-					float32 maxDistance = glm::max(pInstance->MaxDistance - pInstance->ReferenceDistance, 0.01f);
-					
-					float32 attenuation = glm::max(1.0f - (distance / maxDistance), 0.0f);
+					distance			= glm::min(pInstance->MaxDistance, glm::max(refDist, distance)) - refDist;
+					float32 attenuation = refDist / (refDist + (pInstance->RollOff * distance));
 					volume				= volume * attenuation;
 
 					// Add samples to buffer
@@ -199,7 +198,7 @@ namespace LambdaEngine
 		return nullptr;
 	}
 
-	void AudioDeviceLambda::SetMasterVolume(float volume)
+	void AudioDeviceLambda::SetMasterVolume(float32 volume)
 	{
 		m_MasterVolume = volume;
 	}

@@ -43,7 +43,7 @@ namespace LambdaEngine
 		virtual IAudioGeometry*		CreateAudioGeometry(const AudioGeometryDesc* pDesc)		override final;
 		virtual IReverbSphere*		CreateReverbSphere(const ReverbSphereDesc* pDesc)		override final;
 
-		virtual void SetMasterVolume(float volume) override final;
+		virtual void SetMasterVolume(float32 volume) override final;
 
 		virtual float GetMasterVolume() const override final;
 

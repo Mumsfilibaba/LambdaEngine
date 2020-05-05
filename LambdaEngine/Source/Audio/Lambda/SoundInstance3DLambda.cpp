@@ -32,6 +32,7 @@ namespace LambdaEngine
 		MaxDistance			= pDesc->MaxDistance;
 		TotalSampleCount	= Desc.SampleCount * Desc.ChannelCount;
 		pWaveForm			= new float32[TotalSampleCount];
+		RollOff				= pDesc->RollOff;
 		memcpy(pWaveForm, pSoundEffect->GetWaveform(), sizeof(float32) * TotalSampleCount);
 
 		return true;
