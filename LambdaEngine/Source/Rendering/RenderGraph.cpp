@@ -674,8 +674,8 @@ namespace LambdaEngine
 				return false;
 			}
 
-			pRenderStage->TextureSubDescriptorSetCount = glm::max((uint32)glm::ceil((float)totalNumberOfTextures / m_MaxTexturesPerDescriptorSet), 1u);
 			pRenderStage->MaterialsRenderedPerPass = (m_MaxTexturesPerDescriptorSet - totalNumberOfNonMaterialTextures) / 5; //5 textures per material
+			pRenderStage->TextureSubDescriptorSetCount = (uint32)glm::ceil((float)totalNumberOfTextures / float(pRenderStage->MaterialsRenderedPerPass * 5));
 
 			std::vector<DescriptorBindingDesc> textureDescriptorSetDescriptions;
 			textureDescriptorSetDescriptions.reserve(pRenderStageDesc->AttachmentCount);
@@ -1652,6 +1652,8 @@ namespace LambdaEngine
 		if (pRenderStage->ppBufferDescriptorSets != nullptr)
 			pGraphicsCommandList->BindDescriptorSetGraphics(pRenderStage->ppBufferDescriptorSets[backBufferIndex], pRenderStage->pPipelineLayout, pRenderStage->ppTextureDescriptorSets != nullptr ? 1 : 0);
 
+		
+
 		if (pRenderStage->DrawType == ERenderStageDrawType::SCENE_INDIRECT)
 		{
 			pGraphicsCommandList->BindIndexBuffer(pRenderStage->pIndexBufferResource->Buffer.Buffers[0], 0);
@@ -1659,6 +1661,8 @@ namespace LambdaEngine
 			IBuffer* pDrawBuffer		= pRenderStage->pMeshIndexBufferResource->Buffer.Buffers[0];
 			uint32 totalDrawCount		= uint32(pDrawBuffer->GetDesc().SizeInBytes / sizeof(IndexedIndirectMeshArgument));
 			uint32 indirectArgStride	= sizeof(IndexedIndirectMeshArgument);
+
+			uint32 totalActuallyDrawnCount = 0;
 
 			uint32 drawOffset = 0;
 			for (uint32 i = 0; i < pRenderStage->TextureSubDescriptorSetCount; i++)
@@ -1672,6 +1676,8 @@ namespace LambdaEngine
 
 				pGraphicsCommandList->DrawIndexedIndirect(pDrawBuffer, drawOffset * indirectArgStride, drawCount, indirectArgStride);
 				drawOffset = newDrawOffset;
+
+				totalActuallyDrawnCount += drawCount;
 
 				if (newDrawOffset >= totalDrawCount)
 					break;

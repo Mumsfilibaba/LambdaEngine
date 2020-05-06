@@ -158,7 +158,7 @@ namespace LambdaEngine
 		}
 	}
 
-	void SoundInstance3DLambda::AddToBuffer(double** ppOutputChannels, uint32 channelCount, uint32 outputSampleCount)
+	void SoundInstance3DLambda::ProcessBuffer(double** ppOutputChannels, uint32 channelCount, uint32 outputSampleCount)
 	{
 		if (m_Playing)
 		{

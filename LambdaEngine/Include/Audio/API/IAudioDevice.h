@@ -12,12 +12,16 @@ namespace LambdaEngine
 	struct ReverbSphereDesc;
 	struct SoundEffect3DDesc;
 	struct SoundInstance3DDesc;
+	struct FIRFilterDesc;
+	struct IIRFilterDesc;
+	struct FilterSystemDesc;
 
 	class IMusic;
 	class ISoundEffect3D;
 	class ISoundInstance3D;
 	class IAudioGeometry;
 	class IReverbSphere;
+	class IAudioFilter;
 	
 	enum class EAudioAPI
 	{
@@ -65,16 +69,34 @@ namespace LambdaEngine
 
 		virtual void UpdateAudioListener(uint32 index, const AudioListenerDesc* pDesc) = 0;
 
-		virtual uint32				CreateAudioListener()									= 0;
-		virtual IMusic*				CreateMusic(const MusicDesc* pDesc)						= 0;
-		virtual ISoundEffect3D*		CreateSoundEffect(const SoundEffect3DDesc* pDesc)		= 0;
-		virtual ISoundInstance3D*	CreateSoundInstance(const SoundInstance3DDesc* pDesc)	= 0;
-		virtual IAudioGeometry*		CreateAudioGeometry(const AudioGeometryDesc* pDesc)		= 0;
-		virtual IReverbSphere*		CreateReverbSphere(const ReverbSphereDesc* pDesc)		= 0;
+		virtual uint32				CreateAudioListener()										= 0;
+		virtual IMusic*				CreateMusic(const MusicDesc* pDesc)							= 0;
+		virtual ISoundEffect3D*		CreateSoundEffect(const SoundEffect3DDesc* pDesc)			= 0;
+		virtual ISoundInstance3D*	CreateSoundInstance(const SoundInstance3DDesc* pDesc)		= 0;
+		virtual IAudioGeometry*		CreateAudioGeometry(const AudioGeometryDesc* pDesc)			= 0;
+		virtual IReverbSphere*		CreateReverbSphere(const ReverbSphereDesc* pDesc)			= 0;
 
-		virtual void SetMasterVolume(float64 volume) = 0;
+		virtual IAudioFilter*		CreateFIRFilter(const FIRFilterDesc* pDesc)					const = 0;
+		virtual IAudioFilter*		CreateLowpassFIRFilter(float64 cutoffFreq, uint32 order)	const = 0;
+		virtual IAudioFilter*		CreateHighpassFIRFilter(float64 cutoffFreq, uint32 order)	const = 0;
+		virtual IAudioFilter*		CreateBandpassFIRFilter(float64 lowCutoffFreq, float64 highCutoffFreq, uint32 order)	const = 0;
+		virtual IAudioFilter*		CreateBandstopFIRFilter(float64 lowCutoffFreq, float64 highCutoffFreq, uint32 order)	const = 0;
 
-		virtual float64 GetMasterVolume() const = 0;
+		virtual IAudioFilter*		CreateIIRFilter(const IIRFilterDesc* pDesc)					const = 0;
+		virtual IAudioFilter*		CreateLowpassIIRFilter(float64 cutoffFreq, uint32 order)	const = 0;
+		virtual IAudioFilter*		CreateHighpassIIRFilter(float64 cutoffFreq, uint32 order)	const = 0;
+		virtual IAudioFilter*		CreateBandpassIIRFilter(float64 lowCutoffFreq, float64 highCutoffFreq, uint32 order)	const = 0;
+		virtual IAudioFilter*		CreateBandstopIIRFilter(float64 lowCutoffFreq, float64 highCutoffFreq, uint32 order)	const = 0;
+
+		virtual IAudioFilter*		CreateFilterSystem(const FilterSystemDesc* pDesc)			const = 0;
+
+		virtual void				SetMasterFilter(const IAudioFilter* pAudioFilter)			= 0;
+
+		virtual void				SetMasterVolume(float64 volume)								= 0;
+		virtual void				SetMasterFilterEnabled(bool enabled)						= 0;
+
+		virtual float64				GetMasterVolume()											const = 0;
+		virtual bool				GetMasterFilterEnabled()									const = 0;
 	};
 
 	LAMBDA_API IAudioDevice* CreateAudioDevice(EAudioAPI api, const AudioDeviceDesc& desc);

@@ -106,7 +106,7 @@ namespace LambdaEngine
 		SAFEDELETE_ARRAY(pChannelWaveForm);
 	}
 
-	void MusicLambda::AddToBuffer(double** ppOutputChannels, uint32 channelCount, uint32 outputSampleCount)
+	void MusicLambda::ProcessBuffer(double** ppOutputChannels, uint32 channelCount, uint32 outputSampleCount)
 	{
 		if (m_Playing)
 		{

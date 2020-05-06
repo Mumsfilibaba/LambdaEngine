@@ -34,7 +34,7 @@ namespace LambdaEngine
 		FORCEINLINE virtual float32				GetPitch()		const override final { return 1.0f;			}
 
 		void UpdateVolume(float masterVolume, const AudioListenerDesc* pAudioListeners, uint32 audioListenerCount, ESpeakerSetup speakerSetup);
-		void AddToBuffer(double** ppOutputChannels, uint32 channelCount, uint32 outputSampleCount);
+		void ProcessBuffer(double** ppOutputChannels, uint32 channelCount, uint32 outputSampleCount);
 
 	private:
 		const AudioDeviceLambda* m_pAudioDevice		= nullptr;

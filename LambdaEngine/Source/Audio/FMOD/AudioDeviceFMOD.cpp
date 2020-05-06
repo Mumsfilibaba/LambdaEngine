@@ -202,15 +202,122 @@ namespace LambdaEngine
 		}
 	}
 
+	IAudioFilter* AudioDeviceFMOD::CreateFIRFilter(const FIRFilterDesc* pDesc) const
+	{
+		UNREFERENCED_VARIABLE(pDesc);
+		LOG_WARNING("[AudioDeviceFMOD]: CreateFIRFilter called but not implemented!");
+		return nullptr;
+	}
+
+	IAudioFilter* AudioDeviceFMOD::CreateLowpassFIRFilter(float64 cutoffFreq, uint32 order) const
+	{
+		UNREFERENCED_VARIABLE(cutoffFreq);
+		UNREFERENCED_VARIABLE(order);
+		LOG_WARNING("[AudioDeviceFMOD]: CreateLowpassFIRFilter called but not implemented!");
+		return nullptr;
+	}
+
+	IAudioFilter* AudioDeviceFMOD::CreateHighpassFIRFilter(float64 cutoffFreq, uint32 order) const
+	{
+		UNREFERENCED_VARIABLE(cutoffFreq);
+		UNREFERENCED_VARIABLE(order);
+		LOG_WARNING("[AudioDeviceFMOD]: CreateHighpassFIRFilter called but not implemented!");
+		return nullptr;
+	}
+
+	IAudioFilter* AudioDeviceFMOD::CreateBandpassFIRFilter(float64 lowCutoffFreq, float64 highCutoffFreq, uint32 order) const
+	{
+		UNREFERENCED_VARIABLE(lowCutoffFreq);
+		UNREFERENCED_VARIABLE(highCutoffFreq);
+		UNREFERENCED_VARIABLE(order);
+		LOG_WARNING("[AudioDeviceFMOD]: CreateBandpassFIRFilter called but not implemented!");
+		return nullptr;
+	}
+
+	IAudioFilter* AudioDeviceFMOD::CreateBandstopFIRFilter(float64 lowCutoffFreq, float64 highCutoffFreq, uint32 order) const
+	{
+		UNREFERENCED_VARIABLE(lowCutoffFreq);
+		UNREFERENCED_VARIABLE(highCutoffFreq);
+		UNREFERENCED_VARIABLE(order);
+		LOG_WARNING("[AudioDeviceFMOD]: CreateBandstopFIRFilter called but not implemented!");
+		return nullptr;
+	}
+
+	IAudioFilter* AudioDeviceFMOD::CreateIIRFilter(const IIRFilterDesc* pDesc) const
+	{
+		UNREFERENCED_VARIABLE(pDesc);
+		LOG_WARNING("[AudioDeviceFMOD]: CreateIIRFilter called but not implemented!");
+		return nullptr;
+	}
+
+	IAudioFilter* AudioDeviceFMOD::CreateLowpassIIRFilter(float64 cutoffFreq, uint32 order) const
+	{
+		UNREFERENCED_VARIABLE(cutoffFreq);
+		UNREFERENCED_VARIABLE(order);
+		LOG_WARNING("[AudioDeviceFMOD]: CreateLowpassIIRFilter called but not implemented!");
+		return nullptr;
+	}
+
+	IAudioFilter* AudioDeviceFMOD::CreateHighpassIIRFilter(float64 cutoffFreq, uint32 order) const
+	{
+		UNREFERENCED_VARIABLE(cutoffFreq);
+		UNREFERENCED_VARIABLE(order);
+		LOG_WARNING("[AudioDeviceFMOD]: CreateHighpassIIRFilter called but not implemented!");
+		return nullptr;
+	}
+
+	IAudioFilter* AudioDeviceFMOD::CreateBandpassIIRFilter(float64 lowCutoffFreq, float64 highCutoffFreq, uint32 order) const
+	{
+		UNREFERENCED_VARIABLE(lowCutoffFreq);
+		UNREFERENCED_VARIABLE(highCutoffFreq);
+		UNREFERENCED_VARIABLE(order);
+		LOG_WARNING("[AudioDeviceFMOD]: CreateBandpassIIRFilter called but not implemented!");
+		return nullptr;
+	}
+
+	IAudioFilter* AudioDeviceFMOD::CreateBandstopIIRFilter(float64 lowCutoffFreq, float64 highCutoffFreq, uint32 order) const
+	{
+		UNREFERENCED_VARIABLE(lowCutoffFreq);
+		UNREFERENCED_VARIABLE(highCutoffFreq);
+		UNREFERENCED_VARIABLE(order);
+		LOG_WARNING("[AudioDeviceFMOD]: CreateBandstopIIRFilter called but not implemented!");
+		return nullptr;
+	}
+
+	IAudioFilter* AudioDeviceFMOD::CreateFilterSystem(const FilterSystemDesc* pDesc) const
+	{
+		UNREFERENCED_VARIABLE(pDesc);
+		LOG_WARNING("[AudioDeviceFMOD]: CreateFilterSystem called but not implemented!");
+		return nullptr;
+	}
+
 	void AudioDeviceFMOD::SetMasterVolume(float64 volume)
 	{
 		UNREFERENCED_VARIABLE(volume);
 		LOG_WARNING("[AudioDeviceFMOD]: SetMasterVolume called but not implemented!");
 	}
 
+	void AudioDeviceFMOD::SetMasterFilterEnabled(bool enabled)
+	{
+		UNREFERENCED_VARIABLE(enabled);
+		LOG_WARNING("[AudioDeviceFMOD]: SetMasterFilterEnabled called but not implemented!");
+	}
+
 	float64 AudioDeviceFMOD::GetMasterVolume() const
 	{
 		LOG_WARNING("[AudioDeviceFMOD]: GetMasterVolume called but not implemented!");
 		return 0;
+	}
+
+	bool AudioDeviceFMOD::GetMasterFilterEnabled() const
+	{
+		LOG_WARNING("[AudioDeviceFMOD]: GetMasterFilterEnabled called but not implemented!");
+		return false;
+	}
+
+	void AudioDeviceFMOD::SetMasterFilter(const IAudioFilter* pAudioFilter)
+	{
+		UNREFERENCED_VARIABLE(pAudioFilter);
+		LOG_WARNING("[AudioDeviceFMOD]: SetMasterFilter called but not implemented!");
 	}
 };

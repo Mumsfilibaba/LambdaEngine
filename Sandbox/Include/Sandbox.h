@@ -25,6 +25,7 @@ namespace LambdaEngine
 	class Scene;
 	class Camera;
 	class ISampler;
+	class IAudioFilter;
 }
 
 class Sandbox : public LambdaEngine::Game, public LambdaEngine::IKeyboardHandler, public LambdaEngine::IMouseHandler, LambdaEngine::IWindowHandler
@@ -84,6 +85,10 @@ private:
 
 	LambdaEngine::RenderGraph*				m_pRenderGraph			= nullptr;
 	LambdaEngine::Renderer*					m_pRenderer				= nullptr;
+
+	LambdaEngine::IAudioFilter*				m_pFIRFilter			= nullptr;
+	LambdaEngine::IAudioFilter*				m_pIIRFilter			= nullptr;
+	bool									m_CurrentFilterIsFIR	= true;
 
 	bool									m_SpawnPlayAts;
 	float									m_GunshotTimer;

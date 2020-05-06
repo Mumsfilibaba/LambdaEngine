@@ -28,7 +28,7 @@ namespace LambdaEngine
 		FORCEINLINE virtual float32	GetPitch()		const override final	{ return 1.0f;		}	
 
 		void Resample();
-		void AddToBuffer(double** ppOutputChannels, uint32 channelCount, uint32 sampleCount);
+		void ProcessBuffer(double** ppOutputChannels, uint32 channelCount, uint32 sampleCount);
 
 		FORCEINLINE uint32 GetResampledSampleCount()	const { return m_ResampledSampleCount; }
 

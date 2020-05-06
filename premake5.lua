@@ -174,6 +174,39 @@ workspace "LambdaEngine"
 				"Dependencies/r8brain-src/other/**",
 				"Dependencies/r8brain-src/example.cpp",
 			}
+			
+		-- Butterworth-Filter-Design Project
+		project "Butterworth-Filter-Design"
+			kind "StaticLib"
+			language "C++"
+			cppdialect "C++17"
+			systemversion "latest"
+			location "Dependencies/projectfiles/Butterworth-Filter-Design"
+			
+			filter "configurations:Debug or Release"
+				symbols "on"
+				runtime "Release"
+				optimize "Full"
+			filter{}
+			
+			filter "configurations:Production"
+				symbols "off"
+				runtime "Release"
+				optimize "Full"
+			filter{}
+			
+			-- Targets
+			targetdir ("Dependencies/bin/Butterworth-Filter-Design/" .. outputdir)
+			objdir ("Dependencies/bin-int/Butterworth-Filter-Design/" .. outputdir)
+					
+			-- Files
+			files 
+			{
+				"Dependencies/Butterworth-Filter-Design/Biquad.h",
+				"Dependencies/Butterworth-Filter-Design/Butterworth.h",
+				"Dependencies/Butterworth-Filter-Design/Biquad.cpp",
+				"Dependencies/Butterworth-Filter-Design/Butterworth.cpp",
+			}
 	group ""
 
     -- Engine Project
@@ -275,13 +308,15 @@ workspace "LambdaEngine"
 			"Dependencies/portaudio/include",
 			"Dependencies/glslang/include",
 			"Dependencies/r8brain-src",
+			"Dependencies/Butterworth-Filter-Design",
 		}
         
 		links 
 		{ 
 			"tinyobjloader",
 			"WavLib",
-			"r8brain-src"
+			"r8brain-src",
+			"Butterworth-Filter-Design",
 		}
 		
 		-- Win32

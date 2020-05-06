@@ -54,13 +54,13 @@ Sandbox::Sandbox()
 	sceneDesc.RayTracingEnabled = RAY_TRACING_ENABLED;
 	m_pScene->Init(sceneDesc);
 
-	/*std::vector<GameObject>	sceneGameObjects;
-	ResourceManager::LoadSceneFromFile("../Assets/Scenes/sponza/", "sponza.obj", sceneGameObjects);
+	//std::vector<GameObject>	sceneGameObjects;
+	//ResourceManager::LoadSceneFromFile("../Assets/Scenes/sponza/", "sponza.obj", sceneGameObjects);
 
-	for (GameObject& gameObject : sceneGameObjects)
-	{
-		m_pScene->AddDynamicGameObject(gameObject, glm::scale(glm::mat4(1.0f), glm::vec3(0.01f)));
-	}*/
+	//for (GameObject& gameObject : sceneGameObjects)
+	//{
+	//	m_pScene->AddDynamicGameObject(gameObject, glm::scale(glm::mat4(1.0f), glm::vec3(0.01f)));
+	//}
 
 	uint32 bunnyMeshGUID = ResourceManager::LoadMeshFromFile("../Assets/Meshes/bunny.obj");
 
@@ -165,6 +165,9 @@ Sandbox::~Sandbox()
 
 	SAFEDELETE(m_pRenderGraph);
 	SAFEDELETE(m_pRenderer);
+
+	SAFEDELETE(m_pFIRFilter);
+	SAFEDELETE(m_pIIRFilter);
 }
 
 void Sandbox::InitTestAudio()
@@ -197,6 +200,21 @@ void Sandbox::InitTestAudio()
 	m_GunshotTimer = 0.0f;
 	m_GunshotDelay = 1.0f;
 	m_Timer = 0.0f;
+
+	m_pFIRFilter = AudioSystem::GetDevice()->CreateLowpassFIRFilter(2000.0, 16);
+	m_pIIRFilter = AudioSystem::GetDevice()->CreateLowpassIIRFilter(2000.0, 6);
+
+	//m_pFIRFilter = AudioSystem::GetDevice()->CreateHighpassFIRFilter(2000.0, 128);
+	//m_pIIRFilter = AudioSystem::GetDevice()->CreateHighpassIIRFilter(2000.0, 6);
+
+	//m_pFIRFilter = AudioSystem::GetDevice()->CreateBandpassFIRFilter(2000.0, 4000.0, 16);
+	//m_pIIRFilter = AudioSystem::GetDevice()->CreateBandpassIIRFilter(2000.0, 4000.0, 4);
+
+	//m_pFIRFilter = AudioSystem::GetDevice()->CreateBandstopFIRFilter(2000.0, 4000.0, 16);
+	//m_pIIRFilter = AudioSystem::GetDevice()->CreateBandstopIIRFilter(2000.0, 4000.0, 4);
+
+	AudioSystem::GetDevice()->SetMasterFilter(m_pIIRFilter);
+	m_CurrentFilterIsFIR = false;
 
 	/*m_pAudioListener = AudioSystem::GetDevice()->CreateAudioListener();
 	m_pAudioListener->Update(glm::vec3(0.0f, 0.0f, -3.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -347,6 +365,23 @@ void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRep
 		RenderSystem::GetComputeQueue()->Flush();
 		ResourceManager::ReloadAllShaders();
 		PipelineStateManager::ReloadPipelineStates();
+	}
+	else if (key == EKey::KEY_KEYPAD_6)
+	{
+		AudioSystem::GetDevice()->SetMasterFilterEnabled(!AudioSystem::GetDevice()->GetMasterFilterEnabled());
+	}
+	else if (key == EKey::KEY_KEYPAD_7)
+	{
+		if (m_CurrentFilterIsFIR)
+		{
+			AudioSystem::GetDevice()->SetMasterFilter(m_pIIRFilter);
+			m_CurrentFilterIsFIR = false;
+		}
+		else
+		{
+			AudioSystem::GetDevice()->SetMasterFilter(m_pFIRFilter);
+			m_CurrentFilterIsFIR = true;
+		}
 	}
 	/*if (key == EKey::KEY_KEYPAD_1)
 	{

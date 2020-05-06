@@ -30,16 +30,34 @@ namespace LambdaEngine
 			 
 		virtual void UpdateAudioListener(uint32 index, const AudioListenerDesc* pDesc) override final;
 
-		virtual uint32				CreateAudioListener()									override final;
-		virtual IMusic*				CreateMusic(const MusicDesc* pDesc)						override final;
-		virtual ISoundEffect3D*		CreateSoundEffect(const SoundEffect3DDesc* pDesc)		override final;
-		virtual ISoundInstance3D*	CreateSoundInstance(const SoundInstance3DDesc* pDesc)	override final;
-		virtual IAudioGeometry*		CreateAudioGeometry(const AudioGeometryDesc* pDesc)		override final;
-		virtual IReverbSphere*		CreateReverbSphere(const ReverbSphereDesc* pDesc)		override final;
+		virtual uint32				CreateAudioListener()										override final;
+		virtual IMusic*				CreateMusic(const MusicDesc* pDesc)							override final;
+		virtual ISoundEffect3D*		CreateSoundEffect(const SoundEffect3DDesc* pDesc)			override final;
+		virtual ISoundInstance3D*	CreateSoundInstance(const SoundInstance3DDesc* pDesc)		override final;
+		virtual IAudioGeometry*		CreateAudioGeometry(const AudioGeometryDesc* pDesc)			override final;
+		virtual IReverbSphere*		CreateReverbSphere(const ReverbSphereDesc* pDesc)			override final;
 
-		virtual void SetMasterVolume(float64 volume) override final;
+		virtual IAudioFilter*		CreateFIRFilter(const FIRFilterDesc* pDesc)					const override final;
+		virtual IAudioFilter*		CreateLowpassFIRFilter(float64 cutoffFreq, uint32 order)	const override final;
+		virtual IAudioFilter*		CreateHighpassFIRFilter(float64 cutoffFreq, uint32 order)	const override final;
+		virtual IAudioFilter*		CreateBandpassFIRFilter(float64 lowCutoffFreq, float64 highCutoffFreq, uint32 order)	const override final;
+		virtual IAudioFilter*		CreateBandstopFIRFilter(float64 lowCutoffFreq, float64 highCutoffFreq, uint32 order)	const override final;
 
-		FORCEINLINE virtual float64 GetMasterVolume() const override final { return m_MasterVolume; }
+		virtual IAudioFilter*		CreateIIRFilter(const IIRFilterDesc* pDesc)					const override final;
+		virtual IAudioFilter*		CreateLowpassIIRFilter(float64 cutoffFreq, uint32 order)	const override final;
+		virtual IAudioFilter*		CreateHighpassIIRFilter(float64 cutoffFreq, uint32 order)	const override final;
+		virtual IAudioFilter*		CreateBandpassIIRFilter(float64 lowCutoffFreq, float64 highCutoffFreq, uint32 order)	const override final;
+		virtual IAudioFilter*		CreateBandstopIIRFilter(float64 lowCutoffFreq, float64 highCutoffFreq, uint32 order)	const override final;
+
+		virtual IAudioFilter*		CreateFilterSystem(const FilterSystemDesc* pDesc)			const override final;
+
+		virtual void				SetMasterFilter(const IAudioFilter* pAudioFilter)			override final;
+
+		virtual void				SetMasterVolume(float64 volume)								override final;
+		virtual void				SetMasterFilterEnabled(bool enabled)						override final;
+
+		FORCEINLINE virtual float64 GetMasterVolume()			const override final { return m_MasterVolume; }
+		virtual bool				GetMasterFilterEnabled()	const override final;
 
 		void AddManagedSoundInstance(const ManagedSoundInstance3DDesc* pDesc) const;
 
@@ -88,6 +106,8 @@ namespace LambdaEngine
 		uint32			m_WaveFormSampleCount		= 0;
 		uint32			m_WaveFormWriteIndex		= 0;
 		uint32			m_WaveFormReadIndex			= 0;
+
+		IAudioFilter**	m_ppMasterFilters			= nullptr;
 
 		//Settings
 		float64			m_MasterVolume				= 1.0;

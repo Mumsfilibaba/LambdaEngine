@@ -10,3 +10,6 @@
 [submodule "Dependencies/r8brain-src"]
 	path = Dependencies/r8brain-src
 	url = https://github.com/avaneev/r8brain-free-src.git
+[submodule "Dependencies/Butterworth-Filter-Design"]
+	path = Dependencies/Butterworth-Filter-Design
+	url = https://github.com/ruohoruotsi/Butterworth-Filter-Design.git
