@@ -22,6 +22,8 @@ namespace LambdaEngine
 		// ISoundEffect3D interface
 		virtual SoundDesc GetDesc() const override final;
 
+		virtual void PlayOnce(const SoundInstance3DDesc* pDesc) override final;
+
 	private:
 		//Engine
 		const AudioDeviceFMOD*	m_pAudioDevice;

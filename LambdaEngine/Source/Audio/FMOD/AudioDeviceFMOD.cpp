@@ -117,6 +117,11 @@ namespace LambdaEngine
 		}
 	}
 
+	IMusicInstance* AudioDeviceFMOD::CreateMusicInstance(const MusicInstanceDesc* pDesc)
+	{
+		return nullptr;
+	}
+
 	IAudioListener* AudioDeviceFMOD::CreateAudioListener(const AudioListenerDesc* pDesc)
 	{
 		return nullptr;

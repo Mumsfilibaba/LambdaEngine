@@ -19,16 +19,6 @@ namespace LambdaEngine
 		FORCEINLINE FMOD_SOUND*		GetHandle()		{ return m_pHandle; }
 		FORCEINLINE FMOD_CHANNEL*	GetChannel()	{ return m_pChannel; }
 
-		// IMusic Interface
-		virtual void Play() override final;
-		virtual void Pause() override final;
-		virtual void Toggle() override final;
-		
-		virtual void SetVolume(float volume)	override final;
-		virtual void SetPitch(float pitch)		override final;
-		
-		virtual float		GetVolume()	const override final;
-		virtual float		GetPitch()	const override final;
 		virtual SoundDesc	GetDesc()	const override final;
 
 	private:

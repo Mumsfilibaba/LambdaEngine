@@ -8,13 +8,15 @@
 namespace LambdaEngine
 {
 	SoundEffect3DLambda::SoundEffect3DLambda(AudioDeviceLambda* pDevice) 
-		: m_pAudioDevice(pDevice)
+		: m_pDevice(pDevice),
+		m_Desc()
 	{
 	}
 
 	SoundEffect3DLambda::~SoundEffect3DLambda()
 	{
-		SAFEDELETE_ARRAY(m_pWaveForm);
+		m_pDevice->RemoveSoundEffect3D(this);
+		WavLibFree(m_pWaveForm);
 	}
 
 	bool SoundEffect3DLambda::Init(const SoundEffect3DDesc* pDesc)
@@ -44,5 +46,10 @@ namespace LambdaEngine
 	SoundDesc SoundEffect3DLambda::GetDesc() const
 	{
 		return m_Desc;
+	}
+	
+	void SoundEffect3DLambda::PlayOnce(const SoundInstance3DDesc* pDesc)
+	{
+		m_pDevice->PlayOnce(pDesc);
 	}
 }

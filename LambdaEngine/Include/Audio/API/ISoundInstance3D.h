@@ -9,16 +9,6 @@ namespace LambdaEngine
 {
 	class ISoundEffect3D;
 	
-	struct SoundInstance3DDesc
-	{
-		const char*		pName				= "";
-		ISoundEffect3D* pSoundEffect		= nullptr;
-		ESoundMode		Mode				= ESoundMode::SOUND_MODE_NONE;
-		float32			ReferenceDistance	= 6.0f;		// The distance were the attenutation-volume is 1.0f
-		float32			MaxDistance			= 20.0f;	// The distance were the attenutation reaches its lowest value
-		float32			RollOff				= 1.0f;		// The speed of the attenutation [0.01, inf]
-	};
-	
 	class ISoundInstance3D : public RefCountedObject
 	{
 	public:

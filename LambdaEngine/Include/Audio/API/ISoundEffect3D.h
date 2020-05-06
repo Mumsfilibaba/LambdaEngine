@@ -18,5 +18,7 @@ namespace LambdaEngine
 		DECL_INTERFACE(ISoundEffect3D);
 
 		virtual SoundDesc GetDesc() const = 0;
+
+		virtual void PlayOnce(const SoundInstance3DDesc* pDesc) = 0;
 	};
 }

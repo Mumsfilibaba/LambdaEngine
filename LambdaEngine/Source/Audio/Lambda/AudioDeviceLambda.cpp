@@ -7,22 +7,60 @@
 #include "Audio/Lambda/SoundInstance3DLambda.h"
 #include "Audio/Lambda/MusicLambda.h"
 #include "Audio/Lambda/AudioListenerLambda.h"
+#include "Audio/Lambda/MusicInstanceLambda.h"
 
 #include <immintrin.h>
 
 namespace LambdaEngine
 {	
 	AudioDeviceLambda::AudioDeviceLambda()
+		: m_SoundEffects(),	
+		m_SoundInstances(),
+		m_AudioListeners(),
+		m_Music(),
+		m_MusicInstances(),
+		m_RemovableSoundEffects(),
+		m_RemovableSoundInstances(),
+		m_RemovableAudioListeners(),
+		m_RemovableMusic(),
+		m_RemovableMusicInstances()
 	{
 	}
 
 	AudioDeviceLambda::~AudioDeviceLambda()
 	{
-		PaError result = Pa_Terminate();
+		// Terminate portaudio
+		PaError result = Pa_StopStream(m_pStream);
+		if (result != paNoError)
+		{
+			LOG_ERROR("[AudioDeviceLambda]: Could not stop stream, error: \"%s\"", Pa_GetErrorText(result));
+		}
+		
+		result = Pa_Terminate();
 		if (result != paNoError)
 		{
 			LOG_ERROR("[AudioDeviceLambda]: Could not terminate PortAudio, error: \"%s\"", Pa_GetErrorText(result));
 		}
+
+		// Cleanup		
+		for (SoundInstance3DLambda* pSoundInstance : m_SoundInstances)
+		{
+			SAFERELEASE(pSoundInstance);
+		}
+		m_SoundInstances.clear();
+
+		RemoveResources();
+
+		AudioBuffer* pBuffer = m_pWriteAudioBuffer->pNext;
+		while (pBuffer != m_pWriteAudioBuffer)
+		{
+			AudioBuffer* pDelete = pBuffer;
+			pBuffer = pBuffer->pNext;
+
+			SAFEDELETE(pDelete);
+		}
+
+		SAFEDELETE(m_pWriteAudioBuffer);
 	}
 
 	bool AudioDeviceLambda::Init(const AudioDeviceDesc* pDesc)
@@ -57,20 +95,72 @@ namespace LambdaEngine
 			LOG_ERROR("[AudioDeviceLambda]: Could not start PortAudio stream, error: \"%s\"", Pa_GetErrorText(result));
 		}
 
+		m_Clock.Reset();
+
 		return true;
+	}
+
+	void AudioDeviceLambda::PlayOnce(const SoundInstance3DDesc* pDesc)
+	{
+		VALIDATE(pDesc != nullptr);
+
+		SoundInstance3DLambda* pSoundInstance = DBG_NEW SoundInstance3DLambda(this, true);
+		if (!pSoundInstance->Init(pDesc))
+		{
+			SAFERELEASE(pSoundInstance);
+		}
+		else
+		{
+			m_SoundInstances.emplace_back(pSoundInstance);
+			pSoundInstance->Play();
+
+			LOG_INFO("NumSoundInstances=%u", m_SoundInstances.size());
+		}
+	}
+
+	void AudioDeviceLambda::RemoveSoundEffect3D(SoundEffect3DLambda* pSoundEffect)
+	{
+		m_RemovableSoundEffects.emplace_back(pSoundEffect);
+	}
+
+	void AudioDeviceLambda::RemoveSoundInstance3D(SoundInstance3DLambda* pSoundInstance)
+	{
+		m_RemovableSoundInstances.emplace_back(pSoundInstance);
+	}
+
+	void AudioDeviceLambda::RemoveAudioListener(AudioListenerLambda* pAudioListener)
+	{
+		m_RemovableAudioListeners.emplace_back(pAudioListener);
+	}
+
+	void AudioDeviceLambda::RemoveMusic(MusicLambda* pMusic)
+	{
+		m_RemovableMusic.emplace_back(pMusic);
+	}
+
+	void AudioDeviceLambda::RemoveMusicInstance(MusicInstanceLambda* pMusicInstance)
+	{
+		m_RemovableMusicInstances.emplace_back(pMusicInstance);
 	}
 
 	void AudioDeviceLambda::Tick()
 	{
+		RemoveResources();
+
 		// Setup next free buffer
 		AudioBuffer* pBuffer = m_pWriteAudioBuffer;
 		if (m_pReadBuffer != pBuffer)
 		{
+			m_Clock.Tick();
+			
 			// Work on the next free buffer
 			ProcessBuffer(pBuffer);
 
 			// Get next buffer to process
 			m_pWriteAudioBuffer = m_pWriteAudioBuffer->pNext;
+			
+			m_Clock.Tick();
+			LOG_INFO("AudioProcessing=%llu ns", m_Clock.GetDeltaTime().AsNanoSeconds());
 		}
 	}
 
@@ -79,39 +169,102 @@ namespace LambdaEngine
 		float32* pProcessedData = pBuffer->WaveForm;
 		memset(pProcessedData, 0, sizeof(float32) * BUFFER_SAMPLES);
 
-		uint32			bufferIndex			= 0;
-		const uint32	SAMPLES_PER_CHANNEL	= BUFFER_SAMPLES / m_ChannelCount;
-		for (AudioListenerLambda* pListener : m_AudioListeners)
+		const uint32 SAMPLES_PER_CHANNEL = BUFFER_SAMPLES / m_ChannelCount;
+		for (AudioListenerLambda* pAudioListener : m_AudioListeners)
 		{
-			for (SoundInstance3DLambda* pInstance : m_SoundInstances)
+			for (SoundInstance3DLambda* pSoundInstance : m_SoundInstances)
 			{
-				if (pInstance->IsPlaying)
+				if (pSoundInstance->IsPlaying)
 				{
-					// Calculate volume
-					float32 volume		= pListener->Desc.Volume * pInstance->Volume;
-					float32 refDist		= pInstance->ReferenceDistance;
-					float32 distance	= glm::length(pListener->Desc.Position - pInstance->Position);
-					distance			= glm::min(pInstance->MaxDistance, glm::max(refDist, distance)) - refDist;
-					float32 attenuation = refDist / (refDist + (pInstance->RollOff * distance));
-					volume				= volume * attenuation;
+					ProcessSoundInstance(pAudioListener, pSoundInstance, pProcessedData);
+				}
+			}
+		}
 
-					// Add samples to buffer
-					for (uint32_t i = 0; i < SAMPLES_PER_CHANNEL; i++)
+		for (MusicInstanceLambda* pMusicInstance : m_MusicInstances)
+		{
+			if (pMusicInstance->IsPlaying)
+			{
+				ProcessMusicInstance(pMusicInstance, pProcessedData);
+			}
+		}
+	}
+
+	void AudioDeviceLambda::ProcessSoundInstance(AudioListenerLambda* pAudioListener, SoundInstance3DLambda* pSoundInstance, float32* pBuffer)
+	{
+		const uint32 SAMPLES_PER_CHANNEL = BUFFER_SAMPLES / m_ChannelCount;
+
+		// Reset buffer index for each instance
+		uint32 bufferIndex = 0;
+
+		// Calculate attenutation
+		float32 refDist		= pSoundInstance->ReferenceDistance;
+		float32 distance	= glm::length(pAudioListener->Desc.Position - pSoundInstance->Position);
+		distance			= glm::min(pSoundInstance->MaxDistance, glm::max(refDist, distance)) - refDist;
+		float32 attenuation = refDist / (refDist + (pSoundInstance->RollOff * distance));
+
+		// Calculate volume
+		float32 volume	= pAudioListener->Desc.Volume * pSoundInstance->Volume;
+		volume			= volume * attenuation;
+
+		// Add samples to buffer
+		for (uint32_t i = 0; i < SAMPLES_PER_CHANNEL; i++)
+		{
+			for (uint32_t c = 0; c < m_ChannelCount; c++)
+			{
+				float32 sample = pSoundInstance->pWaveForm[pSoundInstance->CurrentBufferIndex];
+				pBuffer[bufferIndex] += volume * sample;
+				bufferIndex++;
+			}
+
+			pSoundInstance->CurrentBufferIndex++;
+			if (pSoundInstance->CurrentBufferIndex >= pSoundInstance->TotalSampleCount)
+			{
+				if (pSoundInstance->PlayOnce)
+				{
+					SAFERELEASE(pSoundInstance);
+					break;
+				}
+				else
+				{
+					if (pSoundInstance->Mode == ESoundMode::SOUND_MODE_LOOPING)
 					{
-						for (uint32_t c = 0; c < m_ChannelCount; c++)
-						{
-							float32 sample = pInstance->pWaveForm[pInstance->CurrentBufferIndex];
-							pProcessedData[bufferIndex] += volume * sample;
-							bufferIndex++;
-						}
-
-						pInstance->CurrentBufferIndex++;
-						if (pInstance->CurrentBufferIndex == pInstance->TotalSampleCount)
-						{
-							pInstance->CurrentBufferIndex = 0;
-						}
+						pSoundInstance->CurrentBufferIndex = 0;
+					}
+					else
+					{
+						pSoundInstance->Stop();
+						break;
 					}
 				}
+			}
+		}
+	}
+
+	void AudioDeviceLambda::ProcessMusicInstance(MusicInstanceLambda* pMusicInstance, float32* pBuffer)
+	{
+		const uint32 SAMPLES_PER_CHANNEL = BUFFER_SAMPLES / m_ChannelCount;
+
+		// Reset buffer index for each instance
+		uint32 bufferIndex = 0;
+
+		// Calculate volume
+		float32 volume = pMusicInstance->Volume;
+
+		// Add samples to buffer
+		for (uint32_t i = 0; i < SAMPLES_PER_CHANNEL; i++)
+		{
+			for (uint32_t c = 0; c < m_ChannelCount; c++)
+			{
+				float32 sample = pMusicInstance->pWaveForm[pMusicInstance->CurrentBufferIndex];
+				pBuffer[bufferIndex] += volume * sample;
+				bufferIndex++;
+			}
+
+			pMusicInstance->CurrentBufferIndex++;
+			if (pMusicInstance->CurrentBufferIndex >= pMusicInstance->TotalSampleCount)
+			{
+				pMusicInstance->CurrentBufferIndex = 0;
 			}
 		}
 	}
@@ -130,6 +283,23 @@ namespace LambdaEngine
 		{
 			m_Music.emplace_back(pMusic);
 			return pMusic;
+		}
+	}
+
+	IMusicInstance* AudioDeviceLambda::CreateMusicInstance(const MusicInstanceDesc* pDesc)
+	{
+		VALIDATE(pDesc != nullptr);
+
+		MusicInstanceLambda* pMusicInstance = DBG_NEW MusicInstanceLambda(this);
+		if (!pMusicInstance->Init(pDesc))
+		{
+			SAFERELEASE(pMusicInstance);
+			return nullptr;
+		}
+		else
+		{
+			m_MusicInstances.emplace_back(pMusicInstance);
+			return pMusicInstance;
 		}
 	}
 
@@ -171,7 +341,7 @@ namespace LambdaEngine
 	{
 		VALIDATE(pDesc != nullptr);
 
-		SoundInstance3DLambda* pSoundInstance = DBG_NEW SoundInstance3DLambda(this);
+		SoundInstance3DLambda* pSoundInstance = DBG_NEW SoundInstance3DLambda(this, false);
 		if (!pSoundInstance->Init(pDesc))
 		{
 			SAFERELEASE(pSoundInstance);
@@ -180,6 +350,8 @@ namespace LambdaEngine
 		else
 		{
 			m_SoundInstances.emplace_back(pSoundInstance);
+			pSoundInstance->AddRef();
+
 			return pSoundInstance;
 		}
 	}
@@ -215,6 +387,79 @@ namespace LambdaEngine
 
 		D_LOG_INFO("[AudioDeviceLambda]: Created AudioBuffer. NumBuffers=%u", numBuffers);
 		return DBG_NEW AudioBuffer();
+	}
+
+	void AudioDeviceLambda::RemoveResources()
+	{
+		// SoundEffects
+		for (SoundEffect3DLambda* pSoundEffect : m_RemovableSoundEffects)
+		{
+			for (TArray<SoundEffect3DLambda*>::iterator it = m_SoundEffects.begin(); it != m_SoundEffects.end(); it++)
+			{
+				if ((*it) == pSoundEffect)
+				{
+					m_SoundEffects.erase(it);
+					break;
+				}
+			}
+		}
+		m_RemovableSoundEffects.clear();
+
+		// SoundInstances
+		for (SoundInstance3DLambda* pSoundInstance: m_RemovableSoundInstances)
+		{
+			for (TArray<SoundInstance3DLambda*>::iterator it = m_SoundInstances.begin(); it != m_SoundInstances.end(); it++)
+			{
+				if ((*it) == pSoundInstance)
+				{
+					m_SoundInstances.erase(it);
+					break;
+				}
+			}
+		}
+		m_RemovableSoundInstances.clear();
+
+		// AudioListeners
+		for (AudioListenerLambda* pAudioListener : m_RemovableAudioListeners)
+		{
+			for (TArray<AudioListenerLambda*>::iterator it = m_AudioListeners.begin(); it != m_AudioListeners.end(); it++)
+			{
+				if ((*it) == pAudioListener)
+				{
+					m_AudioListeners.erase(it);
+					break;
+				}
+			}
+		}
+		m_RemovableAudioListeners.clear();
+
+		// Music
+		for (MusicLambda* pMusic : m_RemovableMusic)
+		{
+			for (TArray<MusicLambda*>::iterator it = m_Music.begin(); it != m_Music.end(); it++)
+			{
+				if ((*it) == pMusic)
+				{
+					m_Music.erase(it);
+					break;
+				}
+			}
+		}
+		m_RemovableMusic.clear();
+
+		// MusicInstances
+		for (MusicInstanceLambda* pMusicInstance : m_RemovableMusicInstances)
+		{
+			for (TArray<MusicInstanceLambda*>::iterator it = m_MusicInstances.begin(); it != m_MusicInstances.end(); it++)
+			{
+				if ((*it) == pMusicInstance)
+				{
+					m_MusicInstances.erase(it);
+					break;
+				}
+			}
+		}
+		m_RemovableMusicInstances.clear();
 	}
 
 	int32 AudioDeviceLambda::OutputAudioCallback(void* pOutputBuffer, unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* pTimeInfo, PaStreamCallbackFlags statusFlags)

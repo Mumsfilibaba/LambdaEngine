@@ -44,53 +44,6 @@ namespace LambdaEngine
 		return true;
 	}
 
-	void MusicFMOD::Play()
-	{
-		FMOD_Channel_SetPaused(m_pChannel, 0);
-	}
-
-	void MusicFMOD::Pause()
-	{
-		FMOD_Channel_SetPaused(m_pChannel, 1);
-	}
-
-	void MusicFMOD::Toggle()
-	{
-		FMOD_BOOL paused = 0;
-		FMOD_Channel_GetPaused(m_pChannel, &paused);
-		FMOD_Channel_SetPaused(m_pChannel, (paused ^ 0x1));
-	}
-
-	void MusicFMOD::SetVolume(float volume)
-	{
-		m_Volume = volume;
-
-		if (FMOD_Channel_SetVolume(m_pChannel, volume) != FMOD_OK)
-		{
-			D_LOG_WARNING("[MusicFMOD]: Volume could not be set for %s", m_pName);
-		}
-	}
-
-	void MusicFMOD::SetPitch(float pitch)
-	{
-		m_Pitch = pitch;
-
-		if (FMOD_Channel_SetPitch(m_pChannel, pitch) != FMOD_OK)
-		{
-			D_LOG_WARNING("[MusicFMOD]: Pitch could not be set for %s", m_pName);
-		}
-	}
-	
-	float MusicFMOD::GetVolume() const
-	{
-		return m_Volume;
-	}
-	
-	float MusicFMOD::GetPitch() const
-	{
-		return m_Pitch;
-	}
-
 	SoundDesc MusicFMOD::GetDesc() const
 	{
 		return SoundDesc();

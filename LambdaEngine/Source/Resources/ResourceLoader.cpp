@@ -9,6 +9,7 @@
 #include "Rendering/RenderSystem.h"
 
 #include "Audio/AudioSystem.h"
+#include "Audio/API/IMusic.h"
 
 #include "Resources/STB.h"
 
@@ -209,6 +210,9 @@ namespace LambdaEngine
 
 	bool ResourceLoader::LoadSceneFromFile(const char* pDir, const char* pFilename, std::vector<GameObject>& loadedGameObjects, std::vector<Mesh*>& loadedMeshes, std::vector<Material*>& loadedMaterials, std::vector<ITexture*>& loadedTextures)
 	{
+		VALIDATE(pDir		!= nullptr);
+		VALIDATE(pFilename	!= nullptr);
+
 		std::string filepath = std::string(pDir) + std::string(pFilename);
 
 		tinyobj::attrib_t attributes;
@@ -400,7 +404,9 @@ namespace LambdaEngine
 
 	Mesh* ResourceLoader::LoadMeshFromFile(const char* pFilepath)
 	{
-		//Start New Thread
+		VALIDATE(pFilepath != nullptr);
+
+		// Start New Thread
 
 		tinyobj::attrib_t attributes;
 		std::vector<tinyobj::shape_t> shapes;
@@ -483,6 +489,11 @@ namespace LambdaEngine
 
 	Mesh* ResourceLoader::LoadMeshFromMemory(const Vertex* pVertices, uint32 numVertices, const uint32* pIndices, uint32 numIndices)
 	{
+		VALIDATE(pVertices		!= nullptr);
+		VALIDATE(pIndices		!= nullptr);
+		VALIDATE(numVertices	!= 0);
+		VALIDATE(numIndices		!= 0);
+
 		Vertex* pVertexArray = DBG_NEW Vertex[numVertices];
 		memcpy(pVertexArray, pVertices, sizeof(Vertex) * numVertices);
 
@@ -500,9 +511,11 @@ namespace LambdaEngine
 
 	ITexture* ResourceLoader::LoadTextureFromFile(const char* pFilepath, EFormat format, bool generateMips)
 	{
-		int texWidth = 0;
-		int texHeight = 0;
-		int bpp = 0;
+		VALIDATE(pFilepath != nullptr);
+
+		int32 texWidth = 0;
+		int32 texHeight = 0;
+		int32 bpp = 0;
 
 		void* pPixels = nullptr;
 
@@ -536,6 +549,8 @@ namespace LambdaEngine
 
 	ITexture* ResourceLoader::LoadTextureFromMemory(const char* pName, const void* pData, uint32 width, uint32 height, EFormat format, uint32 usageFlags, bool generateMips)
 	{
+		VALIDATE(pName != nullptr);
+
 		uint32_t miplevels = 1u;
 
 		if (generateMips)
@@ -664,6 +679,8 @@ namespace LambdaEngine
 
 	IShader* ResourceLoader::LoadShaderFromFile(const char* pFilepath, FShaderStageFlags stage, EShaderLang lang, const char* pEntryPoint)
 	{
+		VALIDATE(pFilepath != nullptr);
+
 		byte* pShaderRawSource = nullptr;
 		uint32 shaderRawSourceSize = 0;
 
@@ -719,6 +736,8 @@ namespace LambdaEngine
 
 	ISoundEffect3D* ResourceLoader::LoadSoundEffectFromFile(const char* pFilepath)
 	{
+		VALIDATE(pFilepath != nullptr);
+
 		SoundEffect3DDesc soundDesc = {};
 		soundDesc.pFilepath = pFilepath;
 
@@ -734,8 +753,32 @@ namespace LambdaEngine
 		return pSound;
 	}
 
+	IMusic* ResourceLoader::LoadMusicFromFile(const char* pFilepath)
+	{
+		VALIDATE(pFilepath != nullptr);
+
+		MusicDesc musicDesc = {};
+		musicDesc.pFilepath = pFilepath;
+
+		IMusic* pSound = AudioSystem::GetDevice()->CreateMusic(&musicDesc);
+		if (pSound == nullptr)
+		{
+			LOG_ERROR("[ResourceLoader]: Failed to initialize music \"%s\"", pFilepath);
+			return nullptr;
+		}
+
+		D_LOG_MESSAGE("[ResourceLoader]: Loaded music \"%s\"", pFilepath);
+
+		return pSound;
+	}
+
 	bool ResourceLoader::ReadDataFromFile(const char* pFilepath, const char* pMode, byte** ppData, uint32* pDataSize)
 	{
+		VALIDATE(pFilepath	!= nullptr);
+		VALIDATE(pMode		!= nullptr);
+		VALIDATE(ppData		!= nullptr);
+		VALIDATE(pDataSize	!= nullptr);
+
 		FILE* pFile = fopen(pFilepath, pMode);
 		if (pFile == nullptr)
 		{
@@ -767,6 +810,10 @@ namespace LambdaEngine
 
 	bool ResourceLoader::CompileGLSLToSPIRV(const char* pFilepath, const char* pSource, int32 sourceSize, FShaderStageFlags stage, std::vector<uint32>& sourceSPIRV)
 	{
+		VALIDATE(pFilepath	!= nullptr);
+		VALIDATE(pSource	!= nullptr);
+		VALIDATE(sourceSize != 0);
+
 		EShLanguage shaderType = ConvertShaderStageToEShLanguage(stage);
 		glslang::TShader shader(shaderType);
 

@@ -15,21 +15,17 @@ namespace LambdaEngine
 
 		bool Init(const MusicDesc* pDesc);
 
+		FORCEINLINE float32* GetWaveForm() const
+		{
+			return m_pWaveForm;
+		}
+
 		// IMusic Interface
-		virtual void Play()		override final;
-		virtual void Pause()	override final;
-		virtual void Toggle()	override final;
-
-		virtual void SetVolume(float volume)	override final;
-		virtual void SetPitch(float pitch)		override final;
-
-		virtual float		GetVolume() const override final;
-		virtual float		GetPitch()  const override final;
-		virtual SoundDesc	GetDesc()	const override final;
+		virtual SoundDesc GetDesc() const override final;
 
 	private:
 		AudioDeviceLambda*	m_pDevice	= nullptr;
-		float*				m_pWaveForm = nullptr;
+		float32*			m_pWaveForm = nullptr;
 
 		SoundDesc m_Desc;
 	};

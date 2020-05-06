@@ -229,7 +229,7 @@ namespace LambdaEngine
     {
         if (!m_WaitSemaphores.empty())
         {
-            //If we need to flushbarriers, then add a lock so that vkQueueSubmit is protected
+            // If we need to flushbarriers, then add a lock so that vkQueueSubmit is protected
 
             VALIDATE(m_WaitSemaphores.size() == m_WaitStages.size());
             

@@ -22,6 +22,7 @@ namespace LambdaEngine
 		virtual void Tick() override final;
 
 		virtual IMusic*				CreateMusic(const MusicDesc* pDesc)						override final;
+		virtual IMusicInstance*		CreateMusicInstance(const MusicInstanceDesc* pDesc)		override final;
 		virtual IAudioListener*		CreateAudioListener(const AudioListenerDesc* pDesc)		override final;
 		virtual ISoundEffect3D*		CreateSoundEffect(const SoundEffect3DDesc* pDesc)		override final;
 		virtual ISoundInstance3D*	CreateSoundInstance(const SoundInstance3DDesc* pDesc)	override final;

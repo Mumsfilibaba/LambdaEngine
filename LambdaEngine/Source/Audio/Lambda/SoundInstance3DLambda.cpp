@@ -8,13 +8,18 @@
 
 namespace LambdaEngine
 {
-	SoundInstance3DLambda::SoundInstance3DLambda(AudioDeviceLambda* pAudioDevice) 
-		: m_pAudioDevice(pAudioDevice)
+	SoundInstance3DLambda::SoundInstance3DLambda(AudioDeviceLambda* pAudioDevice, bool playOnce)
+		: m_pDevice(pAudioDevice),
+		PlayOnce(playOnce),
+		Desc()
 	{
 	}
 
 	SoundInstance3DLambda::~SoundInstance3DLambda()
 	{
+		m_pDevice->RemoveSoundInstance3D(this);
+
+		SAFERELEASE(m_pEffect);
 		SAFEDELETE_ARRAY(pWaveForm);
 	}
 
@@ -26,14 +31,18 @@ namespace LambdaEngine
 		SoundEffect3DLambda* pSoundEffect = reinterpret_cast<SoundEffect3DLambda*>(pDesc->pSoundEffect);
 		pSoundEffect->AddRef();
 
-		m_pEffect			= pSoundEffect;
-		Desc				= m_pEffect->GetDesc();
+		Mode				= pDesc->Mode;
 		ReferenceDistance	= pDesc->ReferenceDistance;
 		MaxDistance			= pDesc->MaxDistance;
+		Volume				= pDesc->Volume;
+		RollOff				= pDesc->RollOff;
+		Position			= pDesc->Position;
+		m_pEffect			= pSoundEffect;
+		Desc				= m_pEffect->GetDesc();
+		
 		TotalSampleCount	= Desc.SampleCount * Desc.ChannelCount;
 		pWaveForm			= new float32[TotalSampleCount];
-		RollOff				= pDesc->RollOff;
-		memcpy(pWaveForm, pSoundEffect->GetWaveform(), sizeof(float32) * TotalSampleCount);
+		memcpy(pWaveForm, m_pEffect->GetWaveform(), sizeof(float32) * TotalSampleCount);
 
 		return true;
 	}
@@ -71,7 +80,7 @@ namespace LambdaEngine
 
 	void SoundInstance3DLambda::SetPitch(float32 pitch)
 	{
-		UNREFERENCED_VARIABLE(pitch);
+		Pitch = pitch;
 	}
 
 	void SoundInstance3DLambda::SetReferenceDistance(float32 referenceDistance)
@@ -107,9 +116,5 @@ namespace LambdaEngine
 	float32 SoundInstance3DLambda::GetReferenceDistance() const
 	{
 		return ReferenceDistance;
-	}
-
-	void SoundInstance3DLambda::UpdateVolume(float32 masterVolume, const AudioListenerDesc* pAudioListeners, uint32 count)
-	{
 	}
 }

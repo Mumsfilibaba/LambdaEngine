@@ -1,19 +1,20 @@
 #pragma once
 #include "Audio/API/IAudioDevice.h"
 
-#include "Containers/THashTable.h"
 #include "Containers/TArray.h"
-#include "Containers/TSet.h"
+
+#include "Time/API/Clock.h"
 
 #include "PortAudio.h"
 #include "SoundInstance3DLambda.h"
 
 namespace LambdaEngine
 {
-	class MusicLambda;
 	class SoundEffect3DLambda;
 	class SoundInstance3DLambda;
 	class AudioListenerLambda;
+	class MusicLambda;
+	class MusicInstanceLambda;
 
 #define BUFFER_SAMPLES (1 << 11)
 
@@ -33,10 +34,19 @@ namespace LambdaEngine
 
 		bool Init(const AudioDeviceDesc* pDesc);
 		
+		void PlayOnce(const SoundInstance3DDesc* pDesc);
+
+		void RemoveSoundEffect3D(SoundEffect3DLambda* pSoundEffect);
+		void RemoveSoundInstance3D(SoundInstance3DLambda* pSoundInstance);
+		void RemoveAudioListener(AudioListenerLambda* pAudioListener);
+		void RemoveMusic(MusicLambda* pMusic);
+		void RemoveMusicInstance(MusicInstanceLambda* pMusicInstance);
+
 		// IAudioDevice interface
 		virtual void Tick() override final;
 			 
 		virtual IMusic*				CreateMusic(const MusicDesc* pDesc)						override final;
+		virtual IMusicInstance*		CreateMusicInstance(const MusicInstanceDesc* pDesc)		override final;
 		virtual IAudioListener*		CreateAudioListener(const AudioListenerDesc* pDesc)		override final;
 		virtual ISoundEffect3D*		CreateSoundEffect(const SoundEffect3DDesc* pDesc)		override final;
 		virtual ISoundInstance3D*	CreateSoundInstance(const SoundInstance3DDesc* pDesc)	override final;
@@ -49,7 +59,12 @@ namespace LambdaEngine
 
 	private:
 		AudioBuffer*	CreateAudioBuffer();
-		void			ProcessBuffer(AudioBuffer* pBuffer);
+
+		void ProcessBuffer(AudioBuffer* pBuffer);
+		void ProcessSoundInstance(AudioListenerLambda* pAudioListener, SoundInstance3DLambda* pSoundInstance, float32* pBuffer);
+		void ProcessMusicInstance(MusicInstanceLambda* pMusicInstance, float32* pBuffer);
+
+		void RemoveResources();
 
 		// Callback into portaudio
 		int32 OutputAudioCallback(void* pOutputBuffer, unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* pTimeInfo, PaStreamCallbackFlags statusFlags);
@@ -64,18 +79,26 @@ namespace LambdaEngine
 
 	private:
 		PaStream*		m_pStream				= nullptr;
-		AudioBuffer*	m_pCurrentAudioBuffer	= nullptr;
 		AudioBuffer*	m_pReadBuffer			= nullptr;
 		AudioBuffer*	m_pWriteAudioBuffer		= nullptr;
+
+		Clock m_Clock;
 
 		float32 m_MasterVolume = 0.5f;
 
 		const uint32 m_ChannelCount		= 2;
 		const uint32 m_SampleRate		= 44100;
 
-		TArray<SoundEffect3DLambda*>	m_SoundEffects;
-		TArray<SoundInstance3DLambda*>	m_SoundInstances;
-		TArray<AudioListenerLambda*>	m_AudioListeners;
-		TArray<MusicLambda*>			m_Music;
+		TArray<SoundEffect3DLambda*>		m_SoundEffects;
+		TArray<SoundInstance3DLambda*>		m_SoundInstances;
+		TArray<AudioListenerLambda*>		m_AudioListeners;
+		TArray<MusicLambda*>				m_Music;
+		TArray<MusicInstanceLambda*>		m_MusicInstances;
+
+		TArray<SoundEffect3DLambda*>		m_RemovableSoundEffects;
+		TArray<SoundInstance3DLambda*>		m_RemovableSoundInstances;
+		TArray<AudioListenerLambda*>		m_RemovableAudioListeners;
+		TArray<MusicLambda*>				m_RemovableMusic;
+		TArray<MusicInstanceLambda*>		m_RemovableMusicInstances;
 	};
 }

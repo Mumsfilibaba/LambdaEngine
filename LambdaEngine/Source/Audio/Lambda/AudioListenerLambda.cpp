@@ -1,4 +1,5 @@
 #include "Audio/Lambda/AudioListenerLambda.h"
+#include "Audio/Lambda/AudioDeviceLambda.h"
 
 namespace LambdaEngine
 {
@@ -9,6 +10,7 @@ namespace LambdaEngine
 
 	AudioListenerLambda::~AudioListenerLambda()
 	{
+		m_pDevice->RemoveAudioListener(this);
 	}
 
 	bool AudioListenerLambda::Init(const AudioListenerDesc* pDesc)

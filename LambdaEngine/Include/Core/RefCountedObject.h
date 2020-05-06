@@ -1,9 +1,14 @@
 #pragma once
 #include "Threading/API/SpinLock.h"
 
+#ifdef LAMBDA_VISUAL_STUDIO
+    #pragma warning(push)
+    #pragma warning(disable : 4251) // Disable DLL linkage warning
+#endif
+
 namespace LambdaEngine
 {
-    class RefCountedObject
+    class LAMBDA_API RefCountedObject
     {
     public:
         DECL_UNIQUE_CLASS(RefCountedObject);
@@ -24,3 +29,7 @@ namespace LambdaEngine
         SpinLock    m_Lock;
     };
 }
+
+#ifdef LAMBDA_VISUAL_STUDIO
+    #pragma warning(pop)
+#endif

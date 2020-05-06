@@ -1,5 +1,9 @@
 #include "Resources/ResourceManager.h"
+
 #include "Rendering/Core/API/ITextureView.h"
+
+#include "Audio/API/IMusic.h"
+
 #include "Log/Log.h"
 
 #include "Rendering/RenderSystem.h"
@@ -11,16 +15,17 @@
 
 namespace LambdaEngine
 {
-	GUID_Lambda												ResourceManager::s_NextFreeGUID = SMALLEST_UNRESERVED_GUID;
+	GUID_Lambda	 ResourceManager::s_NextFreeGUID = SMALLEST_UNRESERVED_GUID;
 
-	std::unordered_map<GUID_Lambda, Mesh*>					ResourceManager::s_Meshes;
-	std::unordered_map<GUID_Lambda, Material*>				ResourceManager::s_Materials;
-	std::unordered_map<GUID_Lambda, ITexture*>				ResourceManager::s_Textures;
-	std::unordered_map<GUID_Lambda, ITextureView*>			ResourceManager::s_TextureViews;
-	std::unordered_map<GUID_Lambda, IShader*>				ResourceManager::s_Shaders;
-	std::unordered_map<GUID_Lambda, ISoundEffect3D*>		ResourceManager::s_SoundEffects;
+	THashTable<GUID_Lambda, Mesh*>					ResourceManager::s_Meshes;
+	THashTable<GUID_Lambda, Material*>				ResourceManager::s_Materials;
+	THashTable<GUID_Lambda, ITexture*>				ResourceManager::s_Textures;
+	THashTable<GUID_Lambda, ITextureView*>			ResourceManager::s_TextureViews;
+	THashTable<GUID_Lambda, IShader*>				ResourceManager::s_Shaders;
+	THashTable<GUID_Lambda, ISoundEffect3D*>		ResourceManager::s_SoundEffects;
+	THashTable<GUID_Lambda, IMusic*>				ResourceManager::s_Music;
 
-	std::unordered_map<GUID_Lambda, ResourceManager::ShaderLoadDesc>		ResourceManager::s_ShaderLoadConfigurations;
+	THashTable<GUID_Lambda, ResourceManager::ShaderLoadDesc> ResourceManager::s_ShaderLoadConfigurations;
 
 	bool ResourceManager::Init()
 	{
@@ -36,24 +41,25 @@ namespace LambdaEngine
 		SAFERELEASE_ALL(s_Textures);
 		SAFERELEASE_ALL(s_TextureViews);
 		SAFERELEASE_ALL(s_Shaders);
-		SAFEDELETE_ALL(s_SoundEffects);
+		SAFERELEASE_ALL(s_Music);
+		SAFERELEASE_ALL(s_SoundEffects);
 
 		return true;
 	}
 
 	bool ResourceManager::LoadSceneFromFile(const char* pDir, const char* pFilename, std::vector<GameObject>& result)
 	{
-		std::vector<GameObject> sceneLocalGameObjects;
-		std::vector<Mesh*> meshes;
-		std::vector<Material*> materials;
-		std::vector<ITexture*> textures;
+		TArray<GameObject> sceneLocalGameObjects;
+		TArray<Mesh*> meshes;
+		TArray<Material*> materials;
+		TArray<ITexture*> textures;
 
 		if (!ResourceLoader::LoadSceneFromFile(pDir, pFilename, sceneLocalGameObjects, meshes, materials, textures))
 		{
 			return false;
 		}
 
-		result = std::vector<GameObject>(sceneLocalGameObjects.begin(), sceneLocalGameObjects.end());
+		result = TArray<GameObject>(sceneLocalGameObjects.begin(), sceneLocalGameObjects.end());
 
 		for (uint32 i = 0; i < textures.size(); i++)
 		{
@@ -304,6 +310,22 @@ namespace LambdaEngine
 		return guid;
 	}
 
+	GUID_Lambda ResourceManager::LoadMusicFromFile(const char* pFilepath)
+	{
+		GUID_Lambda guid			= GUID_NONE;
+		IMusic**	ppMappedMusic	= nullptr;
+
+		//Spinlock
+		{
+			guid = s_NextFreeGUID++;
+			ppMappedMusic = &s_Music[guid]; //Creates new entry if not existing
+		}
+
+		(*ppMappedMusic) = ResourceLoader::LoadMusicFromFile(pFilepath);
+
+		return guid;
+	}
+
 	void ResourceManager::ReloadAllShaders()
 	{
 		for (auto it = s_Shaders.begin(); it != s_Shaders.end(); it++)
@@ -375,6 +397,17 @@ namespace LambdaEngine
 			return it->second;
 
 		D_LOG_WARNING("[ResourceManager]: GetShader called with invalid GUID %u", guid);
+		return nullptr;
+	}
+
+	IMusic* ResourceManager::GetMusic(GUID_Lambda guid)
+	{
+		auto it = s_Music.find(guid);
+
+		if (it != s_Music.end())
+			return it->second;
+
+		D_LOG_WARNING("[ResourceManager]: GetMusic called with invalid GUID %u", guid);
 		return nullptr;
 	}
 

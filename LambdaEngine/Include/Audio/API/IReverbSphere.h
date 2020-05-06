@@ -36,8 +36,8 @@ namespace LambdaEngine
 	{
 		const char* pName				= "Reverb Sphere";
 		glm::vec3 Position				= glm::vec3(0.0f);
-		float MinDistance				= 5.0f;
-		float MaxDistance				= 10.0f;
+		float32 MinDistance				= 5.0f;
+		float32 MaxDistance				= 10.0f;
 		EReverbSetting ReverbSetting	= EReverbSetting::GENERIC;
 	};
 	
@@ -57,7 +57,7 @@ namespace LambdaEngine
 		*	minDistance - The distance from the centerpoint within which the reverb will have full effect
 		*	maxDistance - The distance from the centerpoint within which the reverb will have no effect
 		*/
-		virtual void Set3DAttributes(const glm::vec3 position, float minDistance, float maxDistance) = 0;
+		virtual void Set3DAttributes(const glm::vec3 position, float32 minDistance, float32 maxDistance) = 0;
 
 		/*
 		* Set the reverb environment setting

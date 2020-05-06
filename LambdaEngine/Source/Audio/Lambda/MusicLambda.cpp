@@ -1,16 +1,20 @@
 #include "Audio/Lambda/MusicLambda.h"
+#include "Audio/Lambda/AudioDeviceLambda.h"
 
 #include <WavLib.h>
 
 namespace LambdaEngine
 {
 	MusicLambda::MusicLambda(AudioDeviceLambda* pDevice)
-		: m_pDevice(pDevice)
+		: m_pDevice(pDevice),
+		m_Desc()
 	{
 	}
 
 	MusicLambda::~MusicLambda()
 	{
+		m_pDevice->RemoveMusic(this);
+		WavLibFree(m_pWaveForm);
 	}
 
 	bool MusicLambda::Init(const MusicDesc* pDesc)
@@ -33,36 +37,6 @@ namespace LambdaEngine
 			D_LOG_MESSAGE("[MusicLambda]: Loaded file '%s'. SampleCount=%u, ChannelCount=%u, SampleRate=%u", pDesc->pFilepath, m_Desc.SampleCount, m_Desc.ChannelCount, m_Desc.SampleRate);
 			return true;
 		}
-	}
-
-	void MusicLambda::Play()
-	{
-	}
-
-	void MusicLambda::Pause()
-	{
-	}
-
-	void MusicLambda::Toggle()
-	{
-	}
-
-	void MusicLambda::SetVolume(float volume)
-	{
-	}
-
-	void MusicLambda::SetPitch(float pitch)
-	{
-	}
-
-	float MusicLambda::GetVolume() const
-	{
-		return 0.0f;
-	}
-
-	float MusicLambda::GetPitch() const
-	{
-		return 0.0f;
 	}
 
 	SoundDesc MusicLambda::GetDesc() const

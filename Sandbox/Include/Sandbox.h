@@ -17,6 +17,7 @@ namespace LambdaEngine
 	class RenderGraph;
 	class Renderer;
 	class ResourceManager;
+	class IMusic;
 	class ISoundEffect3D;
 	class ISoundInstance3D;
 	class IAudioGeometry;
@@ -25,6 +26,7 @@ namespace LambdaEngine
 	class Camera;
 	class ISampler;
 	class IAudioListener;
+	class IMusicInstance;
 }
 
 class Sandbox : public LambdaEngine::Game, public LambdaEngine::IKeyboardHandler, public LambdaEngine::IMouseHandler
@@ -58,14 +60,15 @@ private:
 	LambdaEngine::ISoundEffect3D*	m_pToneSoundEffect		= nullptr;
 	LambdaEngine::ISoundInstance3D*	m_pToneSoundInstance	= nullptr;
 
-	GUID_Lambda					  m_GunSoundEffectGUID	= 0;
-	LambdaEngine::ISoundEffect3D* m_pGunSoundEffect		= nullptr;
+	GUID_Lambda						m_GunSoundEffectGUID	= 0;
+	LambdaEngine::ISoundEffect3D*	m_pGunSoundEffect		= nullptr;
+	LambdaEngine::ISoundInstance3D* m_pGunInstance			= nullptr;
 
 	GUID_Lambda						m_MusicGUID			= 0;
-	LambdaEngine::ISoundEffect3D*	m_pMusic			= nullptr;
-	LambdaEngine::ISoundInstance3D*	m_pMusicInstance	= nullptr;
+	LambdaEngine::IMusic*			m_pMusic			= nullptr;
+	LambdaEngine::IMusicInstance*	m_pMusicInstance	= nullptr;
 
-	LambdaEngine::IAudioListener* m_pListener = nullptr;
+	LambdaEngine::IAudioListener* m_pAudioListener = nullptr;
 
 	LambdaEngine::IReverbSphere*  m_pReverbSphere			= nullptr;
 	LambdaEngine::IAudioGeometry* m_pAudioGeometry		= nullptr;

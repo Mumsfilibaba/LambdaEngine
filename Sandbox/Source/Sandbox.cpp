@@ -23,6 +23,7 @@
 #include "Audio/API/IReverbSphere.h"
 #include "Audio/API/IMusic.h"
 #include "Audio/API/IAudioListener.h"
+#include "Audio/API/IMusicInstance.h"
 
 #include "Application/API/IWindow.h"
 
@@ -132,33 +133,48 @@ Sandbox::~Sandbox()
 
 	SAFEDELETE(m_pRenderGraph);
 	SAFEDELETE(m_pRenderer);
+
+	SAFERELEASE(m_pGunInstance);
+	SAFERELEASE(m_pMusicInstance);
+	SAFERELEASE(m_pAudioListener);
 }
 
 void Sandbox::InitTestAudio()
 {
 	using namespace LambdaEngine;
 
-	m_MusicGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/avicii.wav");
-	m_pMusic	= ResourceManager::GetSoundEffect(m_MusicGUID);
+	m_MusicGUID	= ResourceManager::LoadMusicFromFile("../Assets/Sounds/avicii.wav");
+	m_pMusic	= ResourceManager::GetMusic(m_MusicGUID);
 
-	SoundInstance3DDesc soundInstanceDesc = {};
-	soundInstanceDesc.pSoundEffect		= m_pMusic;
-	soundInstanceDesc.Mode				= ESoundMode::SOUND_MODE_LOOPING;
-	soundInstanceDesc.ReferenceDistance = 2.0f;
-	soundInstanceDesc.MaxDistance		= 15.0f;
-	soundInstanceDesc.RollOff			= 10.0f;
+	m_GunSoundEffectGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/Gun_low.wav");
+	m_pGunSoundEffect		= ResourceManager::GetSoundEffect(m_GunSoundEffectGUID);
 
-	m_pMusicInstance = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
-	m_pMusicInstance->SetVolume(1.0f);
-	m_pMusicInstance->SetPosition(glm::vec3(0.0f));
+	MusicInstanceDesc musicInstanceDesc = { };
+	musicInstanceDesc.pMusic	= m_pMusic;
+	musicInstanceDesc.Volume	= 0.05f;
+	musicInstanceDesc.Pitch		= 1.0f;
+
+	m_pMusicInstance = AudioSystem::GetDevice()->CreateMusicInstance(&musicInstanceDesc);
 	m_pMusicInstance->Play();
+
+	SoundInstance3DDesc soundInstanceDesc = { };
+	soundInstanceDesc.pSoundEffect		= m_pGunSoundEffect;
+	soundInstanceDesc.Mode				= ESoundMode::SOUND_MODE_LOOPING;
+	soundInstanceDesc.ReferenceDistance = 1.0f;
+	soundInstanceDesc.MaxDistance		= 30.0f;
+	soundInstanceDesc.RollOff			= 3.0f;
+	soundInstanceDesc.Volume			= 1.0f;
+	soundInstanceDesc.Position			= glm::vec3(0.0f, 0.0f, 0.0f);
+
+	m_pGunInstance = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
+	m_pGunInstance->Play();
 
 	AudioListenerDesc listenerDesc = { };
 	listenerDesc.Position	= glm::vec3(0.0f);
 	listenerDesc.Volume		= 1.0f;
 	listenerDesc.Forward	= glm::vec3(0.0f, 0.0f, 1.0f);
 	listenerDesc.Up			= glm::vec3(0.0f, 1.0f, 0.0f);
-	m_pListener = AudioSystem::GetDevice()->CreateAudioListener(&listenerDesc);
+	m_pAudioListener = AudioSystem::GetDevice()->CreateAudioListener(&listenerDesc);
 }
 
 void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRepeat)
@@ -185,12 +201,22 @@ void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRep
 
 			m_pMusicInstance->SetVolume(volume);
 		}
+		else if (key == EKey::KEY_KEYPAD_4)
+		{
+			SoundInstance3DDesc gunInstanceDesc = { };
+			gunInstanceDesc.pSoundEffect		= m_pGunSoundEffect;
+			gunInstanceDesc.Mode				= ESoundMode::SOUND_MODE_LOOPING;
+			gunInstanceDesc.ReferenceDistance	= 1.0f;
+			gunInstanceDesc.MaxDistance			= 30.0f;
+			gunInstanceDesc.RollOff				= 3.0f;
+			gunInstanceDesc.Volume				= 1.0f;
+			gunInstanceDesc.Position			= m_pCamera->GetPosition();
+
+			m_pGunSoundEffect->PlayOnce(&gunInstanceDesc);
+		}
 		else if (key == EKey::KEY_KEYPAD_5)
 		{
-			RenderSystem::GetGraphicsQueue()->Flush();
-			RenderSystem::GetComputeQueue()->Flush();
-			ResourceManager::ReloadAllShaders();
-			PipelineStateManager::ReloadPipelineStates();
+			m_pMusicInstance->Stop();
 		}
 	}
 }
@@ -210,7 +236,7 @@ void Sandbox::KeyTyped(uint32 character)
     
     UNREFERENCED_VARIABLE(character);
     
-    LOG_MESSAGE("Key Text: %c", char(character));
+    //LOG_MESSAGE("Key Text: %c", char(character));
 }
 
 void Sandbox::MouseMoved(int32 x, int32 y)
@@ -218,7 +244,7 @@ void Sandbox::MouseMoved(int32 x, int32 y)
 	UNREFERENCED_VARIABLE(x);
 	UNREFERENCED_VARIABLE(y);
     
-	LOG_MESSAGE("Mouse Moved: x=%d, y=%d", x, y);
+	//LOG_MESSAGE("Mouse Moved: x=%d, y=%d", x, y);
 }
 
 void Sandbox::ButtonPressed(LambdaEngine::EMouseButton button, uint32 modifierMask)
@@ -301,8 +327,8 @@ void Sandbox::Tick(LambdaEngine::Timestamp delta)
 
 	m_pCamera->Update();
 	
-	m_pListener->SetDirectionVectors(m_pCamera->GetUpVec(), m_pCamera->GetForwardVec());
-	m_pListener->SetPosition(m_pCamera->GetPosition());
+	m_pAudioListener->SetDirectionVectors(m_pCamera->GetUpVec(), m_pCamera->GetForwardVec());
+	m_pAudioListener->SetPosition(m_pCamera->GetPosition());
 
 	m_pScene->UpdateCamera(m_pCamera);
 		

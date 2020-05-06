@@ -55,4 +55,7 @@ namespace LambdaEngine
 	{
 		return SoundDesc();
 	}
+	void SoundEffect3DFMOD::PlayOnce(const SoundInstance3DDesc* pDesc)
+	{
+	}
 }

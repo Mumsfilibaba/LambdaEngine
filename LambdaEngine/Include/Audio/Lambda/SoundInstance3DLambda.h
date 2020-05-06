@@ -13,12 +13,10 @@ namespace LambdaEngine
 	class SoundInstance3DLambda : public ISoundInstance3D
 	{
 	public:
-		SoundInstance3DLambda(AudioDeviceLambda* pAudioDevice);
+		SoundInstance3DLambda(AudioDeviceLambda* pAudioDevice, bool playOnce);
 		~SoundInstance3DLambda();
 
 		bool Init(const SoundInstance3DDesc* pDesc);
-
-		void UpdateVolume(float32 masterVolume, const AudioListenerDesc* pAudioListeners, uint32 count);
 		
 		// ISoundInstance3D interface
 		virtual void Play()		override final;
@@ -41,20 +39,23 @@ namespace LambdaEngine
 	public:
 		float32*	pWaveForm	= nullptr;
 		bool		IsPlaying	= false;
+		bool		PlayOnce	= false;
 		
 		uint32 TotalSampleCount		= 0;
 		uint32 CurrentBufferIndex	= 0;
 
-		float32	Volume				= 1.0f;
-		float32 MaxDistance			= 1.0f;
-		float32 ReferenceDistance	= 1.0f;
-		float32 RollOff				= 1.0f;
+		ESoundMode	Mode				= ESoundMode::SOUND_MODE_NONE;
+		float32		Pitch				= 1.0f;
+		float32		Volume				= 1.0f;
+		float32		ReferenceDistance	= 1.0f;
+		float32		MaxDistance			= 10.0f;
+		float32		RollOff				= 1.0f;
+		glm::vec3	Position			= glm::vec3(0.0f);
 
-		glm::vec3 Position;
 		SoundDesc Desc;
 
 	private:
-		AudioDeviceLambda*		m_pAudioDevice	= nullptr;
-		SoundEffect3DLambda*	m_pEffect		= nullptr;
+		AudioDeviceLambda*		m_pDevice = nullptr;
+		SoundEffect3DLambda*	m_pEffect = nullptr;
 	};
 }
