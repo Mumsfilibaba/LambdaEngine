@@ -38,18 +38,22 @@ namespace LambdaEngine
 		virtual IReverbSphere*		CreateReverbSphere(const ReverbSphereDesc* pDesc)			override final;
 
 		virtual IAudioFilter*		CreateFIRFilter(const FIRFilterDesc* pDesc)					const override final;
+		virtual IAudioFilter*		CreateIIRFilter(const IIRFilterDesc* pDesc)					const override final;
+		virtual IAudioFilter*		CreateAddFilter(const AddFilterDesc* pDesc)					const override final;
+		virtual IAudioFilter*		CreateMulFilter(const MulFilterDesc* pDesc)					const override final;
+		virtual IAudioFilter*		CreateCombFilter(const CombFilterDesc* pDesc)				const override final;
+		virtual IAudioFilter*		CreateAllPassFilter(const AllPassFilterDesc* pDesc)			const override final;
+		virtual IAudioFilter*		CreateFilterSystem(const FilterSystemDesc* pDesc)			const override final;
+
 		virtual IAudioFilter*		CreateLowpassFIRFilter(float64 cutoffFreq, uint32 order)	const override final;
 		virtual IAudioFilter*		CreateHighpassFIRFilter(float64 cutoffFreq, uint32 order)	const override final;
 		virtual IAudioFilter*		CreateBandpassFIRFilter(float64 lowCutoffFreq, float64 highCutoffFreq, uint32 order)	const override final;
 		virtual IAudioFilter*		CreateBandstopFIRFilter(float64 lowCutoffFreq, float64 highCutoffFreq, uint32 order)	const override final;
 
-		virtual IAudioFilter*		CreateIIRFilter(const IIRFilterDesc* pDesc)					const override final;
 		virtual IAudioFilter*		CreateLowpassIIRFilter(float64 cutoffFreq, uint32 order)	const override final;
 		virtual IAudioFilter*		CreateHighpassIIRFilter(float64 cutoffFreq, uint32 order)	const override final;
 		virtual IAudioFilter*		CreateBandpassIIRFilter(float64 lowCutoffFreq, float64 highCutoffFreq, uint32 order)	const override final;
 		virtual IAudioFilter*		CreateBandstopIIRFilter(float64 lowCutoffFreq, float64 highCutoffFreq, uint32 order)	const override final;
-
-		virtual IAudioFilter*		CreateFilterSystem(const FilterSystemDesc* pDesc)			const override final;
 
 		virtual void				SetMasterFilter(const IAudioFilter* pAudioFilter)			override final;
 

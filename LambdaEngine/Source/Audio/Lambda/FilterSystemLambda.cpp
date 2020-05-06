@@ -80,12 +80,11 @@ namespace LambdaEngine
 					float64* pOutputSample	= &m_pFilterOutputs[pConnection->NextFilter];
 					IAudioFilter* pFilter	= m_ppAudioFilters[pConnection->NextFilter];
 
-					(*pOutputSample) = glm::clamp(pFilter->ProcessSample(inputSample), -1.0, 1.0);
+					(*pOutputSample) =  pFilter->ProcessSample(inputSample);
 				}
 				else
 				{
-					outputSample = glm::clamp(inputSample, -1.0, 1.0);
-					//LOG_WARNING("Sample: %f", outputSample);
+					outputSample = inputSample;
 				}
 			}
 		}
@@ -94,6 +93,7 @@ namespace LambdaEngine
 			outputSample = sample;
 		}
 
+		outputSample = glm::clamp<double>(outputSample, -1.0, 1.0);
 		return outputSample;
 	}
 

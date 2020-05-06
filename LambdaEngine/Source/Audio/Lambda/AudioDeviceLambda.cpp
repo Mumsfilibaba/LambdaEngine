@@ -5,6 +5,10 @@
 #include "Audio/Lambda/ManagedSoundInstance3DLambda.h"
 #include "Audio/Lambda/FIRFilterLambda.h"
 #include "Audio/Lambda/IIRFilterLambda.h"
+#include "Audio/Lambda/AddFilterLambda.h"
+#include "Audio/Lambda/MulFilterLambda.h"
+#include "Audio/Lambda/CombFilterLambda.h"
+#include "Audio/Lambda/AllPassFilterLambda.h"
 #include "Audio/Lambda/FilterSystemLambda.h"
 
 #include "Audio/API/IAudioFilter.h"
@@ -303,6 +307,102 @@ namespace LambdaEngine
 		}
 	}
 
+	IAudioFilter* AudioDeviceLambda::CreateIIRFilter(const IIRFilterDesc* pDesc) const
+	{
+		VALIDATE(pDesc != nullptr);
+
+		IIRFilterLambda* pIIRFilter = DBG_NEW IIRFilterLambda(this);
+
+		if (!pIIRFilter->Init(pDesc))
+		{
+			return nullptr;
+		}
+		else
+		{
+			return pIIRFilter;
+		}
+	}
+
+	IAudioFilter* AudioDeviceLambda::CreateAddFilter(const AddFilterDesc* pDesc) const
+	{
+		VALIDATE(pDesc != nullptr);
+
+		AddFilterLambda* pAddFilterLambda = DBG_NEW AddFilterLambda(this);
+
+		if (!pAddFilterLambda->Init(pDesc))
+		{
+			return nullptr;
+		}
+		else
+		{
+			return pAddFilterLambda;
+		}
+	}
+
+	IAudioFilter* AudioDeviceLambda::CreateMulFilter(const MulFilterDesc* pDesc) const
+	{
+		VALIDATE(pDesc != nullptr);
+
+		MulFilterLambda* pMulFilterLambda = DBG_NEW MulFilterLambda(this);
+
+		if (!pMulFilterLambda->Init(pDesc))
+		{
+			return nullptr;
+		}
+		else
+		{
+			return pMulFilterLambda;
+		}
+	}
+
+	IAudioFilter* AudioDeviceLambda::CreateCombFilter(const CombFilterDesc* pDesc) const
+	{
+		VALIDATE(pDesc != nullptr);
+
+		CombFilterLambda* pCombFilterLambda = DBG_NEW CombFilterLambda(this);
+
+		if (!pCombFilterLambda->Init(pDesc))
+		{
+			return nullptr;
+		}
+		else
+		{
+			return pCombFilterLambda;
+		}
+	}
+
+	IAudioFilter* AudioDeviceLambda::CreateAllPassFilter(const AllPassFilterDesc* pDesc) const
+	{
+		VALIDATE(pDesc != nullptr);
+
+		AllPassFilterLambda* pAllPassFilterLambda = DBG_NEW AllPassFilterLambda(this);
+
+		if (!pAllPassFilterLambda->Init(pDesc))
+		{
+			return nullptr;
+		}
+		else
+		{
+			return pAllPassFilterLambda;
+		}
+	}
+
+	IAudioFilter* AudioDeviceLambda::CreateFilterSystem(const FilterSystemDesc* pDesc) const
+	{
+		VALIDATE(pDesc != nullptr);
+
+		FilterSystemLambda* pFilterSystem = DBG_NEW FilterSystemLambda(this);
+
+		if (!pFilterSystem->Init(pDesc))
+		{
+			return nullptr;
+		}
+		else
+		{
+			return pFilterSystem;
+		}
+	}
+
 	IAudioFilter* AudioDeviceLambda::CreateLowpassFIRFilter(float64 cutoffFreq, uint32 order) const
 	{
 		//Normalize
@@ -481,22 +581,6 @@ namespace LambdaEngine
 		SAFEDELETE_ARRAY(pWeights);
 		
 		return pFIRFilter;
-	}
-
-	IAudioFilter* AudioDeviceLambda::CreateIIRFilter(const IIRFilterDesc* pDesc) const
-	{
-		VALIDATE(pDesc != nullptr);
-
-		IIRFilterLambda* pIIRFilter = DBG_NEW IIRFilterLambda(this);
-
-		if (!pIIRFilter->Init(pDesc))
-		{
-			return nullptr;
-		}
-		else
-		{
-			return pIIRFilter;
-		}
 	}
 
 	IAudioFilter* AudioDeviceLambda::CreateLowpassIIRFilter(float64 cutoffFreq, uint32 order) const
@@ -901,23 +985,6 @@ namespace LambdaEngine
 		}
 
 		return pFinalFilter;
-	}
-
-
-	IAudioFilter* AudioDeviceLambda::CreateFilterSystem(const FilterSystemDesc* pDesc) const
-	{
-		VALIDATE(pDesc != nullptr);
-
-		FilterSystemLambda* pFilterSystem = DBG_NEW FilterSystemLambda(this);
-
-		if (!pFilterSystem->Init(pDesc))
-		{
-			return nullptr;
-		}
-		else
-		{
-			return pFilterSystem;
-		}
 	}
 
 	void AudioDeviceLambda::SetMasterFilter(const IAudioFilter* pAudioFilter)

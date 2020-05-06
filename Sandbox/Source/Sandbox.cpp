@@ -22,6 +22,7 @@
 #include "Audio/API/IAudioGeometry.h"
 #include "Audio/API/IReverbSphere.h"
 #include "Audio/API/IMusic.h"
+#include "Audio/API/IAudioFilter.h"
 
 #include "Application/API/IWindow.h"
 
@@ -168,6 +169,18 @@ Sandbox::~Sandbox()
 
 	SAFEDELETE(m_pFIRFilter);
 	SAFEDELETE(m_pIIRFilter);
+	SAFEDELETE(m_pAdd0);
+	SAFEDELETE(m_pAP0);
+	SAFEDELETE(m_pAP1);
+	SAFEDELETE(m_pAP2);
+	SAFEDELETE(m_pA0);
+	SAFEDELETE(m_pA1);
+	SAFEDELETE(m_pA2);
+	SAFEDELETE(m_pAdd1);
+	SAFEDELETE(m_pAdd2);
+	SAFEDELETE(m_pLPF);
+	SAFEDELETE(m_pG);
+	SAFEDELETE(m_pReverbSystem);
 }
 
 void Sandbox::InitTestAudio()
@@ -201,8 +214,129 @@ void Sandbox::InitTestAudio()
 	m_GunshotDelay = 1.0f;
 	m_Timer = 0.0f;
 
-	m_pFIRFilter = AudioSystem::GetDevice()->CreateLowpassFIRFilter(2000.0, 16);
-	m_pIIRFilter = AudioSystem::GetDevice()->CreateLowpassIIRFilter(2000.0, 6);
+	AddFilterDesc addDesc = {};
+
+	MulFilterDesc mulDesc = {};
+	mulDesc.Multiplier		= 0.8;
+
+	AllPassFilterDesc allPassDesc = {};
+	allPassDesc.Delay		= 1024;
+	allPassDesc.Multiplier	= 0.8;
+
+	std::vector<IAudioFilter*> filters;
+
+	m_pAdd0		= AudioSystem::GetDevice()->CreateAddFilter(&addDesc);				//0
+	m_pAP0		= AudioSystem::GetDevice()->CreateAllPassFilter(&allPassDesc);		//1
+	m_pAP1		= AudioSystem::GetDevice()->CreateAllPassFilter(&allPassDesc);		//2
+	m_pAP2		= AudioSystem::GetDevice()->CreateAllPassFilter(&allPassDesc);		//3
+	m_pA0		= AudioSystem::GetDevice()->CreateMulFilter(&mulDesc);				//4
+	m_pA1		= AudioSystem::GetDevice()->CreateMulFilter(&mulDesc);				//5
+	m_pA2		= AudioSystem::GetDevice()->CreateMulFilter(&mulDesc);				//6
+	m_pAdd1		= AudioSystem::GetDevice()->CreateAddFilter(&addDesc);				//7
+	m_pAdd2		= AudioSystem::GetDevice()->CreateAddFilter(&addDesc);				//8
+	m_pLPF		= AudioSystem::GetDevice()->CreateLowpassFIRFilter(200.0, 128);		//9
+	m_pG		= AudioSystem::GetDevice()->CreateMulFilter(&mulDesc);				//10
+
+	filters.push_back(m_pAdd0);
+	filters.push_back(m_pAP0);
+	filters.push_back(m_pAP1);
+	filters.push_back(m_pAP2);
+	filters.push_back(m_pA0);
+	filters.push_back(m_pA1);
+	filters.push_back(m_pA2);
+	filters.push_back(m_pAdd1);
+	filters.push_back(m_pAdd2);
+	filters.push_back(m_pLPF);
+	filters.push_back(m_pG);
+
+	std::vector<FilterSystemConnection> connections;
+
+	FilterSystemConnection c0 = {};
+	c0.pPreviousFilters[0]		= -1;
+	c0.pPreviousFilters[1]		= 10;
+	c0.PreviousFiltersCount		= 2;
+	c0.NextFilter				= 0;
+	connections.push_back(c0);
+
+	FilterSystemConnection c1 = {};
+	c1.pPreviousFilters[0]		= 0;
+	c1.PreviousFiltersCount		= 1;
+	c1.NextFilter				= 1;
+	connections.push_back(c1);
+
+	FilterSystemConnection c2 = {};
+	c2.pPreviousFilters[0]		= 1;
+	c2.PreviousFiltersCount		= 1;
+	c2.NextFilter				= 2;
+	connections.push_back(c2);
+
+	FilterSystemConnection c3 = {};
+	c3.pPreviousFilters[0]		= 2;
+	c3.PreviousFiltersCount		= 1;
+	c3.NextFilter				= 3;
+	connections.push_back(c3);
+
+	FilterSystemConnection c4 = {};
+	c4.pPreviousFilters[0]		= 1;
+	c4.PreviousFiltersCount		= 1;
+	c4.NextFilter				= 4;
+	connections.push_back(c4);
+
+	FilterSystemConnection c5 = {};
+	c5.pPreviousFilters[0]		= 2;
+	c5.PreviousFiltersCount		= 1;
+	c5.NextFilter				= 5;
+	connections.push_back(c5);
+
+	FilterSystemConnection c6 = {};
+	c6.pPreviousFilters[0]		= 3;
+	c6.PreviousFiltersCount		= 1;
+	c6.NextFilter				= 6;
+	connections.push_back(c6);
+
+	FilterSystemConnection c7 = {};
+	c7.pPreviousFilters[0]		= 4;
+	c7.pPreviousFilters[1]		= 5;
+	c7.PreviousFiltersCount		= 2;
+	c7.NextFilter				= 7;
+	connections.push_back(c7);
+
+	FilterSystemConnection c8 = {};
+	c8.pPreviousFilters[0]		= 7;
+	c8.pPreviousFilters[1]		= 6;
+	c8.PreviousFiltersCount		= 2;
+	c8.NextFilter				= 8;
+	connections.push_back(c8);
+
+	FilterSystemConnection c9 = {};
+	c9.pPreviousFilters[0]		= 8;
+	c9.PreviousFiltersCount		= 1;
+	c9.NextFilter				= -1;
+	connections.push_back(c9);
+
+	FilterSystemConnection c10 = {};
+	c10.pPreviousFilters[0]		= 3;
+	c10.PreviousFiltersCount	= 1;
+	c10.NextFilter				= 9;
+	connections.push_back(c10);
+
+	FilterSystemConnection c11 = {};
+	c11.pPreviousFilters[0]		= 9;
+	c11.PreviousFiltersCount	= 1;
+	c11.NextFilter				= 10;
+	connections.push_back(c11);
+
+	FilterSystemDesc filterSystemDesc = {};
+	filterSystemDesc.pName						= "Reverb System";
+	filterSystemDesc.ppAudioFilters				= filters.data();
+	filterSystemDesc.AudioFilterCount			= filters.size();
+	filterSystemDesc.pFilterConnections			= connections.data();
+	filterSystemDesc.FilterConnectionsCount		= connections.size();
+
+	m_pReverbSystem	= AudioSystem::GetDevice()->CreateFilterSystem(&filterSystemDesc);
+
+	//m_pFIRFilter = AudioSystem::GetDevice()->CreateLowpassFIRFilter(2000.0, 16);
+	//m_pIIRFilter = AudioSystem::GetDevice()->CreateLowpassIIRFilter(2000.0, 6);
 
 	//m_pFIRFilter = AudioSystem::GetDevice()->CreateHighpassFIRFilter(2000.0, 128);
 	//m_pIIRFilter = AudioSystem::GetDevice()->CreateHighpassIIRFilter(2000.0, 6);
@@ -213,7 +347,7 @@ void Sandbox::InitTestAudio()
 	//m_pFIRFilter = AudioSystem::GetDevice()->CreateBandstopFIRFilter(2000.0, 4000.0, 16);
 	//m_pIIRFilter = AudioSystem::GetDevice()->CreateBandstopIIRFilter(2000.0, 4000.0, 4);
 
-	AudioSystem::GetDevice()->SetMasterFilter(m_pIIRFilter);
+	AudioSystem::GetDevice()->SetMasterFilter(m_pReverbSystem);
 	m_CurrentFilterIsFIR = false;
 
 	/*m_pAudioListener = AudioSystem::GetDevice()->CreateAudioListener();

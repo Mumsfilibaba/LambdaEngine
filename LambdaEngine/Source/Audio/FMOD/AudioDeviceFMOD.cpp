@@ -209,6 +209,48 @@ namespace LambdaEngine
 		return nullptr;
 	}
 
+	IAudioFilter* AudioDeviceFMOD::CreateIIRFilter(const IIRFilterDesc* pDesc) const
+	{
+		UNREFERENCED_VARIABLE(pDesc);
+		LOG_WARNING("[AudioDeviceFMOD]: CreateIIRFilter called but not implemented!");
+		return nullptr;
+	}
+
+	IAudioFilter* AudioDeviceFMOD::CreateAddFilter(const AddFilterDesc* pDesc) const
+	{
+		UNREFERENCED_VARIABLE(pDesc);
+		LOG_WARNING("[AudioDeviceFMOD]: CreateAddFilter called but not implemented!");
+		return nullptr;
+	}
+
+	IAudioFilter* AudioDeviceFMOD::CreateMulFilter(const MulFilterDesc* pDesc) const
+	{
+		UNREFERENCED_VARIABLE(pDesc);
+		LOG_WARNING("[AudioDeviceFMOD]: CreateMulFilter called but not implemented!");
+		return nullptr;
+	}
+
+	IAudioFilter* AudioDeviceFMOD::CreateCombFilter(const CombFilterDesc* pDesc) const
+	{
+		UNREFERENCED_VARIABLE(pDesc);
+		LOG_WARNING("[AudioDeviceFMOD]: CreateCombFilter called but not implemented!");
+		return nullptr;
+	}
+
+	IAudioFilter* AudioDeviceFMOD::CreateAllPassFilter(const AllPassFilterDesc* pDesc) const
+	{
+		UNREFERENCED_VARIABLE(pDesc);
+		LOG_WARNING("[AudioDeviceFMOD]: CreateAllPassFilter called but not implemented!");
+		return nullptr;
+	}
+
+	IAudioFilter* AudioDeviceFMOD::CreateFilterSystem(const FilterSystemDesc* pDesc) const
+	{
+		UNREFERENCED_VARIABLE(pDesc);
+		LOG_WARNING("[AudioDeviceFMOD]: CreateFilterSystem called but not implemented!");
+		return nullptr;
+	}
+
 	IAudioFilter* AudioDeviceFMOD::CreateLowpassFIRFilter(float64 cutoffFreq, uint32 order) const
 	{
 		UNREFERENCED_VARIABLE(cutoffFreq);
@@ -243,13 +285,6 @@ namespace LambdaEngine
 		return nullptr;
 	}
 
-	IAudioFilter* AudioDeviceFMOD::CreateIIRFilter(const IIRFilterDesc* pDesc) const
-	{
-		UNREFERENCED_VARIABLE(pDesc);
-		LOG_WARNING("[AudioDeviceFMOD]: CreateIIRFilter called but not implemented!");
-		return nullptr;
-	}
-
 	IAudioFilter* AudioDeviceFMOD::CreateLowpassIIRFilter(float64 cutoffFreq, uint32 order) const
 	{
 		UNREFERENCED_VARIABLE(cutoffFreq);
@@ -281,13 +316,6 @@ namespace LambdaEngine
 		UNREFERENCED_VARIABLE(highCutoffFreq);
 		UNREFERENCED_VARIABLE(order);
 		LOG_WARNING("[AudioDeviceFMOD]: CreateBandstopIIRFilter called but not implemented!");
-		return nullptr;
-	}
-
-	IAudioFilter* AudioDeviceFMOD::CreateFilterSystem(const FilterSystemDesc* pDesc) const
-	{
-		UNREFERENCED_VARIABLE(pDesc);
-		LOG_WARNING("[AudioDeviceFMOD]: CreateFilterSystem called but not implemented!");
 		return nullptr;
 	}
 

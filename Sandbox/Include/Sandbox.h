@@ -88,6 +88,21 @@ private:
 
 	LambdaEngine::IAudioFilter*				m_pFIRFilter			= nullptr;
 	LambdaEngine::IAudioFilter*				m_pIIRFilter			= nullptr;
+
+	LambdaEngine::IAudioFilter*				m_pAdd0					= nullptr;
+	LambdaEngine::IAudioFilter*				m_pAP0					= nullptr;
+	LambdaEngine::IAudioFilter*				m_pAP1					= nullptr;
+	LambdaEngine::IAudioFilter*				m_pAP2					= nullptr;
+	LambdaEngine::IAudioFilter*				m_pA0					= nullptr;
+	LambdaEngine::IAudioFilter*				m_pA1					= nullptr;
+	LambdaEngine::IAudioFilter*				m_pA2					= nullptr;
+	LambdaEngine::IAudioFilter*				m_pAdd1					= nullptr;
+	LambdaEngine::IAudioFilter*				m_pAdd2					= nullptr;
+	LambdaEngine::IAudioFilter*				m_pLPF					= nullptr;
+	LambdaEngine::IAudioFilter*				m_pG					= nullptr;
+
+	LambdaEngine::IAudioFilter*				m_pReverbSystem			= nullptr;
+
 	bool									m_CurrentFilterIsFIR	= true;
 
 	bool									m_SpawnPlayAts;

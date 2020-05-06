@@ -8,6 +8,31 @@ namespace LambdaEngine
 
 	class IAudioFilter;
 
+	struct AddFilterDesc
+	{
+		const char*		pName			= "ADD Filter";
+	};
+
+	struct MulFilterDesc
+	{
+		const char* pName				= "MUL Filter";
+		float64		Multiplier			= 1.0;
+	};
+
+	struct CombFilterDesc
+	{
+		const char* pName				= "Comb Filter";
+		uint32		Delay				= 1;
+		float64		Multiplier			= 1.0;
+	};
+
+	struct AllPassFilterDesc
+	{
+		const char* pName				= "All Pass Filter";
+		uint32		Delay				= 1;
+		float64		Multiplier			= 0.5;
+	};
+
 	struct FIRFilterDesc
 	{
 		const char*		pName			= "FIR Filter";

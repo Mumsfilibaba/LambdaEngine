@@ -14,6 +14,10 @@ namespace LambdaEngine
 	struct SoundInstance3DDesc;
 	struct FIRFilterDesc;
 	struct IIRFilterDesc;
+	struct AddFilterDesc;
+	struct MulFilterDesc;
+	struct CombFilterDesc;
+	struct AllPassFilterDesc;
 	struct FilterSystemDesc;
 
 	class IMusic;
@@ -77,18 +81,23 @@ namespace LambdaEngine
 		virtual IReverbSphere*		CreateReverbSphere(const ReverbSphereDesc* pDesc)			= 0;
 
 		virtual IAudioFilter*		CreateFIRFilter(const FIRFilterDesc* pDesc)					const = 0;
+		virtual IAudioFilter*		CreateIIRFilter(const IIRFilterDesc* pDesc)					const = 0;
+		virtual IAudioFilter*		CreateAddFilter(const AddFilterDesc* pDesc)					const = 0;
+		virtual IAudioFilter*		CreateMulFilter(const MulFilterDesc* pDesc)					const = 0;
+		virtual IAudioFilter*		CreateCombFilter(const CombFilterDesc* pDesc)				const = 0;
+		virtual IAudioFilter*		CreateAllPassFilter(const AllPassFilterDesc* pDesc)			const = 0;
+		virtual IAudioFilter*		CreateFilterSystem(const FilterSystemDesc* pDesc)			const = 0;
+
 		virtual IAudioFilter*		CreateLowpassFIRFilter(float64 cutoffFreq, uint32 order)	const = 0;
 		virtual IAudioFilter*		CreateHighpassFIRFilter(float64 cutoffFreq, uint32 order)	const = 0;
 		virtual IAudioFilter*		CreateBandpassFIRFilter(float64 lowCutoffFreq, float64 highCutoffFreq, uint32 order)	const = 0;
 		virtual IAudioFilter*		CreateBandstopFIRFilter(float64 lowCutoffFreq, float64 highCutoffFreq, uint32 order)	const = 0;
 
-		virtual IAudioFilter*		CreateIIRFilter(const IIRFilterDesc* pDesc)					const = 0;
 		virtual IAudioFilter*		CreateLowpassIIRFilter(float64 cutoffFreq, uint32 order)	const = 0;
 		virtual IAudioFilter*		CreateHighpassIIRFilter(float64 cutoffFreq, uint32 order)	const = 0;
 		virtual IAudioFilter*		CreateBandpassIIRFilter(float64 lowCutoffFreq, float64 highCutoffFreq, uint32 order)	const = 0;
 		virtual IAudioFilter*		CreateBandstopIIRFilter(float64 lowCutoffFreq, float64 highCutoffFreq, uint32 order)	const = 0;
 
-		virtual IAudioFilter*		CreateFilterSystem(const FilterSystemDesc* pDesc)			const = 0;
 
 		virtual void				SetMasterFilter(const IAudioFilter* pAudioFilter)			= 0;
 
