@@ -183,25 +183,25 @@ void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRep
 
 	if (!isRepeat)
 	{
-		if (key == EKey::KEY_KEYPAD_7)
+		if (key == EKey::KEY_7)
 		{
 			float32 volume = m_pMusicInstance->GetVolume() - 0.025f;
 			LOG_INFO("Music Volume: %.4f", volume);
 
 			m_pMusicInstance->SetVolume(volume);
 		}
-		else if (key == EKey::KEY_KEYPAD_8)
+		else if (key == EKey::KEY_8)
 		{
 			m_pMusicInstance->Toggle();
 		}
-		else if (key == EKey::KEY_KEYPAD_9)
+		else if (key == EKey::KEY_9)
 		{
 			float32 volume = m_pMusicInstance->GetVolume() + 0.025f;
 			LOG_INFO("Music Volume: %.4f", volume);
 
 			m_pMusicInstance->SetVolume(volume);
 		}
-		else if (key == EKey::KEY_KEYPAD_4)
+		else if (key == EKey::KEY_4)
 		{
 			SoundInstance3DDesc gunInstanceDesc = { };
 			gunInstanceDesc.pSoundEffect		= m_pGunSoundEffect;
@@ -214,7 +214,7 @@ void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRep
 
 			m_pGunSoundEffect->PlayOnce(&gunInstanceDesc);
 		}
-		else if (key == EKey::KEY_KEYPAD_5)
+		else if (key == EKey::KEY_5)
 		{
 			m_pMusicInstance->Stop();
 		}
