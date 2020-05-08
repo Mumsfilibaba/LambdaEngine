@@ -169,18 +169,27 @@ Sandbox::~Sandbox()
 
 	SAFEDELETE(m_pFIRFilter);
 	SAFEDELETE(m_pIIRFilter);
-	SAFEDELETE(m_pAdd0);
-	SAFEDELETE(m_pAP0);
-	SAFEDELETE(m_pAP1);
-	SAFEDELETE(m_pAP2);
-	SAFEDELETE(m_pA0);
-	SAFEDELETE(m_pA1);
-	SAFEDELETE(m_pA2);
-	SAFEDELETE(m_pAdd1);
-	SAFEDELETE(m_pAdd2);
-	SAFEDELETE(m_pLPF);
-	SAFEDELETE(m_pG);
-	SAFEDELETE(m_pReverbSystem);
+	SAFEDELETE(m_pF1Add0);
+	SAFEDELETE(m_pF1AP0);
+	SAFEDELETE(m_pF1AP1);
+	SAFEDELETE(m_pF1AP2);
+	SAFEDELETE(m_pF1A0);
+	SAFEDELETE(m_pF1A1);
+	SAFEDELETE(m_pF1A2);
+	SAFEDELETE(m_pF1Add1);
+	SAFEDELETE(m_pF1Add2);
+	SAFEDELETE(m_pF1LPF);
+	SAFEDELETE(m_pF1G);
+	SAFEDELETE(m_pReverbSystem1);
+
+	SAFEDELETE(m_pF2Add0);
+	SAFEDELETE(m_pF2Comb0);
+	SAFEDELETE(m_pF2Comb1);
+	SAFEDELETE(m_pF2Comb2);
+	SAFEDELETE(m_pF2Comb3);
+	SAFEDELETE(m_pF2AP0);
+	SAFEDELETE(m_pF2AP1);
+	SAFEDELETE(m_pReverbSystem2);
 }
 
 void Sandbox::InitTestAudio()
@@ -190,7 +199,7 @@ void Sandbox::InitTestAudio()
 	m_AudioListenerIndex = AudioSystem::GetDevice()->CreateAudioListener();
 
 	m_ToneSoundEffectGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/dahlle.wav");
-	m_GunSoundEffectGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/chrille.wav");
+	m_GunSoundEffectGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/gun.wav");
 
 	m_pToneSoundEffect	= ResourceManager::GetSoundEffect(m_ToneSoundEffectGUID);
 	m_pGunSoundEffect	= ResourceManager::GetSoundEffect(m_GunSoundEffectGUID);
@@ -214,126 +223,271 @@ void Sandbox::InitTestAudio()
 	m_GunshotDelay = 1.0f;
 	m_Timer = 0.0f;
 
-	AddFilterDesc addDesc = {};
+	std::vector<IAudioFilter*> filters1;
+	{
+		AddFilterDesc addDesc0 = {};
+		addDesc0.pName = "add0";
 
-	MulFilterDesc mulDesc = {};
-	mulDesc.Multiplier		= 0.8;
+		AddFilterDesc addDesc1 = {};
+		addDesc1.pName = "add1";
+	
+		AddFilterDesc addDesc2 = {};
+		addDesc2.pName = "add2";
 
-	AllPassFilterDesc allPassDesc = {};
-	allPassDesc.Delay		= 1024;
-	allPassDesc.Multiplier	= 0.8;
+		MulFilterDesc a0Desc = {};
+		a0Desc.pName			= "a0";
+		a0Desc.Multiplier		= 0.8;
 
-	std::vector<IAudioFilter*> filters;
+		MulFilterDesc a1Desc = {};
+		a1Desc.pName			= "a1";
+		a1Desc.Multiplier		= 0.8;
 
-	m_pAdd0		= AudioSystem::GetDevice()->CreateAddFilter(&addDesc);				//0
-	m_pAP0		= AudioSystem::GetDevice()->CreateAllPassFilter(&allPassDesc);		//1
-	m_pAP1		= AudioSystem::GetDevice()->CreateAllPassFilter(&allPassDesc);		//2
-	m_pAP2		= AudioSystem::GetDevice()->CreateAllPassFilter(&allPassDesc);		//3
-	m_pA0		= AudioSystem::GetDevice()->CreateMulFilter(&mulDesc);				//4
-	m_pA1		= AudioSystem::GetDevice()->CreateMulFilter(&mulDesc);				//5
-	m_pA2		= AudioSystem::GetDevice()->CreateMulFilter(&mulDesc);				//6
-	m_pAdd1		= AudioSystem::GetDevice()->CreateAddFilter(&addDesc);				//7
-	m_pAdd2		= AudioSystem::GetDevice()->CreateAddFilter(&addDesc);				//8
-	m_pLPF		= AudioSystem::GetDevice()->CreateLowpassFIRFilter(200.0, 128);		//9
-	m_pG		= AudioSystem::GetDevice()->CreateMulFilter(&mulDesc);				//10
+		MulFilterDesc a2Desc = {};
+		a2Desc.pName			= "a2";
+		a2Desc.Multiplier		= 0.8;
 
-	filters.push_back(m_pAdd0);
-	filters.push_back(m_pAP0);
-	filters.push_back(m_pAP1);
-	filters.push_back(m_pAP2);
-	filters.push_back(m_pA0);
-	filters.push_back(m_pA1);
-	filters.push_back(m_pA2);
-	filters.push_back(m_pAdd1);
-	filters.push_back(m_pAdd2);
-	filters.push_back(m_pLPF);
-	filters.push_back(m_pG);
+		MulFilterDesc gDesc = {};
+		gDesc.pName				= "g";
+		gDesc.Multiplier		= 0.8;
 
-	std::vector<FilterSystemConnection> connections;
+		AllPassFilterDesc allPassDesc0 = {};
+		allPassDesc0.pName		= "ap0";
+		allPassDesc0.Delay		= 256;
+		allPassDesc0.Multiplier	= 0.8;
 
-	FilterSystemConnection c0 = {};
-	c0.pPreviousFilters[0]		= -1;
-	c0.pPreviousFilters[1]		= 10;
-	c0.PreviousFiltersCount		= 2;
-	c0.NextFilter				= 0;
-	connections.push_back(c0);
+		AllPassFilterDesc allPassDesc1 = {};
+		allPassDesc1.pName		= "ap1";
+		allPassDesc1.Delay		= 512;
+		allPassDesc1.Multiplier	= 0.5;
 
-	FilterSystemConnection c1 = {};
-	c1.pPreviousFilters[0]		= 0;
-	c1.PreviousFiltersCount		= 1;
-	c1.NextFilter				= 1;
-	connections.push_back(c1);
+		AllPassFilterDesc allPassDesc2 = {};
+		allPassDesc2.pName		= "ap2";
+		allPassDesc2.Delay		= 1024;
+		allPassDesc2.Multiplier	= 0.3;
 
-	FilterSystemConnection c2 = {};
-	c2.pPreviousFilters[0]		= 1;
-	c2.PreviousFiltersCount		= 1;
-	c2.NextFilter				= 2;
-	connections.push_back(c2);
+		m_pF1Add0		= AudioSystem::GetDevice()->CreateAddFilter(&addDesc0);				//0
+		m_pF1AP0		= AudioSystem::GetDevice()->CreateAllPassFilter(&allPassDesc0);		//1
+		m_pF1AP1		= AudioSystem::GetDevice()->CreateAllPassFilter(&allPassDesc1);		//2
+		m_pF1AP2		= AudioSystem::GetDevice()->CreateAllPassFilter(&allPassDesc2);		//3
+		m_pF1A0			= AudioSystem::GetDevice()->CreateMulFilter(&a0Desc);				//4
+		m_pF1A1			= AudioSystem::GetDevice()->CreateMulFilter(&a1Desc);				//5
+		m_pF1A2			= AudioSystem::GetDevice()->CreateMulFilter(&a2Desc);				//6
+		m_pF1Add1		= AudioSystem::GetDevice()->CreateAddFilter(&addDesc1);				//7
+		m_pF1Add2		= AudioSystem::GetDevice()->CreateAddFilter(&addDesc2);				//8
+		m_pF1LPF		= AudioSystem::GetDevice()->CreateLowpassIIRFilter(2000.0, 8);		//9
+		m_pF1G			= AudioSystem::GetDevice()->CreateMulFilter(&gDesc);				//10
 
-	FilterSystemConnection c3 = {};
-	c3.pPreviousFilters[0]		= 2;
-	c3.PreviousFiltersCount		= 1;
-	c3.NextFilter				= 3;
-	connections.push_back(c3);
+		filters1.push_back(m_pF1Add0);
+		filters1.push_back(m_pF1AP0);
+		filters1.push_back(m_pF1AP1);
+		filters1.push_back(m_pF1AP2);
+		filters1.push_back(m_pF1A0);
+		filters1.push_back(m_pF1A1);
+		filters1.push_back(m_pF1A2);
+		filters1.push_back(m_pF1Add1);
+		filters1.push_back(m_pF1Add2);
+		filters1.push_back(m_pF1LPF);
+		filters1.push_back(m_pF1G);
+	}
 
-	FilterSystemConnection c4 = {};
-	c4.pPreviousFilters[0]		= 1;
-	c4.PreviousFiltersCount		= 1;
-	c4.NextFilter				= 4;
-	connections.push_back(c4);
+	std::vector<FilterSystemConnection> connections1;
 
-	FilterSystemConnection c5 = {};
-	c5.pPreviousFilters[0]		= 2;
-	c5.PreviousFiltersCount		= 1;
-	c5.NextFilter				= 5;
-	connections.push_back(c5);
+	{
+		FilterSystemConnection c0 = {};
+		c0.pPreviousFilters[0]		= -1;
+		c0.pPreviousFilters[1]		= 10;
+		c0.PreviousFiltersCount		= 2;
+		c0.NextFilter				= 0;
+		connections1.push_back(c0);
 
-	FilterSystemConnection c6 = {};
-	c6.pPreviousFilters[0]		= 3;
-	c6.PreviousFiltersCount		= 1;
-	c6.NextFilter				= 6;
-	connections.push_back(c6);
+		FilterSystemConnection c1 = {};
+		c1.pPreviousFilters[0]		= 0;
+		c1.PreviousFiltersCount		= 1;
+		c1.NextFilter				= 1;
+		connections1.push_back(c1);
 
-	FilterSystemConnection c7 = {};
-	c7.pPreviousFilters[0]		= 4;
-	c7.pPreviousFilters[1]		= 5;
-	c7.PreviousFiltersCount		= 2;
-	c7.NextFilter				= 7;
-	connections.push_back(c7);
+		FilterSystemConnection c2 = {};
+		c2.pPreviousFilters[0]		= 1;
+		c2.PreviousFiltersCount		= 1;
+		c2.NextFilter				= 2;
+		connections1.push_back(c2);
 
-	FilterSystemConnection c8 = {};
-	c8.pPreviousFilters[0]		= 7;
-	c8.pPreviousFilters[1]		= 6;
-	c8.PreviousFiltersCount		= 2;
-	c8.NextFilter				= 8;
-	connections.push_back(c8);
+		FilterSystemConnection c3 = {};
+		c3.pPreviousFilters[0]		= 2;
+		c3.PreviousFiltersCount		= 1;
+		c3.NextFilter				= 3;
+		connections1.push_back(c3);
 
-	FilterSystemConnection c9 = {};
-	c9.pPreviousFilters[0]		= 8;
-	c9.PreviousFiltersCount		= 1;
-	c9.NextFilter				= -1;
-	connections.push_back(c9);
+		FilterSystemConnection c4 = {};
+		c4.pPreviousFilters[0]		= 1;
+		c4.PreviousFiltersCount		= 1;
+		c4.NextFilter				= 4;
+		connections1.push_back(c4);
 
-	FilterSystemConnection c10 = {};
-	c10.pPreviousFilters[0]		= 3;
-	c10.PreviousFiltersCount	= 1;
-	c10.NextFilter				= 9;
-	connections.push_back(c10);
+		FilterSystemConnection c5 = {};
+		c5.pPreviousFilters[0]		= 2;
+		c5.PreviousFiltersCount		= 1;
+		c5.NextFilter				= 5;
+		connections1.push_back(c5);
 
-	FilterSystemConnection c11 = {};
-	c11.pPreviousFilters[0]		= 9;
-	c11.PreviousFiltersCount	= 1;
-	c11.NextFilter				= 10;
-	connections.push_back(c11);
+		FilterSystemConnection c6 = {};
+		c6.pPreviousFilters[0]		= 3;
+		c6.PreviousFiltersCount		= 1;
+		c6.NextFilter				= 6;
+		connections1.push_back(c6);
 
-	FilterSystemDesc filterSystemDesc = {};
-	filterSystemDesc.pName						= "Reverb System";
-	filterSystemDesc.ppAudioFilters				= filters.data();
-	filterSystemDesc.AudioFilterCount			= filters.size();
-	filterSystemDesc.pFilterConnections			= connections.data();
-	filterSystemDesc.FilterConnectionsCount		= connections.size();
+		FilterSystemConnection c7 = {};
+		c7.pPreviousFilters[0]		= 4;
+		c7.pPreviousFilters[1]		= 5;
+		c7.PreviousFiltersCount		= 2;
+		c7.NextFilter				= 7;
+		connections1.push_back(c7);
 
-	m_pReverbSystem	= AudioSystem::GetDevice()->CreateFilterSystem(&filterSystemDesc);
+		FilterSystemConnection c8 = {};
+		c8.pPreviousFilters[0]		= 7;
+		c8.pPreviousFilters[1]		= 6;
+		c8.PreviousFiltersCount		= 2;
+		c8.NextFilter				= 8;
+		connections1.push_back(c8);
+
+		FilterSystemConnection c9 = {};
+		c9.pPreviousFilters[0]		= 8;
+		c9.PreviousFiltersCount		= 1;
+		c9.NextFilter				= -1;
+		connections1.push_back(c9);
+
+		FilterSystemConnection c10 = {};
+		c10.pPreviousFilters[0]		= 3;
+		c10.PreviousFiltersCount	= 1;
+		c10.NextFilter				= 9;
+		connections1.push_back(c10);
+
+		FilterSystemConnection c11 = {};
+		c11.pPreviousFilters[0]		= 9;
+		c11.PreviousFiltersCount	= 1;
+		c11.NextFilter				= 10;
+		connections1.push_back(c11);
+	}
+
+	FilterSystemDesc filterSystem1Desc = {};
+	filterSystem1Desc.pName						= "Reverb System";
+	filterSystem1Desc.ppAudioFilters			= filters1.data();
+	filterSystem1Desc.AudioFilterCount			= filters1.size();
+	filterSystem1Desc.pFilterConnections		= connections1.data();
+	filterSystem1Desc.FilterConnectionsCount	= connections1.size();
+
+	m_pReverbSystem1	= AudioSystem::GetDevice()->CreateFilterSystem(&filterSystem1Desc);
+
+	std::vector<IAudioFilter*> filters2;
+
+	{
+		CombFilterDesc combDesc0 = {};
+		combDesc0.pName			= "Comb 0";
+		combDesc0.Delay			= 4.799 * AudioSystem::GetDevice()->GetSampleRate();
+		combDesc0.Multiplier	= 0.742;
+
+		CombFilterDesc combDesc1 = {};
+		combDesc1.pName			= "Comb 1";
+		combDesc1.Delay			= 4.999 * AudioSystem::GetDevice()->GetSampleRate();
+		combDesc1.Multiplier	= 0.733;
+
+		CombFilterDesc combDesc2 = {};
+		combDesc2.pName			= "Comb 2";
+		combDesc2.Delay			= 5.399 * AudioSystem::GetDevice()->GetSampleRate();
+		combDesc2.Multiplier	= 0.715;
+
+		CombFilterDesc combDesc3 = {};
+		combDesc3.pName			= "Comb 3";
+		combDesc3.Delay			= 5.801 * AudioSystem::GetDevice()->GetSampleRate();
+		combDesc3.Multiplier	= 0.797;
+	
+		AllPassFilterDesc allPassDesc0 = {};
+		allPassDesc0.pName		= "ap0";
+		allPassDesc0.Delay		= 1.051 * AudioSystem::GetDevice()->GetSampleRate();
+		allPassDesc0.Multiplier	= 0.7;
+
+		AllPassFilterDesc allPassDesc1 = {};
+		allPassDesc1.pName		= "ap1";
+		allPassDesc1.Delay		= 0.337 * AudioSystem::GetDevice()->GetSampleRate();
+		allPassDesc1.Multiplier	= 0.7;
+
+		AddFilterDesc addDesc0 = {};
+		addDesc0.pName			= "add0";
+
+		m_pF2Comb0		= AudioSystem::GetDevice()->CreateCombFilter(&combDesc0);			//0
+		m_pF2Comb1		= AudioSystem::GetDevice()->CreateCombFilter(&combDesc1);			//1
+		m_pF2Comb2		= AudioSystem::GetDevice()->CreateCombFilter(&combDesc2);			//2
+		m_pF2Comb3		= AudioSystem::GetDevice()->CreateCombFilter(&combDesc3);			//3
+		m_pF2AP0		= AudioSystem::GetDevice()->CreateAllPassFilter(&allPassDesc0);		//4
+		m_pF2AP1		= AudioSystem::GetDevice()->CreateAllPassFilter(&allPassDesc1);		//5
+		m_pF2Add0		= AudioSystem::GetDevice()->CreateAddFilter(&addDesc0);				//6
+	}
+
+	filters2.push_back(m_pF2Comb0);
+	filters2.push_back(m_pF2Comb1);
+	filters2.push_back(m_pF2Comb2);
+	filters2.push_back(m_pF2Comb3);
+	filters2.push_back(m_pF2AP0);
+	filters2.push_back(m_pF2AP1);
+	filters2.push_back(m_pF2Add0);
+
+	std::vector<FilterSystemConnection> connections2;
+
+	{
+		FilterSystemConnection c0 = {};
+		c0.pPreviousFilters[0]		= -1;
+		c0.PreviousFiltersCount		= 1;
+		c0.NextFilter				= 0;
+		connections2.push_back(c0);
+
+		FilterSystemConnection c1 = {};
+		c1.pPreviousFilters[0]		= -1;
+		c1.PreviousFiltersCount		= 1;
+		c1.NextFilter				= 1;
+		connections2.push_back(c1);
+
+		FilterSystemConnection c2 = {};
+		c2.pPreviousFilters[0]		= -1;
+		c2.PreviousFiltersCount		= 1;
+		c2.NextFilter				= 2;
+		connections2.push_back(c2);
+
+		FilterSystemConnection c3 = {};
+		c3.pPreviousFilters[0]		= -1;
+		c3.PreviousFiltersCount		= 1;
+		c3.NextFilter				= 3;
+		connections2.push_back(c3);
+
+		FilterSystemConnection c4 = {};
+		c4.pPreviousFilters[0]		= 0;
+		c4.pPreviousFilters[1]		= 1;
+		c4.pPreviousFilters[2]		= 2;
+		c4.pPreviousFilters[3]		= 3;
+		c4.PreviousFiltersCount		= 4;
+		c4.NextFilter				= 4;
+		connections2.push_back(c4);
+
+		FilterSystemConnection c5 = {};
+		c5.pPreviousFilters[0]		= 4;
+		c5.PreviousFiltersCount		= 1;
+		c5.NextFilter				= 5;
+		connections2.push_back(c5);
+
+		FilterSystemConnection c6 = {};
+		c6.pPreviousFilters[0]		= 5;
+		c6.PreviousFiltersCount		= 1;
+		c6.NextFilter				= -1;
+		connections2.push_back(c6);
+	}
+
+	FilterSystemDesc filterSystem2Desc = {};
+	filterSystem2Desc.pName						= "Reverb System 2";
+	filterSystem2Desc.ppAudioFilters			= filters2.data();
+	filterSystem2Desc.AudioFilterCount			= filters2.size();
+	filterSystem2Desc.pFilterConnections		= connections2.data();
+	filterSystem2Desc.FilterConnectionsCount	= connections2.size();
+
+	m_pReverbSystem2 = AudioSystem::GetDevice()->CreateFilterSystem(&filterSystem2Desc);
 
 	//m_pFIRFilter = AudioSystem::GetDevice()->CreateLowpassFIRFilter(2000.0, 16);
 	//m_pIIRFilter = AudioSystem::GetDevice()->CreateLowpassIIRFilter(2000.0, 6);
@@ -347,7 +501,7 @@ void Sandbox::InitTestAudio()
 	//m_pFIRFilter = AudioSystem::GetDevice()->CreateBandstopFIRFilter(2000.0, 4000.0, 16);
 	//m_pIIRFilter = AudioSystem::GetDevice()->CreateBandstopIIRFilter(2000.0, 4000.0, 4);
 
-	AudioSystem::GetDevice()->SetMasterFilter(m_pReverbSystem);
+	AudioSystem::GetDevice()->SetMasterFilter(m_pReverbSystem2);
 	m_CurrentFilterIsFIR = false;
 
 	/*m_pAudioListener = AudioSystem::GetDevice()->CreateAudioListener();
@@ -487,12 +641,6 @@ void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRep
 	{
 		m_pGunSoundEffect->PlayOnceAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), 1.0f);
 	}
-	else if (key == EKey::KEY_KEYPAD_4)
-	{
-		float32 masterVolume = AudioSystem::GetDevice()->GetMasterVolume();
-		AudioSystem::GetDevice()->SetMasterVolume(masterVolume + 0.1f);
-		LOG_WARNING("Master Volume: %f", masterVolume);
-	}
 	else if (key == EKey::KEY_KEYPAD_5)
 	{
 		RenderSystem::GetGraphicsQueue()->Flush();
@@ -503,19 +651,6 @@ void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRep
 	else if (key == EKey::KEY_KEYPAD_6)
 	{
 		AudioSystem::GetDevice()->SetMasterFilterEnabled(!AudioSystem::GetDevice()->GetMasterFilterEnabled());
-	}
-	else if (key == EKey::KEY_KEYPAD_7)
-	{
-		if (m_CurrentFilterIsFIR)
-		{
-			AudioSystem::GetDevice()->SetMasterFilter(m_pIIRFilter);
-			m_CurrentFilterIsFIR = false;
-		}
-		else
-		{
-			AudioSystem::GetDevice()->SetMasterFilter(m_pFIRFilter);
-			m_CurrentFilterIsFIR = true;
-		}
 	}
 	/*if (key == EKey::KEY_KEYPAD_1)
 	{

@@ -89,6 +89,7 @@ namespace LambdaEngine
 		virtual void SetEnabled(bool enabled) = 0;
 		virtual bool GetEnabled() const = 0;
 
+		virtual const char* GetName() const = 0;
 		virtual EFilterType GetType() const = 0;
 	};
 }

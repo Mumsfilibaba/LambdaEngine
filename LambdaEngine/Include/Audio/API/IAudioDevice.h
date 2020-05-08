@@ -106,6 +106,8 @@ namespace LambdaEngine
 
 		virtual float64				GetMasterVolume()											const = 0;
 		virtual bool				GetMasterFilterEnabled()									const = 0;
+
+		virtual float64				GetSampleRate()												const = 0;
 	};
 
 	LAMBDA_API IAudioDevice* CreateAudioDevice(EAudioAPI api, const AudioDeviceDesc& desc);

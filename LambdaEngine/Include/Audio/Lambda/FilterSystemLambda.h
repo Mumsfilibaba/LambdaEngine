@@ -22,7 +22,11 @@ namespace LambdaEngine
 		virtual void SetEnabled(bool enabled) override final;
 		FORCEINLINE virtual bool GetEnabled() const override final { return m_Enabled; }
 
+		FORCEINLINE virtual const char* GetName() const override final { return m_pName; }
 		FORCEINLINE virtual EFilterType GetType() const override final { return EFilterType::SYSTEM; }
+
+	private:
+		void DebugPrintExecutionOrder();
 
 	private:
 		const AudioDeviceLambda* m_pAudioDevice = nullptr;

@@ -63,6 +63,8 @@ namespace LambdaEngine
 		FORCEINLINE virtual float64 GetMasterVolume()			const override final { return m_MasterVolume; }
 		virtual bool				GetMasterFilterEnabled()	const override final;
 
+		FORCEINLINE float64			GetSampleRate()				const override final { return m_SampleRate; }
+
 		void AddManagedSoundInstance(const ManagedSoundInstance3DDesc* pDesc) const;
 
 		void DeleteMusicInstance(MusicLambda* pMusic) const;
@@ -72,7 +74,6 @@ namespace LambdaEngine
 		FORCEINLINE r8b::CDSPResampler* GetResampler(uint32 sampleRate) const	{ return m_Resamplers[sampleRate]; }
 
 		FORCEINLINE PaDeviceIndex	GetDeviceIndex()				const { return m_DeviceIndex;			}
-		FORCEINLINE uint32			GetSampleRate()					const { return m_SampleRate;			}
 		FORCEINLINE int				GetOutputChannelCount()			const { return m_OutputChannelCount;	}
 		FORCEINLINE PaTime			GetDefaultOutputLatency()		const { return m_DefaultOutputLatency;	}
 

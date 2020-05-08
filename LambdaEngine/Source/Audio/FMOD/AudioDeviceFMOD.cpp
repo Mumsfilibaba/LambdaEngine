@@ -343,6 +343,11 @@ namespace LambdaEngine
 		return false;
 	}
 
+	float64 AudioDeviceFMOD::GetSampleRate() const
+	{
+		return 0.0f;
+	}
+
 	void AudioDeviceFMOD::SetMasterFilter(const IAudioFilter* pAudioFilter)
 	{
 		UNREFERENCED_VARIABLE(pAudioFilter);

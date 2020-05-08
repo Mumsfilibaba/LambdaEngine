@@ -40,6 +40,8 @@ namespace LambdaEngine
 		m_pFilterConnections			= DBG_NEW FilterSystemConnection[m_FilterConnectionsCount];
 		memcpy(m_pFilterConnections,	pDesc->pFilterConnections, m_FilterConnectionsCount * sizeof(FilterSystemConnection));
 
+		DebugPrintExecutionOrder();
+
 		D_LOG_MESSAGE("[FilterSystemLambda]: Created Filter System \"%s\"", m_pName);
 
 		return true;
@@ -80,11 +82,14 @@ namespace LambdaEngine
 					float64* pOutputSample	= &m_pFilterOutputs[pConnection->NextFilter];
 					IAudioFilter* pFilter	= m_ppAudioFilters[pConnection->NextFilter];
 
+
 					(*pOutputSample) =  pFilter->ProcessSample(inputSample);
+					//D_LOG_MESSAGE("%s: %f", pFilter->GetName(), (*pOutputSample));
 				}
 				else
 				{
 					outputSample = inputSample;
+					//D_LOG_MESSAGE("%s: %f", "FINAL", outputSample);
 				}
 			}
 		}
@@ -100,5 +105,56 @@ namespace LambdaEngine
 	void FilterSystemLambda::SetEnabled(bool enabled)
 	{
 		m_Enabled = enabled;
+	}
+
+	void FilterSystemLambda::DebugPrintExecutionOrder()
+	{
+		std::set<std::string> executedFilters;
+
+		for (uint32 fc = 0; fc < m_FilterConnectionsCount; fc++)
+		{
+			const FilterSystemConnection* pConnection = &m_pFilterConnections[fc];
+
+			std::string outputString = "";
+
+			for (uint32 p = 0; p < pConnection->PreviousFiltersCount; p++)
+			{
+				int32 prevFilterIndex = pConnection->pPreviousFilters[p];
+
+				if (prevFilterIndex >= 0)
+				{
+					const IAudioFilter* pPrevFilter = m_ppAudioFilters[prevFilterIndex];
+
+					if (executedFilters.count(pPrevFilter->GetName()) == 0)
+						outputString += "OLD-";
+
+					outputString += pPrevFilter->GetName();
+				}
+				else
+				{
+					outputString += "INPUT SAMPLE";
+				}
+
+				if (p < pConnection->PreviousFiltersCount - 1)
+					outputString += ", ";
+			}
+
+			outputString += " -> ";
+
+			if (pConnection->NextFilter >= 0)
+			{
+				const IAudioFilter* pExecutedFilter = m_ppAudioFilters[pConnection->NextFilter];
+
+				outputString += pExecutedFilter->GetName();
+
+				executedFilters.insert(pExecutedFilter->GetName());
+			}
+			else
+			{
+				outputString += "OUTPUT SAMPLE";
+			}
+
+			LOG_INFO("%s", outputString.c_str());
+		}
 	}
 }

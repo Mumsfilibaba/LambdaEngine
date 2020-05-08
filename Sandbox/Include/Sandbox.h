@@ -89,19 +89,28 @@ private:
 	LambdaEngine::IAudioFilter*				m_pFIRFilter			= nullptr;
 	LambdaEngine::IAudioFilter*				m_pIIRFilter			= nullptr;
 
-	LambdaEngine::IAudioFilter*				m_pAdd0					= nullptr;
-	LambdaEngine::IAudioFilter*				m_pAP0					= nullptr;
-	LambdaEngine::IAudioFilter*				m_pAP1					= nullptr;
-	LambdaEngine::IAudioFilter*				m_pAP2					= nullptr;
-	LambdaEngine::IAudioFilter*				m_pA0					= nullptr;
-	LambdaEngine::IAudioFilter*				m_pA1					= nullptr;
-	LambdaEngine::IAudioFilter*				m_pA2					= nullptr;
-	LambdaEngine::IAudioFilter*				m_pAdd1					= nullptr;
-	LambdaEngine::IAudioFilter*				m_pAdd2					= nullptr;
-	LambdaEngine::IAudioFilter*				m_pLPF					= nullptr;
-	LambdaEngine::IAudioFilter*				m_pG					= nullptr;
+	LambdaEngine::IAudioFilter*				m_pF1Add0				= nullptr;
+	LambdaEngine::IAudioFilter*				m_pF1AP0				= nullptr;
+	LambdaEngine::IAudioFilter*				m_pF1AP1				= nullptr;
+	LambdaEngine::IAudioFilter*				m_pF1AP2				= nullptr;
+	LambdaEngine::IAudioFilter*				m_pF1A0					= nullptr;
+	LambdaEngine::IAudioFilter*				m_pF1A1					= nullptr;
+	LambdaEngine::IAudioFilter*				m_pF1A2					= nullptr;
+	LambdaEngine::IAudioFilter*				m_pF1Add1				= nullptr;
+	LambdaEngine::IAudioFilter*				m_pF1Add2				= nullptr;
+	LambdaEngine::IAudioFilter*				m_pF1LPF				= nullptr;
+	LambdaEngine::IAudioFilter*				m_pF1G					= nullptr;
+	LambdaEngine::IAudioFilter*				m_pReverbSystem1		= nullptr;
 
-	LambdaEngine::IAudioFilter*				m_pReverbSystem			= nullptr;
+
+	LambdaEngine::IAudioFilter*				m_pF2Comb0				= nullptr;
+	LambdaEngine::IAudioFilter*				m_pF2Comb1				= nullptr;
+	LambdaEngine::IAudioFilter*				m_pF2Comb2				= nullptr;
+	LambdaEngine::IAudioFilter*				m_pF2Comb3				= nullptr;
+	LambdaEngine::IAudioFilter*				m_pF2AP0				= nullptr;
+	LambdaEngine::IAudioFilter*				m_pF2AP1				= nullptr;
+	LambdaEngine::IAudioFilter*				m_pF2Add0				= nullptr;
+	LambdaEngine::IAudioFilter*				m_pReverbSystem2		= nullptr;
 
 	bool									m_CurrentFilterIsFIR	= true;
 

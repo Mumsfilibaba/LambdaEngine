@@ -55,6 +55,8 @@ namespace LambdaEngine
 		virtual float64				GetMasterVolume()											const override final;
 		virtual bool				GetMasterFilterEnabled()									const override final;
 
+		virtual float64				GetSampleRate()												const override final;
+
 	public:
 		FMOD_SYSTEM* pSystem					= nullptr;
 

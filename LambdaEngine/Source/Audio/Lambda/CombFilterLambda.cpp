@@ -46,18 +46,18 @@ namespace LambdaEngine
 
 		if (m_Enabled)
 		{
-			outputSample = m_Multiplier * m_pPreviousSamples[m_CurrentSampleIndex];
+			outputSample = sample + m_Multiplier * m_pPreviousSamples[m_CurrentSampleIndex];
 		}
 		else
 		{
 			outputSample = sample;
 		}
 
+		outputSample = glm::clamp<double>(outputSample, -1.0, 1.0);
 		m_pPreviousSamples[m_CurrentSampleIndex] = sample;
 
 		if (++m_CurrentSampleIndex == m_Delay) m_CurrentSampleIndex = 0;
 
-		outputSample = glm::clamp<double>(outputSample, -1.0, 1.0);
 		return outputSample;
 	}
 
