@@ -160,7 +160,7 @@ namespace LambdaEngine
 			m_pWriteAudioBuffer = m_pWriteAudioBuffer->pNext;
 			
 			m_Clock.Tick();
-			LOG_INFO("AudioProcessing=%llu ns", m_Clock.GetDeltaTime().AsNanoSeconds());
+			//LOG_INFO("AudioProcessing=%llu ns", m_Clock.GetDeltaTime().AsNanoSeconds());
 		}
 	}
 
@@ -197,6 +197,24 @@ namespace LambdaEngine
 		// Reset buffer index for each instance
 		uint32 bufferIndex = 0;
 
+        // Calculate panning
+        glm::vec3 listPos     = pAudioListener->Desc.Position;
+        glm::vec3 sourcePos   = pSoundInstance->Position;
+        glm::vec3 forward     = glm::normalize(pAudioListener->Desc.Forward);
+        glm::vec3 sourceDir   = listPos - sourcePos;
+        
+        float32 sourceDirLen = glm::length(sourceDir);
+        if (sourceDirLen > 0)
+        {
+            sourceDir = sourceDir / sourceDirLen;
+        }
+        
+        float32 dot     = glm::dot(forward, sourceDir);
+        float32 angle   = glm::acos(dot); //Horizontal angle
+        float32 theta1  = -glm::half_pi<float32>();  // Angle to left speaker
+        float32 theta2  = glm::half_pi<float32>();   // Angle to right speaker
+        float32 b       = (angle - theta1) / (theta2 - theta1);
+        
 		// Calculate attenutation
 		float32 refDist		= pSoundInstance->ReferenceDistance;
 		float32 distance	= glm::length(pAudioListener->Desc.Position - pSoundInstance->Position);
@@ -206,16 +224,19 @@ namespace LambdaEngine
 		// Calculate volume
 		float32 volume	= pAudioListener->Desc.Volume * pSoundInstance->Volume;
 		volume			= volume * attenuation;
+        
+        float32 volumeLeft  = glm::sin(glm::half_pi<float32>() * b) * volume;
+        float32 volumeRight = glm::cos(glm::half_pi<float32>() * b) * volume;
 
+        LOG_INFO("forward: x=%.3f y=%.3f z=%.3f sourceDir: x=%.3f y=%.3f z=%.3f, angle=%.3f, dot=%.3f, VL=%.3f, VR=%.3f", forward.x, forward.y, forward.z, sourceDir.x, sourceDir.y, sourceDir.z, angle, dot, volumeLeft, volumeRight);
+        
 		// Add samples to buffer
 		for (uint32_t i = 0; i < SAMPLES_PER_CHANNEL; i++)
 		{
-			for (uint32_t c = 0; c < m_ChannelCount; c++)
-			{
-				float32 sample = pSoundInstance->pWaveForm[pSoundInstance->CurrentBufferIndex];
-				pBuffer[bufferIndex] += volume * sample;
-				bufferIndex++;
-			}
+            float32 sample  = pSoundInstance->pWaveForm[pSoundInstance->CurrentBufferIndex];
+            // sample          = volume * sample;
+            pBuffer[bufferIndex++] += sample * volumeLeft;
+            pBuffer[bufferIndex++] += sample * volumeRight;
 
 			pSoundInstance->CurrentBufferIndex++;
 			if (pSoundInstance->CurrentBufferIndex >= pSoundInstance->TotalSampleCount)

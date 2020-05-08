@@ -37,7 +37,7 @@ namespace LambdaEngine
 		Volume				= pDesc->Volume;
 		RollOff				= pDesc->RollOff;
 		Position			= pDesc->Position;
-		m_pEffect			= pSoundEffect;
+        m_pEffect           = pSoundEffect;
 		Desc				= m_pEffect->GetDesc();
 		
 		TotalSampleCount	= Desc.SampleCount * Desc.ChannelCount;

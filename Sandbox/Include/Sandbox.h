@@ -63,6 +63,10 @@ private:
 	GUID_Lambda						m_GunSoundEffectGUID	= 0;
 	LambdaEngine::ISoundEffect3D*	m_pGunSoundEffect		= nullptr;
 	LambdaEngine::ISoundInstance3D* m_pGunInstance			= nullptr;
+    
+    GUID_Lambda                     m_MusicEffectGUID       = 0;
+    LambdaEngine::ISoundEffect3D*   m_pMusicEffect          = nullptr;
+    LambdaEngine::ISoundInstance3D* m_pMusicEffectInstance  = nullptr;
 
 	GUID_Lambda						m_MusicGUID			= 0;
 	LambdaEngine::IMusic*			m_pMusic			= nullptr;

@@ -148,6 +148,9 @@ void Sandbox::InitTestAudio()
 
 	m_GunSoundEffectGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/Gun_low.wav");
 	m_pGunSoundEffect		= ResourceManager::GetSoundEffect(m_GunSoundEffectGUID);
+    
+    m_MusicEffectGUID    = ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/avicii.wav");
+    m_pMusicEffect       = ResourceManager::GetSoundEffect(m_MusicEffectGUID);
 
 	MusicInstanceDesc musicInstanceDesc = { };
 	musicInstanceDesc.pMusic	= m_pMusic;
@@ -155,7 +158,7 @@ void Sandbox::InitTestAudio()
 	musicInstanceDesc.Pitch		= 1.0f;
 
 	m_pMusicInstance = AudioSystem::GetDevice()->CreateMusicInstance(&musicInstanceDesc);
-	m_pMusicInstance->Play();
+	// m_pMusicInstance->Play();
 
 	SoundInstance3DDesc soundInstanceDesc = { };
 	soundInstanceDesc.pSoundEffect		= m_pGunSoundEffect;
@@ -167,13 +170,25 @@ void Sandbox::InitTestAudio()
 	soundInstanceDesc.Position			= glm::vec3(0.0f, 0.0f, 0.0f);
 
 	m_pGunInstance = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
-	m_pGunInstance->Play();
+	// m_pGunInstance->Play();
+    
+    soundInstanceDesc = { };
+    soundInstanceDesc.pSoundEffect          = m_pMusicEffect;
+    soundInstanceDesc.Mode                  = ESoundMode::SOUND_MODE_LOOPING;
+    soundInstanceDesc.ReferenceDistance     = 1.0f;
+    soundInstanceDesc.MaxDistance           = 30.0f;
+    soundInstanceDesc.RollOff               = 3.0f;
+    soundInstanceDesc.Volume                = 1.0f;
+    soundInstanceDesc.Position              = glm::vec3(0.0f, 0.0f, 0.0f);
+
+    m_pMusicEffectInstance = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
+    m_pMusicEffectInstance->Play();
 
 	AudioListenerDesc listenerDesc = { };
-	listenerDesc.Position	= glm::vec3(0.0f);
+	listenerDesc.Position	= m_pCamera->GetPosition();
 	listenerDesc.Volume		= 1.0f;
-	listenerDesc.Forward	= glm::vec3(0.0f, 0.0f, 1.0f);
-	listenerDesc.Up			= glm::vec3(0.0f, 1.0f, 0.0f);
+	listenerDesc.Forward	= m_pCamera->GetForwardVec();
+	listenerDesc.Up			= m_pCamera->GetUpVec();
 	m_pAudioListener = AudioSystem::GetDevice()->CreateAudioListener(&listenerDesc);
 }
 
