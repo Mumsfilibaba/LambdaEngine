@@ -198,18 +198,11 @@ void Sandbox::InitTestAudio()
 
 	m_AudioListenerIndex = AudioSystem::GetDevice()->CreateAudioListener();
 
-	m_ToneSoundEffectGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/dahlle.wav");
-	m_GunSoundEffectGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/gun.wav");
+	m_ToneSoundEffectGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/piano440.wav");
+	m_GunSoundEffectGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/chrille.wav");
 
 	m_pToneSoundEffect	= ResourceManager::GetSoundEffect(m_ToneSoundEffectGUID);
 	m_pGunSoundEffect	= ResourceManager::GetSoundEffect(m_GunSoundEffectGUID);
-
-	SoundInstance3DDesc soundInstanceDesc = {};
-	soundInstanceDesc.pSoundEffect		= m_pToneSoundEffect;
-	soundInstanceDesc.Flags				= FSoundModeFlags::SOUND_MODE_LOOPING;
-
-	//m_pToneSoundInstance = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
-	//m_pToneSoundInstance->SetVolume(0.5f);
 
 	MusicDesc musicDesc = {};
 	musicDesc.pFilepath		= "../Assets/Sounds/avicii.wav";
@@ -217,6 +210,7 @@ void Sandbox::InitTestAudio()
 	musicDesc.Pitch			= 1.0f;
 
 	m_pMusic = AudioSystem::GetDevice()->CreateMusic(&musicDesc);
+	m_pMusic->Pause();
 
 	m_SpawnPlayAts = false;
 	m_GunshotTimer = 0.0f;
@@ -496,13 +490,12 @@ void Sandbox::InitTestAudio()
 	//m_pIIRFilter = AudioSystem::GetDevice()->CreateHighpassIIRFilter(2000.0, 6);
 
 	//m_pFIRFilter = AudioSystem::GetDevice()->CreateBandpassFIRFilter(2000.0, 4000.0, 16);
-	//m_pIIRFilter = AudioSystem::GetDevice()->CreateBandpassIIRFilter(2000.0, 4000.0, 4);
+	m_pIIRFilter = AudioSystem::GetDevice()->CreateBandpassIIRFilter(320.0, 520.0, 16);
 
 	//m_pFIRFilter = AudioSystem::GetDevice()->CreateBandstopFIRFilter(2000.0, 4000.0, 16);
 	//m_pIIRFilter = AudioSystem::GetDevice()->CreateBandstopIIRFilter(2000.0, 4000.0, 4);
 
-	AudioSystem::GetDevice()->SetMasterFilter(m_pReverbSystem2);
-	m_CurrentFilterIsFIR = false;
+	AudioSystem::GetDevice()->SetMasterFilter(m_pIIRFilter);
 
 	/*m_pAudioListener = AudioSystem::GetDevice()->CreateAudioListener();
 	m_pAudioListener->Update(glm::vec3(0.0f, 0.0f, -3.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -639,7 +632,7 @@ void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRep
 	}
 	else if (key == EKey::KEY_KEYPAD_3)
 	{
-		m_pGunSoundEffect->PlayOnceAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), 1.0f);
+		m_pToneSoundEffect->PlayOnceAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), 1.0f);
 	}
 	else if (key == EKey::KEY_KEYPAD_5)
 	{

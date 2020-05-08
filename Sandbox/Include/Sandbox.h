@@ -112,8 +112,6 @@ private:
 	LambdaEngine::IAudioFilter*				m_pF2Add0				= nullptr;
 	LambdaEngine::IAudioFilter*				m_pReverbSystem2		= nullptr;
 
-	bool									m_CurrentFilterIsFIR	= true;
-
 	bool									m_SpawnPlayAts;
 	float									m_GunshotTimer;
 	float									m_GunshotDelay;
