@@ -187,7 +187,7 @@ namespace LambdaEngine
 
 		DeviceAllocatorDesc allocatorDesc = {};
 		allocatorDesc.pName				= "Resource Allocator";
-		allocatorDesc.PageSizeInBytes	= MEGA_BYTE(64);
+		allocatorDesc.PageSizeInBytes	= MEGA_BYTE(256);
 		s_pAllocator = RenderSystem::GetDevice()->CreateDeviceAllocator(&allocatorDesc);
 
 		glslang::InitializeProcess();

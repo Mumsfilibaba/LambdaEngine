@@ -22,6 +22,7 @@ namespace LambdaEngine
 	struct CombFilterDesc
 	{
 		const char* pName				= "Comb Filter";
+		bool		FeedForward			= true;
 		uint32		Delay				= 1;
 		float64		Multiplier			= 1.0;
 	};

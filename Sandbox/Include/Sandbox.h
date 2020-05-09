@@ -66,14 +66,24 @@ private:
 private:
 	uint32									m_AudioListenerIndex	= 0;
 
-	GUID_Lambda								m_ToneSoundEffectGUID;
-	LambdaEngine::ISoundEffect3D*			m_pToneSoundEffect		= nullptr;
-	LambdaEngine::ISoundInstance3D*			m_pToneSoundInstance	= nullptr;
+	GUID_Lambda								m_SoundEffectGUID0;
+	LambdaEngine::ISoundEffect3D*			m_pSoundEffect0			= nullptr;
+	LambdaEngine::ISoundInstance3D*			m_pSoundInstance0		= nullptr;
 
-	GUID_Lambda								m_GunSoundEffectGUID;
-	LambdaEngine::ISoundEffect3D*			m_pGunSoundEffect		= nullptr;
+	GUID_Lambda								m_SoundEffectGUID1;
+	LambdaEngine::ISoundEffect3D*			m_pSoundEffect1			= nullptr;
+	LambdaEngine::ISoundInstance3D*			m_pSoundInstance1		= nullptr;
 
-	LambdaEngine::IMusic*					m_pMusic				= nullptr;
+	GUID_Lambda								m_SoundEffectGUID2;
+	LambdaEngine::ISoundEffect3D*			m_pSoundEffect2			= nullptr;
+	LambdaEngine::ISoundInstance3D*			m_pSoundInstance2		= nullptr;
+
+	GUID_Lambda								m_SoundEffectGUID3;
+	LambdaEngine::ISoundEffect3D*			m_pSoundEffect3			= nullptr;
+	LambdaEngine::ISoundInstance3D*			m_pSoundInstance3		= nullptr;
+
+	LambdaEngine::IMusic*					m_pBGMusic				= nullptr;
+	LambdaEngine::IMusic*					m_pBGTone				= nullptr;
 
 	LambdaEngine::IReverbSphere*			m_pReverbSphere			= nullptr;
 	LambdaEngine::IAudioGeometry*			m_pAudioGeometry		= nullptr;
@@ -86,8 +96,8 @@ private:
 	LambdaEngine::RenderGraph*				m_pRenderGraph			= nullptr;
 	LambdaEngine::Renderer*					m_pRenderer				= nullptr;
 
-	LambdaEngine::IAudioFilter*				m_pFIRFilter			= nullptr;
-	LambdaEngine::IAudioFilter*				m_pIIRFilter			= nullptr;
+	LambdaEngine::IAudioFilter*				m_pLowpassIIRFilter		= nullptr;
+	LambdaEngine::IAudioFilter*				m_pBandpassIIRFilter	= nullptr;
 
 	LambdaEngine::IAudioFilter*				m_pF1Add0				= nullptr;
 	LambdaEngine::IAudioFilter*				m_pF1AP0				= nullptr;
@@ -102,19 +112,19 @@ private:
 	LambdaEngine::IAudioFilter*				m_pF1G					= nullptr;
 	LambdaEngine::IAudioFilter*				m_pReverbSystem1		= nullptr;
 
-
 	LambdaEngine::IAudioFilter*				m_pF2Comb0				= nullptr;
 	LambdaEngine::IAudioFilter*				m_pF2Comb1				= nullptr;
 	LambdaEngine::IAudioFilter*				m_pF2Comb2				= nullptr;
 	LambdaEngine::IAudioFilter*				m_pF2Comb3				= nullptr;
 	LambdaEngine::IAudioFilter*				m_pF2AP0				= nullptr;
 	LambdaEngine::IAudioFilter*				m_pF2AP1				= nullptr;
+	LambdaEngine::IAudioFilter*				m_pF2AP2				= nullptr;
 	LambdaEngine::IAudioFilter*				m_pF2Add0				= nullptr;
 	LambdaEngine::IAudioFilter*				m_pReverbSystem2		= nullptr;
 
-	bool									m_SpawnPlayAts;
-	float									m_GunshotTimer;
-	float									m_GunshotDelay;
+	LambdaEngine::IAudioFilter*				m_pCombFilter			= nullptr;
+	LambdaEngine::IAudioFilter*				m_pAllPassFilter		= nullptr;
+
 	float									m_Timer;
 
 };

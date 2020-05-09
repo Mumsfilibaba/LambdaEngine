@@ -24,6 +24,7 @@ namespace LambdaEngine
 		m_pPreviousSamples		= new float64[m_Delay];
 		memset(m_pPreviousSamples, 0, m_Delay * sizeof(float64));
 		m_Multiplier			= pDesc->Multiplier;
+		m_FeedForward			= pDesc->FeedForward;
 
 		D_LOG_MESSAGE("[CombFilterLambda]: Created Comb Filter \"%s\"", m_pName);
 
@@ -54,7 +55,7 @@ namespace LambdaEngine
 		}
 
 		outputSample = glm::clamp<double>(outputSample, -1.0, 1.0);
-		m_pPreviousSamples[m_CurrentSampleIndex] = sample;
+		m_pPreviousSamples[m_CurrentSampleIndex] = m_FeedForward ? sample : outputSample;
 
 		if (++m_CurrentSampleIndex == m_Delay) m_CurrentSampleIndex = 0;
 

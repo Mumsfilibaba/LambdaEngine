@@ -12,13 +12,12 @@ namespace LambdaEngine
 	{
 		struct
 		{
-			glm::vec4 Albedo;
+			glm::vec4	Albedo;
+			float		Ambient;
+			float		Metallic;
+			float		Roughness;
 
-			float Ambient;
-			float Metallic;
-			float Roughness;
-
-			float Unreserved;
+			float		Unreserved;
 		};
 
 		float Properties[8] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f };

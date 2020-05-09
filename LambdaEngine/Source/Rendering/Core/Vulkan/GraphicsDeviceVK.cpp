@@ -973,8 +973,8 @@ namespace LambdaEngine
 		VkPhysicalDeviceVulkan12Features deviceFeatures12 = {};
 		deviceFeatures12.sType					= VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
 		deviceFeatures12.pNext					= nullptr; //&rayTracingFeatures;
-		deviceFeatures12.bufferDeviceAddress	= true;
-		deviceFeatures12.timelineSemaphore		= true;
+		//deviceFeatures12.bufferDeviceAddress	= true;
+		//deviceFeatures12.timelineSemaphore		= true;
 
 		VkPhysicalDeviceVulkan11Features deviceFeatures11 = {};
 		deviceFeatures11.sType	= VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;

@@ -55,34 +55,74 @@ Sandbox::Sandbox()
 	sceneDesc.RayTracingEnabled = RAY_TRACING_ENABLED;
 	m_pScene->Init(sceneDesc);
 
-	//std::vector<GameObject>	sceneGameObjects;
-	//ResourceManager::LoadSceneFromFile("../Assets/Scenes/sponza/", "sponza.obj", sceneGameObjects);
+	std::vector<GameObject>	sceneGameObjects;
+	ResourceManager::LoadSceneFromFile("../Assets/Scenes/sponza/", "sponza.obj", sceneGameObjects);
 
-	//for (GameObject& gameObject : sceneGameObjects)
-	//{
-	//	m_pScene->AddDynamicGameObject(gameObject, glm::scale(glm::mat4(1.0f), glm::vec3(0.01f)));
-	//}
+	for (GameObject& gameObject : sceneGameObjects)
+	{
+		m_pScene->AddDynamicGameObject(gameObject, glm::scale(glm::mat4(1.0f), glm::vec3(0.01f)));
+	}
 
-	uint32 bunnyMeshGUID = ResourceManager::LoadMeshFromFile("../Assets/Meshes/bunny.obj");
+	//Gun
+	{
+		uint32 gunMeshGUID			= ResourceManager::LoadMeshFromFile("../Assets/Meshes/gun.obj");
+		uint32 gunAlbedoGUID		= ResourceManager::LoadTextureFromFile("../Assets/Textures/1024x1024/gunAlbedo.tga",		EFormat::FORMAT_R8G8B8A8_UNORM, false);
+		uint32 gunNormalGUID		= ResourceManager::LoadTextureFromFile("../Assets/Textures/1024x1024/gunNormal.tga",		EFormat::FORMAT_R8G8B8A8_UNORM, false);
+		uint32 gunMetallicGUID		= ResourceManager::LoadTextureFromFile("../Assets/Textures/1024x1024/gunMetallic.tga",		EFormat::FORMAT_R8G8B8A8_UNORM, false);
+		uint32 gunRoughnessGUID		= ResourceManager::LoadTextureFromFile("../Assets/Textures/1024x1024/gunRoughness.tga",		EFormat::FORMAT_R8G8B8A8_UNORM, false);
+
+		MaterialProperties gunMaterialProperties = {};
+
+		uint32 gunMaterialGUID		= ResourceManager::LoadMaterialFromMemory(gunAlbedoGUID, gunNormalGUID, DEFAULT_COLOR_MAP, gunMetallicGUID, gunRoughnessGUID, gunMaterialProperties);
+
+		GameObject gunGameObject = {};
+		gunGameObject.Mesh		= gunMeshGUID;
+		gunGameObject.Material	= gunMaterialGUID;
+
+		m_pScene->AddDynamicGameObject(gunGameObject, glm::translate(glm::mat4(1.0f), glm::vec3(11.0f, 1.5f, 0.0f)));
+	}
+
+	//Piano
+	{
+		uint32 pianoMeshGUID			= ResourceManager::LoadMeshFromFile("../Assets/Meshes/piano.obj");
+
+		MaterialProperties pianoMaterialProperties = {};
+		pianoMaterialProperties.Albedo				= glm::vec4(0.01f, 0.01f, 0.01f, 1.0f);
+		pianoMaterialProperties.Ambient				= 1.0f;
+		pianoMaterialProperties.Metallic			= 0.1f;
+		pianoMaterialProperties.Roughness			= 0.005f;
+
+		uint32 pianoMaterialGUID		= ResourceManager::LoadMaterialFromMemory(DEFAULT_COLOR_MAP, DEFAULT_NORMAL_MAP, DEFAULT_COLOR_MAP, DEFAULT_COLOR_MAP, DEFAULT_COLOR_MAP, pianoMaterialProperties);
+
+		GameObject pianoGameObject = {};
+		pianoGameObject.Mesh		= pianoMeshGUID;
+		pianoGameObject.Material	= pianoMaterialGUID;
+
+		glm::vec3 position(-12.0f, 0.0f, 0.0f);
+		glm::vec4 rotation(1.0f, 0.0f, 0.0f, -glm::half_pi<float>());
+		glm::vec3 scale(0.01f);
+
+		glm::mat4 transform(1.0f);
+		transform = glm::translate(transform, position);
+		transform = glm::rotate(transform, rotation.w, glm::vec3(rotation));
+		transform = glm::scale(transform, scale);
+
+		m_pScene->AddDynamicGameObject(pianoGameObject, transform);
+	}
+
+	//m_pScene->AddDynamicGameObject(gunGameObject, glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.5f, 0.0f)));
+
+	/*uint32 bunnyMeshGUID = ResourceManager::LoadMeshFromFile("../Assets/Meshes/bunny.obj");
 
 	GameObject bunnyGameObject = {};
 	bunnyGameObject.Mesh = bunnyMeshGUID;
 	bunnyGameObject.Material = DEFAULT_MATERIAL;
 
-	m_pScene->AddDynamicGameObject(bunnyGameObject, glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)));
-
-	uint32 gunMeshGUID = ResourceManager::LoadMeshFromFile("../Assets/Meshes/gun.obj");
-
-	GameObject gunGameObject = {};
-	gunGameObject.Mesh = gunMeshGUID;
-	gunGameObject.Material = DEFAULT_MATERIAL;
-
-	/*m_pScene->AddDynamicGameObject(gunGameObject, glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
-	m_pScene->AddDynamicGameObject(gunGameObject, glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.5f, 0.0f)));*/
+	m_pScene->AddDynamicGameObject(bunnyGameObject, glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)));*/
 
 	m_pScene->Finalize();
 
-	m_pScene->UpdateDirectionalLight(glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(30.0f));
+	m_pScene->UpdateDirectionalLight(glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(70.0f));
 
 	m_pCamera = DBG_NEW Camera();
 
@@ -161,14 +201,23 @@ Sandbox::~Sandbox()
 	SAFERELEASE(m_pLinearSampler);
 	SAFERELEASE(m_pNearestSampler);
 
-	SAFEDELETE(m_pToneSoundInstance);
-	SAFEDELETE(m_pMusic);
+	SAFEDELETE(m_pSoundEffect0);
+	SAFEDELETE(m_pSoundEffect1);
+	SAFEDELETE(m_pSoundEffect2);
+	SAFEDELETE(m_pSoundEffect3);
+
+	SAFEDELETE(m_pSoundInstance0);
+	SAFEDELETE(m_pSoundInstance1);
+	SAFEDELETE(m_pSoundInstance2);
+	SAFEDELETE(m_pSoundInstance3);
+
+	SAFEDELETE(m_pBGMusic);
 
 	SAFEDELETE(m_pRenderGraph);
 	SAFEDELETE(m_pRenderer);
 
-	SAFEDELETE(m_pFIRFilter);
-	SAFEDELETE(m_pIIRFilter);
+	SAFEDELETE(m_pLowpassIIRFilter);
+	SAFEDELETE(m_pBandpassIIRFilter);
 	SAFEDELETE(m_pF1Add0);
 	SAFEDELETE(m_pF1AP0);
 	SAFEDELETE(m_pF1AP1);
@@ -190,6 +239,9 @@ Sandbox::~Sandbox()
 	SAFEDELETE(m_pF2AP0);
 	SAFEDELETE(m_pF2AP1);
 	SAFEDELETE(m_pReverbSystem2);
+
+	SAFEDELETE(m_pCombFilter);
+	SAFEDELETE(m_pAllPassFilter);
 }
 
 void Sandbox::InitTestAudio()
@@ -198,23 +250,46 @@ void Sandbox::InitTestAudio()
 
 	m_AudioListenerIndex = AudioSystem::GetDevice()->CreateAudioListener();
 
-	m_ToneSoundEffectGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/piano440.wav");
-	m_GunSoundEffectGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/chrille.wav");
+	m_SoundEffectGUID0	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/project/pianoSong.wav");
+	m_SoundEffectGUID1	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/project/gunshot.wav");
+	//m_SoundEffectGUID2	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/project/piano440.wav");
 
-	m_pToneSoundEffect	= ResourceManager::GetSoundEffect(m_ToneSoundEffectGUID);
-	m_pGunSoundEffect	= ResourceManager::GetSoundEffect(m_GunSoundEffectGUID);
+	MusicDesc bgMusicDesc = {};
+	bgMusicDesc.pFilepath		= "../Assets/Sounds/project/birdsBG.wav";
+	bgMusicDesc.Volume			= 0.5f;
+	bgMusicDesc.Pitch			= 1.0f;
 
-	MusicDesc musicDesc = {};
-	musicDesc.pFilepath		= "../Assets/Sounds/avicii.wav";
-	musicDesc.Volume		= 0.5f;
-	musicDesc.Pitch			= 1.0f;
+	m_pBGMusic = AudioSystem::GetDevice()->CreateMusic(&bgMusicDesc);
 
-	m_pMusic = AudioSystem::GetDevice()->CreateMusic(&musicDesc);
-	m_pMusic->Pause();
+	MusicDesc bgToneDesc = {};
+	bgToneDesc.pFilepath		= "../Assets/Sounds/project/piano440.wav";
+	bgToneDesc.Volume			= 0.5f;
+	bgToneDesc.Pitch			= 1.0f;
 
-	m_SpawnPlayAts = false;
-	m_GunshotTimer = 0.0f;
-	m_GunshotDelay = 1.0f;
+	m_pBGTone = AudioSystem::GetDevice()->CreateMusic(&bgToneDesc);
+	m_pBGTone->Pause();
+
+	m_pSoundEffect0 = ResourceManager::GetSoundEffect(m_SoundEffectGUID0);
+	m_pSoundEffect1 = ResourceManager::GetSoundEffect(m_SoundEffectGUID1);
+	//m_pSoundEffect2 = ResourceManager::GetSoundEffect(m_SoundEffectGUID2);
+	//m_pSoundEffect3 = ResourceManager::GetSoundEffect(m_SoundEffectGUID3);
+
+	SoundInstance3DDesc soundInstanceDesc0 = {};
+	soundInstanceDesc0.pName			= "Piano Song";
+	soundInstanceDesc0.pSoundEffect		= m_pSoundEffect0;
+	soundInstanceDesc0.Flags			= FSoundModeFlags::SOUND_MODE_LOOPING;
+
+	m_pSoundInstance0 = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc0);
+	m_pSoundInstance0->SetPosition(glm::vec3(-12.0f, 1.0f, 0.0f));
+
+	SoundInstance3DDesc soundInstanceDesc1 = {};
+	soundInstanceDesc1.pName			= "Gun Shot";
+	soundInstanceDesc1.pSoundEffect		= m_pSoundEffect1;
+	soundInstanceDesc1.Flags			= FSoundModeFlags::SOUND_MODE_LOOPING;
+
+	m_pSoundInstance1 = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc1);
+	m_pSoundInstance1->SetPosition(glm::vec3(11.0f, 1.5f, 0.0f));
+
 	m_Timer = 0.0f;
 
 	std::vector<IAudioFilter*> filters1;
@@ -375,26 +450,6 @@ void Sandbox::InitTestAudio()
 	std::vector<IAudioFilter*> filters2;
 
 	{
-		CombFilterDesc combDesc0 = {};
-		combDesc0.pName			= "Comb 0";
-		combDesc0.Delay			= 4.799 * AudioSystem::GetDevice()->GetSampleRate();
-		combDesc0.Multiplier	= 0.742;
-
-		CombFilterDesc combDesc1 = {};
-		combDesc1.pName			= "Comb 1";
-		combDesc1.Delay			= 4.999 * AudioSystem::GetDevice()->GetSampleRate();
-		combDesc1.Multiplier	= 0.733;
-
-		CombFilterDesc combDesc2 = {};
-		combDesc2.pName			= "Comb 2";
-		combDesc2.Delay			= 5.399 * AudioSystem::GetDevice()->GetSampleRate();
-		combDesc2.Multiplier	= 0.715;
-
-		CombFilterDesc combDesc3 = {};
-		combDesc3.pName			= "Comb 3";
-		combDesc3.Delay			= 5.801 * AudioSystem::GetDevice()->GetSampleRate();
-		combDesc3.Multiplier	= 0.797;
-	
 		AllPassFilterDesc allPassDesc0 = {};
 		allPassDesc0.pName		= "ap0";
 		allPassDesc0.Delay		= 1.051 * AudioSystem::GetDevice()->GetSampleRate();
@@ -405,24 +460,55 @@ void Sandbox::InitTestAudio()
 		allPassDesc1.Delay		= 0.337 * AudioSystem::GetDevice()->GetSampleRate();
 		allPassDesc1.Multiplier	= 0.7;
 
+		AllPassFilterDesc allPassDesc2 = {};
+		allPassDesc2.pName		= "ap2";
+		allPassDesc2.Delay		= 0.113 * AudioSystem::GetDevice()->GetSampleRate();
+		allPassDesc2.Multiplier	= 0.7;
+
+		CombFilterDesc combDesc0 = {};
+		combDesc0.pName			= "Comb 0";
+		combDesc0.Delay			= 4.799 * AudioSystem::GetDevice()->GetSampleRate();
+		combDesc0.Multiplier	= 0.742;
+		combDesc0.FeedForward	= true;
+
+		CombFilterDesc combDesc1 = {};
+		combDesc1.pName			= "Comb 1";
+		combDesc1.Delay			= 4.999 * AudioSystem::GetDevice()->GetSampleRate();
+		combDesc1.Multiplier	= 0.733;
+		combDesc1.FeedForward	= true;
+
+		CombFilterDesc combDesc2 = {};
+		combDesc2.pName			= "Comb 2";
+		combDesc2.Delay			= 5.399 * AudioSystem::GetDevice()->GetSampleRate();
+		combDesc2.Multiplier	= 0.715;
+		combDesc2.FeedForward	= true;
+
+		CombFilterDesc combDesc3 = {};
+		combDesc3.pName			= "Comb 3";
+		combDesc3.Delay			= 0.697 * AudioSystem::GetDevice()->GetSampleRate();
+		combDesc3.Multiplier	= 5.801;
+		combDesc3.FeedForward	= true;
+
 		AddFilterDesc addDesc0 = {};
 		addDesc0.pName			= "add0";
 
-		m_pF2Comb0		= AudioSystem::GetDevice()->CreateCombFilter(&combDesc0);			//0
-		m_pF2Comb1		= AudioSystem::GetDevice()->CreateCombFilter(&combDesc1);			//1
-		m_pF2Comb2		= AudioSystem::GetDevice()->CreateCombFilter(&combDesc2);			//2
-		m_pF2Comb3		= AudioSystem::GetDevice()->CreateCombFilter(&combDesc3);			//3
-		m_pF2AP0		= AudioSystem::GetDevice()->CreateAllPassFilter(&allPassDesc0);		//4
-		m_pF2AP1		= AudioSystem::GetDevice()->CreateAllPassFilter(&allPassDesc1);		//5
-		m_pF2Add0		= AudioSystem::GetDevice()->CreateAddFilter(&addDesc0);				//6
+		m_pF2AP0		= AudioSystem::GetDevice()->CreateAllPassFilter(&allPassDesc0);		//0
+		m_pF2AP1		= AudioSystem::GetDevice()->CreateAllPassFilter(&allPassDesc1);		//1
+		m_pF2AP2		= AudioSystem::GetDevice()->CreateAllPassFilter(&allPassDesc2);		//2
+		m_pF2Comb0		= AudioSystem::GetDevice()->CreateCombFilter(&combDesc0);			//3
+		m_pF2Comb1		= AudioSystem::GetDevice()->CreateCombFilter(&combDesc1);			//4
+		m_pF2Comb2		= AudioSystem::GetDevice()->CreateCombFilter(&combDesc2);			//5
+		m_pF2Comb3		= AudioSystem::GetDevice()->CreateCombFilter(&combDesc3);			//6
+		m_pF2Add0		= AudioSystem::GetDevice()->CreateAddFilter(&addDesc0);				//7
 	}
 
+	filters2.push_back(m_pF2AP0);
+	filters2.push_back(m_pF2AP1);
+	filters2.push_back(m_pF2AP2);
 	filters2.push_back(m_pF2Comb0);
 	filters2.push_back(m_pF2Comb1);
 	filters2.push_back(m_pF2Comb2);
 	filters2.push_back(m_pF2Comb3);
-	filters2.push_back(m_pF2AP0);
-	filters2.push_back(m_pF2AP1);
 	filters2.push_back(m_pF2Add0);
 
 	std::vector<FilterSystemConnection> connections2;
@@ -435,43 +521,55 @@ void Sandbox::InitTestAudio()
 		connections2.push_back(c0);
 
 		FilterSystemConnection c1 = {};
-		c1.pPreviousFilters[0]		= -1;
+		c1.pPreviousFilters[0]		= 0;
 		c1.PreviousFiltersCount		= 1;
 		c1.NextFilter				= 1;
 		connections2.push_back(c1);
 
 		FilterSystemConnection c2 = {};
-		c2.pPreviousFilters[0]		= -1;
+		c2.pPreviousFilters[0]		= 1;
 		c2.PreviousFiltersCount		= 1;
 		c2.NextFilter				= 2;
 		connections2.push_back(c2);
 
 		FilterSystemConnection c3 = {};
-		c3.pPreviousFilters[0]		= -1;
+		c3.pPreviousFilters[0]		= 2;
 		c3.PreviousFiltersCount		= 1;
 		c3.NextFilter				= 3;
 		connections2.push_back(c3);
 
 		FilterSystemConnection c4 = {};
-		c4.pPreviousFilters[0]		= 0;
-		c4.pPreviousFilters[1]		= 1;
-		c4.pPreviousFilters[2]		= 2;
-		c4.pPreviousFilters[3]		= 3;
-		c4.PreviousFiltersCount		= 4;
+		c4.pPreviousFilters[0]		= 2;
+		c4.PreviousFiltersCount		= 1;
 		c4.NextFilter				= 4;
 		connections2.push_back(c4);
 
 		FilterSystemConnection c5 = {};
-		c5.pPreviousFilters[0]		= 4;
+		c5.pPreviousFilters[0]		= 2;
 		c5.PreviousFiltersCount		= 1;
 		c5.NextFilter				= 5;
 		connections2.push_back(c5);
 
 		FilterSystemConnection c6 = {};
-		c6.pPreviousFilters[0]		= 5;
+		c6.pPreviousFilters[0]		= 2;
 		c6.PreviousFiltersCount		= 1;
-		c6.NextFilter				= -1;
+		c6.NextFilter				= 6;
 		connections2.push_back(c6);
+
+		FilterSystemConnection c7 = {};
+		c7.pPreviousFilters[0]		= 3;
+		c7.pPreviousFilters[1]		= 4;
+		c7.pPreviousFilters[2]		= 5;
+		c7.pPreviousFilters[3]		= 6;
+		c7.PreviousFiltersCount		= 4;
+		c7.NextFilter				= 7;
+		connections2.push_back(c7);
+
+		FilterSystemConnection c8 = {};
+		c8.pPreviousFilters[0]		= 7;
+		c8.PreviousFiltersCount		= 1;
+		c8.NextFilter				= -1;
+		connections2.push_back(c8);
 	}
 
 	FilterSystemDesc filterSystem2Desc = {};
@@ -490,71 +588,21 @@ void Sandbox::InitTestAudio()
 	//m_pIIRFilter = AudioSystem::GetDevice()->CreateHighpassIIRFilter(2000.0, 6);
 
 	//m_pFIRFilter = AudioSystem::GetDevice()->CreateBandpassFIRFilter(2000.0, 4000.0, 16);
-	m_pIIRFilter = AudioSystem::GetDevice()->CreateBandpassIIRFilter(320.0, 520.0, 16);
+	m_pBandpassIIRFilter = AudioSystem::GetDevice()->CreateBandpassIIRFilter(360.0, 520.0, 16);
 
 	//m_pFIRFilter = AudioSystem::GetDevice()->CreateBandstopFIRFilter(2000.0, 4000.0, 16);
 	//m_pIIRFilter = AudioSystem::GetDevice()->CreateBandstopIIRFilter(2000.0, 4000.0, 4);
 
-	AudioSystem::GetDevice()->SetMasterFilter(m_pIIRFilter);
+	AllPassFilterDesc allPassDesc = {};
+	allPassDesc.pName		= "All Pass";
+	allPassDesc.Delay		= 0.2 * AudioSystem::GetDevice()->GetSampleRate();
+	allPassDesc.Multiplier	= 0.7;
 
-	/*m_pAudioListener = AudioSystem::GetDevice()->CreateAudioListener();
-	m_pAudioListener->Update(glm::vec3(0.0f, 0.0f, -3.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	m_pAllPassFilter		= AudioSystem::GetDevice()->CreateAllPassFilter(&allPassDesc);
+	m_pLowpassIIRFilter		= AudioSystem::GetDevice()->CreateLowpassIIRFilter(2000.0, 8);
 
-	m_pReverbSphere = AudioSystem::GetDevice()->CreateReverbSphere();
-
-	ReverbSphereDesc reverbSphereDesc = {};
-	reverbSphereDesc.Position = glm::vec3(0.0f, 0.0f, 5.0f);
-	reverbSphereDesc.MinDistance = 20.0f;
-	reverbSphereDesc.MaxDistance = 40.0f;
-	reverbSphereDesc.ReverbSetting = EReverbSetting::SEWERPIPE;
-
-	m_pReverbSphere->Init(reverbSphereDesc);
-
-	m_pAudioGeometry = AudioSystem::GetDevice()->CreateAudioGeometry();
-
-	GUID_Lambda sphereGUID = ResourceManager::LoadMeshFromFile("../Assets/Meshes/sphere.obj");
-	Mesh* sphereMesh = ResourceManager::GetMesh(sphereGUID);
-	glm::mat4 transform = glm::scale(glm::mat4(1.0f), glm::vec3(10.0f));
-	AudioMeshParameters audioMeshParameters = {};
-	audioMeshParameters.DirectOcclusion = 0.0f;
-	audioMeshParameters.ReverbOcclusion = 0.25f;
-	audioMeshParameters.DoubleSided = true;
-
-	AudioGeometryDesc audioGeometryDesc = {};
-	audioGeometryDesc.NumMeshes = 1;
-	audioGeometryDesc.ppMeshes = &sphereMesh;
-	audioGeometryDesc.pTransforms = &transform;
-	audioGeometryDesc.pAudioMeshParameters = &audioMeshParameters;
-
-	m_pAudioGeometry->Init(audioGeometryDesc);*/
-
-	/*std::vector<GraphicsObject> sponzaGraphicsObjects;
-	ResourceManager::LoadSceneFromFile("../Assets/Scenes/sponza/", "sponza.obj", sponzaGraphicsObjects);
-
-	std::vector<Mesh*> sponzaMeshes;
-	std::vector<glm::mat4> sponzaMeshTransforms;
-	std::vector<LambdaEngine::AudioMeshParameters> sponzaAudioMeshParameters;
-
-	for (GraphicsObject& graphicsObject : sponzaGraphicsObjects)
-	{
-		sponzaMeshes.push_back(ResourceManager::GetMesh(graphicsObject.Mesh));
-		sponzaMeshTransforms.push_back(glm::scale(glm::mat4(1.0f), glm::vec3(0.001f)));
-
-		LambdaEngine::AudioMeshParameters audioMeshParameters = {};
-		audioMeshParameters.DirectOcclusion = 1.0f;
-		audioMeshParameters.ReverbOcclusion = 1.0f;
-		audioMeshParameters.DoubleSided = true;
-		sponzaAudioMeshParameters.push_back(audioMeshParameters);
-	}
-
-	AudioGeometryDesc audioGeometryDesc = {};
-	audioGeometryDesc.pName = "Test";
-	audioGeometryDesc.NumMeshes = sponzaMeshes.size();
-	audioGeometryDesc.ppMeshes = sponzaMeshes.data();
-	audioGeometryDesc.pTransforms = sponzaMeshTransforms.data();
-	audioGeometryDesc.pAudioMeshParameters = sponzaAudioMeshParameters.data();
-
-	m_pAudioGeometry->Init(audioGeometryDesc);*/
+	AudioSystem::GetDevice()->SetMasterFilter(m_pAllPassFilter);
+	AudioSystem::GetDevice()->SetMasterFilterEnabled(false);
 }
 
 void Sandbox::FocusChanged(LambdaEngine::IWindow* pWindow, bool hasFocus)
@@ -619,31 +667,39 @@ void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRep
         PlatformApplication::Get()->GetMainWindow()->ToggleFullscreen();
     }
     
-	static bool geometryAudioActive = true;
-	static bool reverbSphereActive = true;
-
-	if (key == EKey::KEY_KEYPAD_1)
-	{
-		m_pMusic->Toggle();
-	}
-	else if (key == EKey::KEY_KEYPAD_2)
-	{
-		m_SpawnPlayAts = !m_SpawnPlayAts;
-	}
-	else if (key == EKey::KEY_KEYPAD_3)
-	{
-		m_pToneSoundEffect->PlayOnceAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f), 1.0f);
-	}
-	else if (key == EKey::KEY_KEYPAD_5)
+	if (key == EKey::KEY_R)
 	{
 		RenderSystem::GetGraphicsQueue()->Flush();
 		RenderSystem::GetComputeQueue()->Flush();
 		ResourceManager::ReloadAllShaders();
 		PipelineStateManager::ReloadPipelineStates();
 	}
-	else if (key == EKey::KEY_KEYPAD_6)
+
+	static bool geometryAudioActive = true;
+	static bool reverbSphereActive = true;
+
+	if (key == EKey::KEY_KEYPAD_1)
 	{
-		AudioSystem::GetDevice()->SetMasterFilterEnabled(!AudioSystem::GetDevice()->GetMasterFilterEnabled());
+		AudioSystem::GetDevice()->SetMasterFilterEnabled(true);
+	}
+	else if (key == EKey::KEY_KEYPAD_2)
+	{
+		AudioSystem::GetDevice()->SetMasterFilter(m_pLowpassIIRFilter);
+	}
+	else if (key == EKey::KEY_KEYPAD_3)
+	{
+		m_pSoundInstance0->Pause();
+		m_pSoundInstance1->Pause();
+		m_pBGMusic->Pause();
+
+		m_pBGTone->Play();
+
+		AudioSystem::GetDevice()->SetMasterFilter(m_pBandpassIIRFilter);
+		AudioSystem::GetDevice()->SetMasterFilterEnabled(false);
+	}
+	else if (key == EKey::KEY_KEYPAD_4)
+	{
+		AudioSystem::GetDevice()->SetMasterFilterEnabled(true);
 	}
 	/*if (key == EKey::KEY_KEYPAD_1)
 	{
@@ -747,74 +803,54 @@ void Sandbox::Tick(LambdaEngine::Timestamp delta)
 	float dt = (float)delta.AsSeconds();
 	m_Timer += dt;
 
-	if (m_pGunSoundEffect != nullptr)
-	{
-		if (m_SpawnPlayAts)
-		{
-			m_GunshotTimer += dt;
-
-			if (m_GunshotTimer > m_GunshotDelay)
-			{
-
-				glm::vec3 gunPosition(glm::cos(m_Timer), 0.0f, glm::sin(m_Timer));
-				m_pGunSoundEffect->PlayOnceAt(gunPosition, glm::vec3(0.0f), 0.5f);
-				m_GunshotTimer = 0.0f;
-			}
-		}
-	}
-
-	if (m_pToneSoundInstance != nullptr)
-	{
-		glm::vec3 tonePosition(glm::cos(m_Timer), 0.0f, glm::sin(m_Timer));
-		m_pToneSoundInstance->SetPosition(tonePosition);
-	}
-
 	constexpr float CAMERA_MOVEMENT_SPEED = 1.4f;
-	constexpr float CAMERA_ROTATION_SPEED = 45.0f;
+	constexpr float CAMERA_ROTATION_SPEED = 65.0f;
+
+	float speedMultiplier = Input::IsKeyDown(EKey::KEY_LEFT_SHIFT) ? 3.0f : 1.0f;
 
 	if (Input::IsKeyDown(EKey::KEY_W) && Input::IsKeyUp(EKey::KEY_S))
 	{
-		m_pCamera->Translate(glm::vec3(0.0f, 0.0f, CAMERA_MOVEMENT_SPEED * delta.AsSeconds()));
+		m_pCamera->Translate(glm::vec3(0.0f, 0.0f, CAMERA_MOVEMENT_SPEED * speedMultiplier * delta.AsSeconds()));
 	}
 	else if (Input::IsKeyDown(EKey::KEY_S) && Input::IsKeyUp(EKey::KEY_W))
 	{
-		m_pCamera->Translate(glm::vec3(0.0f, 0.0f, -CAMERA_MOVEMENT_SPEED * delta.AsSeconds()));
+		m_pCamera->Translate(glm::vec3(0.0f, 0.0f, -CAMERA_MOVEMENT_SPEED * speedMultiplier * delta.AsSeconds()));
 	}
 
 	if (Input::IsKeyDown(EKey::KEY_A) && Input::IsKeyUp(EKey::KEY_D))
 	{
-		m_pCamera->Translate(glm::vec3(-CAMERA_MOVEMENT_SPEED * delta.AsSeconds(), 0.0f, 0.0f));
+		m_pCamera->Translate(glm::vec3(-CAMERA_MOVEMENT_SPEED * speedMultiplier * delta.AsSeconds(), 0.0f, 0.0f));
 	}
 	else if (Input::IsKeyDown(EKey::KEY_D) && Input::IsKeyUp(EKey::KEY_A))
 	{
-		m_pCamera->Translate(glm::vec3(CAMERA_MOVEMENT_SPEED * delta.AsSeconds(), 0.0f, 0.0f));
+		m_pCamera->Translate(glm::vec3(CAMERA_MOVEMENT_SPEED * speedMultiplier * delta.AsSeconds(), 0.0f, 0.0f));
 	}
 
 	if (Input::IsKeyDown(EKey::KEY_Q) && Input::IsKeyUp(EKey::KEY_E))
 	{
-		m_pCamera->Translate(glm::vec3(0.0f, CAMERA_MOVEMENT_SPEED * delta.AsSeconds(), 0.0f));
+		m_pCamera->Translate(glm::vec3(0.0f, CAMERA_MOVEMENT_SPEED * speedMultiplier * delta.AsSeconds(), 0.0f));
 	}
 	else if (Input::IsKeyDown(EKey::KEY_E) && Input::IsKeyUp(EKey::KEY_Q))
 	{
-		m_pCamera->Translate(glm::vec3(0.0f, -CAMERA_MOVEMENT_SPEED * delta.AsSeconds(), 0.0f));
+		m_pCamera->Translate(glm::vec3(0.0f, -CAMERA_MOVEMENT_SPEED * speedMultiplier * delta.AsSeconds(), 0.0f));
 	}
 
 	if (Input::IsKeyDown(EKey::KEY_UP) && Input::IsKeyUp(EKey::KEY_DOWN))
 	{
-		m_pCamera->Rotate(glm::vec3(-CAMERA_ROTATION_SPEED * delta.AsSeconds(), 0.0f, 0.0f));
+		m_pCamera->Rotate(glm::vec3(-CAMERA_ROTATION_SPEED * speedMultiplier * delta.AsSeconds(), 0.0f, 0.0f));
 	}
 	else if (Input::IsKeyDown(EKey::KEY_DOWN) && Input::IsKeyUp(EKey::KEY_UP))
 	{
-		m_pCamera->Rotate(glm::vec3(CAMERA_ROTATION_SPEED * delta.AsSeconds(), 0.0f, 0.0f));
+		m_pCamera->Rotate(glm::vec3(CAMERA_ROTATION_SPEED * speedMultiplier * delta.AsSeconds(), 0.0f, 0.0f));
 	}
 	
 	if (Input::IsKeyDown(EKey::KEY_LEFT) && Input::IsKeyUp(EKey::KEY_RIGHT))
 	{
-		m_pCamera->Rotate(glm::vec3(0.0f, -CAMERA_ROTATION_SPEED * delta.AsSeconds(), 0.0f));
+		m_pCamera->Rotate(glm::vec3(0.0f, -CAMERA_ROTATION_SPEED * speedMultiplier * delta.AsSeconds(), 0.0f));
 	}
 	else if (Input::IsKeyDown(EKey::KEY_RIGHT) && Input::IsKeyUp(EKey::KEY_LEFT))
 	{
-		m_pCamera->Rotate(glm::vec3(0.0f, CAMERA_ROTATION_SPEED * delta.AsSeconds(), 0.0f));
+		m_pCamera->Rotate(glm::vec3(0.0f, CAMERA_ROTATION_SPEED * speedMultiplier * delta.AsSeconds(), 0.0f));
 	}
 
 	m_pCamera->Update();

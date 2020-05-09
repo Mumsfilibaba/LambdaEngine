@@ -12,7 +12,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 #else
 int main(int, const char*[])
 #endif 
-{
+ {
 	using namespace LambdaEngine;
 
 	SET_DEBUG_FLAGS();

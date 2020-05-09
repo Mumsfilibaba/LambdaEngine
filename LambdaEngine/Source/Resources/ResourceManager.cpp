@@ -161,12 +161,12 @@ namespace LambdaEngine
 	GUID_Lambda ResourceManager::LoadMaterialFromMemory(GUID_Lambda albedoMap, GUID_Lambda normalMap, GUID_Lambda ambientOcclusionMap, GUID_Lambda metallicMap, GUID_Lambda roughnessMap, const MaterialProperties& properties)
 	{
 		GUID_Lambda guid = GUID_NONE;
-		Material* pMappedMaterial = nullptr;
+		Material** ppMappedMaterial = nullptr;
 
 		//Spinlock
 		{
 			guid = s_NextFreeGUID++;
-			pMappedMaterial = s_Materials[guid]; //Creates new entry if not existing
+			ppMappedMaterial = &s_Materials[guid]; //Creates new entry if not existing
 		}
 
 		ITexture* pAlbedoMap						= albedoMap				!= GUID_NONE ? s_Textures[albedoMap]			: s_Textures[DEFAULT_COLOR_MAP];
@@ -181,19 +181,21 @@ namespace LambdaEngine
 		ITextureView* pMetallicMapView				= metallicMap			!= GUID_NONE ? s_TextureViews[metallicMap]			: s_TextureViews[DEFAULT_COLOR_MAP];
 		ITextureView* pRoughnessMapView				= roughnessMap			!= GUID_NONE ? s_TextureViews[roughnessMap]			: s_TextureViews[DEFAULT_COLOR_MAP];
 		
-		pMappedMaterial->Properties					= properties;
+		(*ppMappedMaterial)								= DBG_NEW Material();
 
-		pMappedMaterial->pAlbedoMap					= pAlbedoMap;
-		pMappedMaterial->pNormalMap					= pNormalMap;
-		pMappedMaterial->pAmbientOcclusionMap		= pAmbientOcclusionMap;
-		pMappedMaterial->pMetallicMap				= pMetallicMap;
-		pMappedMaterial->pRoughnessMap				= pRoughnessMap;
+		(*ppMappedMaterial)->Properties					= properties;
 
-		pMappedMaterial->pAlbedoMapView				= pAlbedoMapView;
-		pMappedMaterial->pNormalMapView				= pNormalMapView;
-		pMappedMaterial->pAmbientOcclusionMapView	= pAmbientOcclusionMapView;
-		pMappedMaterial->pMetallicMapView			= pMetallicMapView;
-		pMappedMaterial->pRoughnessMapView			= pRoughnessMapView;
+		(*ppMappedMaterial)->pAlbedoMap					= pAlbedoMap;
+		(*ppMappedMaterial)->pNormalMap					= pNormalMap;
+		(*ppMappedMaterial)->pAmbientOcclusionMap		= pAmbientOcclusionMap;
+		(*ppMappedMaterial)->pMetallicMap				= pMetallicMap;
+		(*ppMappedMaterial)->pRoughnessMap				= pRoughnessMap;
+
+		(*ppMappedMaterial)->pAlbedoMapView				= pAlbedoMapView;
+		(*ppMappedMaterial)->pNormalMapView				= pNormalMapView;
+		(*ppMappedMaterial)->pAmbientOcclusionMapView	= pAmbientOcclusionMapView;
+		(*ppMappedMaterial)->pMetallicMapView			= pMetallicMapView;
+		(*ppMappedMaterial)->pRoughnessMapView			= pRoughnessMapView;
 		
 		return guid;
 	}

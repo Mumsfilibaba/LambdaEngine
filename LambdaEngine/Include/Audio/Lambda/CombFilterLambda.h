@@ -36,5 +36,6 @@ namespace LambdaEngine
 		uint32		m_Delay					= 0;
 
 		float64		m_Multiplier			= 1.0;
+		bool		m_FeedForward			= true;
 	};
 }

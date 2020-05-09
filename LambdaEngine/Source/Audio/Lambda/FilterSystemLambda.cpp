@@ -77,6 +77,8 @@ namespace LambdaEngine
 					inputSample += previousFilterIndex >= 0 ? m_pFilterOutputs[previousFilterIndex] : sample;
 				}
 
+				inputSample /= (float64)pConnection->PreviousFiltersCount;
+
 				if (pConnection->NextFilter >= 0)
 				{
 					float64* pOutputSample	= &m_pFilterOutputs[pConnection->NextFilter];
