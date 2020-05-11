@@ -203,16 +203,23 @@ namespace LambdaEngine
         glm::vec3 forward     = glm::normalize(pAudioListener->Desc.Forward);
         glm::vec3 sourceDir   = listPos - sourcePos;
         
-        float32 sourceDirLen = glm::length(sourceDir);
+        float32 sourceDirLen    = glm::length(sourceDir);
+        float32 angle           = 0.0f; //Horizontal angle
+        float32 dot             = 0.0f;
         if (sourceDirLen > 0)
         {
             sourceDir = sourceDir / sourceDirLen;
+            
+            dot     = glm::dot(forward, sourceDir);
+            angle   = glm::acos(dot);
+        }
+        else
+        {
+            angle = 0.0f;
         }
         
-        float32 dot     = glm::dot(forward, sourceDir);
-        float32 angle   = glm::acos(dot); //Horizontal angle
-        float32 theta1  = -glm::half_pi<float32>();  // Angle to left speaker
-        float32 theta2  = glm::half_pi<float32>();   // Angle to right speaker
+        float32 theta1  = -glm::half_pi<float32>();     // Angle to left speaker
+        float32 theta2  = glm::half_pi<float32>();      // Angle to right speaker
         float32 b       = (angle - theta1) / (theta2 - theta1);
         
 		// Calculate attenutation
@@ -225,8 +232,8 @@ namespace LambdaEngine
 		float32 volume	= pAudioListener->Desc.Volume * pSoundInstance->Volume;
 		volume			= volume * attenuation;
         
-        float32 volumeLeft  = glm::sin(glm::half_pi<float32>() * b) * volume;
-        float32 volumeRight = glm::cos(glm::half_pi<float32>() * b) * volume;
+        float32 volumeLeft  = glm::abs(glm::sin(glm::half_pi<float32>() * b) * volume);
+        float32 volumeRight = glm::abs(glm::cos(glm::half_pi<float32>() * b) * volume);
 
         LOG_INFO("forward: x=%.3f y=%.3f z=%.3f sourceDir: x=%.3f y=%.3f z=%.3f, angle=%.3f, dot=%.3f, VL=%.3f, VR=%.3f", forward.x, forward.y, forward.z, sourceDir.x, sourceDir.y, sourceDir.z, angle, dot, volumeLeft, volumeRight);
         
