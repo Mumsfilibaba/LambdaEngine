@@ -128,8 +128,8 @@ Sandbox::Sandbox()
 
 	CameraDesc cameraDesc = {};
 	cameraDesc.FOVDegrees	= 90.0f;
-	cameraDesc.Width		= 1440.0f;
-	cameraDesc.Height		= 900.0f;
+	cameraDesc.Width		= PlatformApplication::Get()->GetMainWindow()->GetWidth();
+	cameraDesc.Height		= PlatformApplication::Get()->GetMainWindow()->GetHeight();
 	cameraDesc.NearPlane	= 0.001f;
 	cameraDesc.FarPlane		= 1000.0f;
 
