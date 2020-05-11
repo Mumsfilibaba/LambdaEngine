@@ -233,6 +233,10 @@ void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRep
 		{
 			m_pMusicInstance->Stop();
 		}
+		else if (key == EKey::KEY_1)
+		{
+			m_pCamera->SetPosition(glm::vec3(0.0f));
+		}
 	}
 }
 

@@ -15,7 +15,10 @@ namespace LambdaEngine
 
 	bool AudioListenerLambda::Init(const AudioListenerDesc* pDesc)
 	{
-		memcpy(&Desc, pDesc, sizeof(AudioListenerDesc));
+		Desc.Position	= pDesc->Position;
+		Desc.Volume		= pDesc->Volume;
+
+		SetDirectionVectors(pDesc->Up, pDesc->Forward);
 		return true;
 	}
 
@@ -28,6 +31,10 @@ namespace LambdaEngine
 	{
 		Desc.Up			= up;
 		Desc.Forward	= forward;
+
+		glm::mat4 rotationMat	= glm::rotate(glm::mat4(1.0f), glm::half_pi<float32>(), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::vec4 RightVec		= rotationMat * glm::vec4(forward, 0.0f);
+		Right = RightVec;
 	}
 
 	void AudioListenerLambda::SetPosition(const glm::vec3& position)

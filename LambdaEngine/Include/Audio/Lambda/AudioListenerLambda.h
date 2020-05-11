@@ -25,7 +25,8 @@ namespace LambdaEngine
 		virtual AudioListenerDesc	GetDesc()				const override final;
 
 	public:
-		AudioListenerDesc Desc;
+		AudioListenerDesc	Desc;
+		glm::vec3			Right = glm::vec3(0.0f, 0.0f, -1.0f);
 	
 	private:
 		AudioDeviceLambda* m_pDevice = nullptr;

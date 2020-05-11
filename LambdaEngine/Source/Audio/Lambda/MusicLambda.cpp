@@ -34,7 +34,7 @@ namespace LambdaEngine
 			m_Desc.ChannelCount = header.ChannelCount;
 			m_Desc.SampleRate	= header.SampleRate;
 
-			D_LOG_MESSAGE("[MusicLambda]: Loaded file '%s'. SampleCount=%u, ChannelCount=%u, SampleRate=%u", pDesc->pFilepath, m_Desc.SampleCount, m_Desc.ChannelCount, m_Desc.SampleRate);
+			D_LOG_MESSAGE("[MusicLambda]: Loaded file '%s'. BitsPerSample=%u, SampleCount=%u, ChannelCount=%u, SampleRate=%u", pDesc->pFilepath, header.OriginalBitsPerSample, m_Desc.SampleCount, m_Desc.ChannelCount, m_Desc.SampleRate);
 			return true;
 		}
 	}
