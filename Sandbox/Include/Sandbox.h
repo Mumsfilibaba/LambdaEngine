@@ -1,11 +1,7 @@
 #pragma once
-
 #include "Game/Game.h"
 
-#include "Input/API/IKeyboardHandler.h"
-#include "Input/API/IMouseHandler.h"
-
-#include "Application/API/IWindowHandler.h"
+#include "Application/API/EventHandler.h"
 #include "Application/API/PlatformApplication.h"
 
 #include "Containers/TArray.h"
@@ -28,7 +24,7 @@ namespace LambdaEngine
 	class IAudioFilter;
 }
 
-class Sandbox : public LambdaEngine::Game, public LambdaEngine::IKeyboardHandler, public LambdaEngine::IMouseHandler, LambdaEngine::IWindowHandler
+class Sandbox : public LambdaEngine::Game, public LambdaEngine::EventHandler
 {
 public:
 	Sandbox();
@@ -36,30 +32,29 @@ public:
 
 	void InitTestAudio();
 
-    // Inherited via IWindowHandler
+    // Inherited via IEventHandler
     virtual void FocusChanged(LambdaEngine::IWindow* pWindow, bool hasFocus)                                                 override;
     virtual void WindowMoved(LambdaEngine::IWindow* pWindow, int16 x, int16 y)                                               override;
     virtual void WindowResized(LambdaEngine::IWindow* pWindow, uint16 width, uint16 height, LambdaEngine::EResizeType type)  override;
     virtual void WindowClosed(LambdaEngine::IWindow* pWindow)                                                                override;
     virtual void MouseEntered(LambdaEngine::IWindow* pWindow)                                                                override;
     virtual void MouseLeft(LambdaEngine::IWindow* pWindow)                                                                   override;
+
+	virtual void KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRepeat)     override;
+	virtual void KeyReleased(LambdaEngine::EKey key)                                        override;
+	virtual void KeyTyped(uint32 character)                                                 override;
+	
+	virtual void MouseMoved(int32 x, int32 y)                                               override;
+	virtual void ButtonPressed(LambdaEngine::EMouseButton button, uint32 modifierMask)      override;
+	virtual void ButtonReleased(LambdaEngine::EMouseButton button)                          override;
+    virtual void MouseScrolled(int32 deltaX, int32 deltaY)                                  override;
     
 	// Inherited via Game
 	virtual void Tick(LambdaEngine::Timestamp delta)        override;
     virtual void FixedTick(LambdaEngine::Timestamp delta)   override;
 
-	// Inherited via IKeyboardHandler
-	virtual void KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRepeat)     override;
-	virtual void KeyReleased(LambdaEngine::EKey key)                                        override;
-	virtual void KeyTyped(uint32 character)                                                 override;
-
-	// Inherited via IMouseHandler
-	virtual void MouseMoved(int32 x, int32 y)                                               override;
-	virtual void ButtonPressed(LambdaEngine::EMouseButton button, uint32 modifierMask)      override;
-	virtual void ButtonReleased(LambdaEngine::EMouseButton button)                          override;
-    virtual void MouseScrolled(int32 deltaX, int32 deltaY)                                  override;
-
 private:
+	bool InitRendererForEmpty();
 	bool InitRendererForDeferred();
 	bool InitRendererForVisBuf();
 
@@ -125,6 +120,13 @@ private:
 	LambdaEngine::IAudioFilter*				m_pCombFilter			= nullptr;
 	LambdaEngine::IAudioFilter*				m_pAllPassFilter		= nullptr;
 
+	GUID_Lambda								m_ImGuiPixelShaderNormalGUID		= GUID_NONE;
+	GUID_Lambda								m_ImGuiPixelShaderDepthGUID			= GUID_NONE;
+	GUID_Lambda								m_ImGuiPixelShaderRoughnessGUID		= GUID_NONE;
+
+	bool									m_SpawnPlayAts;
+	float									m_GunshotTimer;
+	float									m_GunshotDelay;
 	float									m_Timer;
 
 };

@@ -6,6 +6,16 @@
 
 #include "Input/API/Input.h"
 
+#include "Resources/ResourceManager.h"
+
+#include "Rendering/RenderSystem.h"
+#include "Rendering/ImGuiRenderer.h"
+#include "Rendering/Renderer.h"
+#include "Rendering/PipelineStateManager.h"
+#include "Rendering/RenderGraphDescriptionParser.h"
+
+#include <imgui.h>
+
 #include "Application/API/PlatformMisc.h"
 #include "Application/API/PlatformApplication.h"
 #include "Application/API/PlatformConsole.h"
@@ -16,50 +26,40 @@
 #include "Networking/API/NetworkPacket.h"
 #include "Networking/API/BinaryEncoder.h"
 #include "Networking/API/BinaryDecoder.h"
+#include "Networking/API/NetworkDebugger.h"
 
-#include "Networking/API/PacketTransceiver.h"
-
-
-void print(std::vector<uint32>& newAcks)
-{
-    for (uint32 ack : newAcks)
-    {
-        LOG_INFO("ProcessAck(%d)", ack);
-    }
-    newAcks.clear();
-}
+#ifdef LAMBDA_PLATFORM_MACOS
+constexpr const uint32 MAX_TEXTURES_PER_DESCRIPTOR_SET = 8;
+#else
+constexpr const uint32 MAX_TEXTURES_PER_DESCRIPTOR_SET = 256;
+#endif
+constexpr const uint32 BACK_BUFFER_COUNT = 3;
+constexpr const bool RENDERING_DEBUG_ENABLED = true;
 
 Client::Client() : 
     m_pClient(nullptr)
 {
 	using namespace LambdaEngine;
-    
+    PlatformApplication::Get()->AddEventHandler(this);
     PlatformApplication::Get()->GetMainWindow()->SetTitle("Client");
     PlatformConsole::SetTitle("Client Console");
 
-    NetworkStatistics s;
-    std::vector<uint32> newAcks;
+	InitRendererForEmpty();
 
-    PacketTransceiver tranciver;
-    tranciver.ProcessAcks(3, 0b00000000000000000000000000000001, &s, newAcks); print(newAcks);
-    tranciver.ProcessAcks(6, 0b00000000000000000000000000000101, &s, newAcks); print(newAcks);
-    tranciver.ProcessAcks(2, 0b00000000000000000000000000000000, &s, newAcks); print(newAcks);
-    tranciver.ProcessAcks(7, 0b00000000000000000000000000011111, &s, newAcks); print(newAcks);
-    tranciver.ProcessAcks(8, 0b00000000000000000000000001111111, &s, newAcks); print(newAcks);
-    tranciver.ProcessAcks(12, 0b00000000110000000000000000111111, &s, newAcks); print(newAcks);
-
-
-    /*m_pClient = ClientUDP::Create(this, 1024, 100);
+    m_pClient = ClientUDP::Create(this, 1024, 100);
 
     if (!m_pClient->Connect(IPEndPoint(IPAddress::Get("192.168.0.104"), 4444)))
     {
         LOG_ERROR("Failed to connect!");
-    }*/
+    }
 }
 
 Client::~Client()
 {
-    //m_pClient->Release();
+    m_pClient->Release();
+
+	SAFEDELETE(m_pRenderGraph);
+	SAFEDELETE(m_pRenderer);
 }
 
 void Client::OnConnectingUDP(LambdaEngine::IClientUDP* pClient)
@@ -100,7 +100,7 @@ void Client::OnPacketReceivedUDP(LambdaEngine::IClientUDP* pClient, LambdaEngine
 {
     UNREFERENCED_VARIABLE(pClient);
     UNREFERENCED_VARIABLE(pPacket);
-    LOG_MESSAGE("OnPacketReceivedUDP()");
+    LOG_MESSAGE("OnPacketReceivedUDP(%s)", pPacket->ToString().c_str());
 }
 
 void Client::OnServerFullUDP(LambdaEngine::IClientUDP* pClient)
@@ -112,7 +112,7 @@ void Client::OnServerFullUDP(LambdaEngine::IClientUDP* pClient)
 void Client::OnPacketDelivered(LambdaEngine::NetworkPacket* pPacket)
 {
     UNREFERENCED_VARIABLE(pPacket);
-    LOG_INFO("OnPacketDelivered()");
+    LOG_INFO("OnPacketDelivered(%s)", pPacket->ToString().c_str());
 }
 
 void Client::OnPacketResent(LambdaEngine::NetworkPacket* pPacket, uint8 tries)
@@ -150,19 +150,20 @@ void Client::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRepe
     }
 }
 
-void Client::KeyReleased(LambdaEngine::EKey key)
-{
-    UNREFERENCED_VARIABLE(key);
-}
-
-void Client::KeyTyped(uint32 character) 
-{
-    UNREFERENCED_VARIABLE(character);
-}
-
 void Client::Tick(LambdaEngine::Timestamp delta)
 {
+	using namespace LambdaEngine;
 	UNREFERENCED_VARIABLE(delta);
+
+	m_pRenderer->Begin(delta);
+
+	ImGui::ShowDemoWindow();
+
+	NetworkDebugger::RenderStatisticsWithImGUI(m_pClient);
+
+	m_pRenderer->Render(delta);
+
+	m_pRenderer->End(delta);
 }
 
 void Client::FixedTick(LambdaEngine::Timestamp delta)
@@ -173,12 +174,100 @@ void Client::FixedTick(LambdaEngine::Timestamp delta)
     //m_pClient->Flush();
 }
 
+bool Client::InitRendererForEmpty()
+{
+	using namespace LambdaEngine;
+
+	GUID_Lambda fullscreenQuadShaderGUID = ResourceManager::LoadShaderFromFile("../Assets/Shaders/FullscreenQuad.glsl", FShaderStageFlags::SHADER_STAGE_FLAG_VERTEX_SHADER, EShaderLang::GLSL);
+	GUID_Lambda shadingPixelShaderGUID = ResourceManager::LoadShaderFromFile("../Assets/Shaders/StaticPixel.glsl", FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER, EShaderLang::GLSL);
+
+	std::vector<RenderStageDesc> renderStages;
+
+	const char* pShadingRenderStageName = "Shading Render Stage";
+	GraphicsManagedPipelineStateDesc			shadingPipelineStateDesc = {};
+	std::vector<RenderStageAttachment>			shadingRenderStageAttachments;
+
+	{
+		shadingRenderStageAttachments.push_back({
+			RENDER_GRAPH_BACK_BUFFER_ATTACHMENT,
+			EAttachmentType::OUTPUT_COLOR,
+			FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,
+			BACK_BUFFER_COUNT, EFormat::FORMAT_B8G8R8A8_UNORM
+		});
+
+		RenderStagePushConstants pushConstants = {};
+		pushConstants.pName = "Shading Pass Push Constants";
+		pushConstants.DataSize = sizeof(int32) * 2;
+
+		RenderStageDesc renderStage = {};
+		renderStage.pName = pShadingRenderStageName;
+		renderStage.pAttachments = shadingRenderStageAttachments.data();
+		renderStage.AttachmentCount = (uint32)shadingRenderStageAttachments.size();
+
+		shadingPipelineStateDesc.pName = "Shading Pass Pipeline State";
+		shadingPipelineStateDesc.VertexShader = fullscreenQuadShaderGUID;
+		shadingPipelineStateDesc.PixelShader = shadingPixelShaderGUID;
+
+		renderStage.PipelineType = EPipelineStateType::GRAPHICS;
+
+		renderStage.GraphicsPipeline.DrawType = ERenderStageDrawType::FULLSCREEN_QUAD;
+		renderStage.GraphicsPipeline.pIndexBufferName = nullptr;
+		renderStage.GraphicsPipeline.pMeshIndexBufferName = nullptr;
+		renderStage.GraphicsPipeline.pGraphicsDesc = &shadingPipelineStateDesc;
+
+		renderStages.push_back(renderStage);
+	}
+
+	RenderGraphDesc renderGraphDesc = {};
+	renderGraphDesc.pName = "Render Graph";
+	renderGraphDesc.CreateDebugGraph = RENDERING_DEBUG_ENABLED;
+	renderGraphDesc.pRenderStages = renderStages.data();
+	renderGraphDesc.RenderStageCount = (uint32)renderStages.size();
+	renderGraphDesc.BackBufferCount = BACK_BUFFER_COUNT;
+	renderGraphDesc.MaxTexturesPerDescriptorSet = MAX_TEXTURES_PER_DESCRIPTOR_SET;
+	renderGraphDesc.pScene = nullptr;
+
+	m_pRenderGraph = DBG_NEW RenderGraph(RenderSystem::GetDevice());
+
+	m_pRenderGraph->Init(renderGraphDesc);
+
+	IWindow* pWindow = PlatformApplication::Get()->GetMainWindow();
+	uint32 renderWidth = pWindow->GetWidth();
+	uint32 renderHeight = pWindow->GetHeight();
+
+	{
+		RenderStageParameters shadingRenderStageParameters = {};
+		shadingRenderStageParameters.pRenderStageName = pShadingRenderStageName;
+		shadingRenderStageParameters.Graphics.Width = renderWidth;
+		shadingRenderStageParameters.Graphics.Height = renderHeight;
+
+		m_pRenderGraph->UpdateRenderStageParameters(shadingRenderStageParameters);
+	}
+
+	m_pRenderer = DBG_NEW Renderer(RenderSystem::GetDevice());
+
+	RendererDesc rendererDesc = {};
+	rendererDesc.pName = "Renderer";
+	rendererDesc.Debug = RENDERING_DEBUG_ENABLED;
+	rendererDesc.pRenderGraph = m_pRenderGraph;
+	rendererDesc.pWindow = PlatformApplication::Get()->GetMainWindow();
+	rendererDesc.BackBufferCount = BACK_BUFFER_COUNT;
+
+	m_pRenderer->Init(&rendererDesc);
+
+	if (RENDERING_DEBUG_ENABLED)
+	{
+		ImGui::SetCurrentContext(ImGuiRenderer::GetImguiContext());
+	}
+
+	return true;
+}
+
 namespace LambdaEngine
 {
     Game* CreateGame()
     {
 		Client* pSandbox = DBG_NEW Client();
-        Input::AddKeyboardHandler(pSandbox);
         
         return pSandbox;
     }

@@ -13,3 +13,6 @@
 [submodule "Dependencies/Butterworth-Filter-Design"]
 	path = Dependencies/Butterworth-Filter-Design
 	url = https://github.com/ruohoruotsi/Butterworth-Filter-Design.git
+[submodule "Dependencies/imgui"]
+	path = Dependencies/imgui
+	url = https://github.com/Mumsfilibaba/imgui.git

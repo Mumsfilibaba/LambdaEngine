@@ -100,6 +100,7 @@ workspace "LambdaEngine"
 	-- Dependencies
 	group "Dependencies"
 		include "Dependencies/WavLib"
+		include "Dependencies/imgui"
 	
 		-- tinyobjloader Project
 		project "tinyobjloader"
@@ -304,6 +305,7 @@ workspace "LambdaEngine"
 			"Dependencies/glm",
 			"Dependencies/tinyobjloader",
 			"Dependencies/WavLib",
+			"Dependencies/imgui",
 			"Dependencies/stb",
 			"Dependencies/portaudio/include",
 			"Dependencies/glslang/include",
@@ -317,6 +319,7 @@ workspace "LambdaEngine"
 			"WavLib",
 			"r8brain-src",
 			"Butterworth-Filter-Design",
+			"ImGui",
 		}
 		
 		-- Win32
@@ -490,6 +493,7 @@ workspace "LambdaEngine"
 		sysincludedirs
 		{
 			"Dependencies/glm",
+			"Dependencies/imgui",
 		}
         
         -- Files
@@ -512,6 +516,7 @@ workspace "LambdaEngine"
 		links 
 		{ 
 			"LambdaEngine",
+			"ImGui",
 		}
 
     project "*"
@@ -538,6 +543,7 @@ workspace "LambdaEngine"
 		sysincludedirs
 		{
 			"Dependencies/glm",
+			"Dependencies/imgui",
 		}
 
         -- Files
@@ -560,6 +566,7 @@ workspace "LambdaEngine"
 		links 
 		{ 
 			"LambdaEngine",
+			"ImGui",
 		}
 
     project "*"
@@ -586,6 +593,7 @@ workspace "LambdaEngine"
 		sysincludedirs
 		{
 			"Dependencies/glm",
+			"Dependencies/imgui",
 		}
         
         -- Files
@@ -608,5 +616,6 @@ workspace "LambdaEngine"
 		links 
 		{ 
 			"LambdaEngine",
+			"ImGui",
 		}
     project "*"
