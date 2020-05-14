@@ -10,7 +10,7 @@ namespace LambdaEngine
 	{
 
 		AudioDeviceDesc audioDeviceDesc = {};
-		audioDeviceDesc.pName					= "Main AudioDeviceFMOD";
+		audioDeviceDesc.pName					= "Main AudioDevice";
 		audioDeviceDesc.Debug					= true;
 		audioDeviceDesc.SpeakerSetup			= ESpeakerSetup::STEREO_HEADPHONES;
 		audioDeviceDesc.MasterVolume			= 0.5f;

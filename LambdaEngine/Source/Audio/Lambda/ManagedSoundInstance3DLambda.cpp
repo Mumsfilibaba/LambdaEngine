@@ -54,7 +54,9 @@ namespace LambdaEngine
 			glm::vec3 normalizedDeltaPos	= deltaPosition / clampedDistance;
 
 			glm::vec2 forwardDir			= glm::normalize(glm::vec2(pAudioListener->Forward.x, pAudioListener->Forward.z));
-			glm::vec2 soundDir				= distance > 0.0f ? glm::normalize(glm::vec2(normalizedDeltaPos.x, normalizedDeltaPos.z)) : forwardDir;
+			glm::vec2 normDeltaPosXZ		= glm::vec2(normalizedDeltaPos.x, normalizedDeltaPos.z);
+			if (normalizedDeltaPos.x == 0.0f && normDeltaPosXZ.y == 0.0f) normDeltaPosXZ = forwardDir;
+			glm::vec2 soundDir				= distance > 0.0f ? glm::normalize(normDeltaPosXZ) : forwardDir;
 			
 			float32 soundAngle				= glm::atan(soundDir.y, soundDir.x);
 			float32 rightAngle				= glm::atan(pAudioListener->Right.z, pAudioListener->Right.x);

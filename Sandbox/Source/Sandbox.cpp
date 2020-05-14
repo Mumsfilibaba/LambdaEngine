@@ -116,6 +116,34 @@ Sandbox::Sandbox()
 		m_pScene->AddDynamicGameObject(pianoGameObject, transform);
 	}
 
+	//Car
+	{
+		uint32 carMeshGUID			= ResourceManager::LoadMeshFromFile("../Assets/Meshes/car.obj");
+
+		MaterialProperties carMaterialProperties = {};
+		carMaterialProperties.Albedo			= glm::vec4(0.9f, 0.2, 0.2, 1.0f);
+		carMaterialProperties.Ambient			= 1.0f;
+		carMaterialProperties.Metallic			= 0.99f;
+		carMaterialProperties.Roughness			= 0.005f;
+
+		uint32 carMaterialGUID		= ResourceManager::LoadMaterialFromMemory(DEFAULT_COLOR_MAP, DEFAULT_NORMAL_MAP, DEFAULT_COLOR_MAP, DEFAULT_COLOR_MAP, DEFAULT_COLOR_MAP, carMaterialProperties);
+
+		GameObject carGameObject = {};
+		carGameObject.Mesh		= carMeshGUID;
+		carGameObject.Material	= carMaterialGUID;
+
+		glm::vec3 position(-0.8f, 0.0f, 2.3f);
+		glm::vec4 rotation(0.0f, 1.0f, 0.0f, 0.0f);
+		glm::vec3 scale(0.01f);
+
+		glm::mat4 transform(1.0f);
+		transform = glm::translate(transform, position);
+		transform = glm::rotate(transform, rotation.w, glm::vec3(rotation));
+		transform = glm::scale(transform, scale);
+
+		m_pScene->AddDynamicGameObject(carGameObject, transform);
+	}
+
 	//m_pScene->AddDynamicGameObject(gunGameObject, glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.5f, 0.0f)));
 
 	/*uint32 bunnyMeshGUID = ResourceManager::LoadMeshFromFile("../Assets/Meshes/bunny.obj");
@@ -128,7 +156,7 @@ Sandbox::Sandbox()
 
 	m_pScene->Finalize();
 
-	m_pScene->UpdateDirectionalLight(glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(70.0f));
+	m_pScene->UpdateDirectionalLight(glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(10.0f));
 
 	m_pCamera = DBG_NEW Camera();
 
@@ -184,7 +212,7 @@ Sandbox::Sandbox()
 
 	//InitRendererForVisBuf(BACK_BUFFER_COUNT, MAX_TEXTURES_PER_DESCRIPTOR_SET);
 
-	//InitTestAudio();
+	InitTestAudio();
 }
 
 Sandbox::~Sandbox()
@@ -239,6 +267,8 @@ Sandbox::~Sandbox()
 
 	SAFEDELETE(m_pCombFilter);
 	SAFEDELETE(m_pAllPassFilter);
+
+	SAFEDELETE(m_pMasterFilter);
 }
 
 void Sandbox::InitTestAudio()
@@ -249,7 +279,7 @@ void Sandbox::InitTestAudio()
 
 	m_SoundEffectGUID0	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/project/pianoSong.wav");
 	m_SoundEffectGUID1	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/project/gunshot.wav");
-	//m_SoundEffectGUID2	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/project/piano440.wav");
+	m_SoundEffectGUID2	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/project/carHonk.wav");
 
 	MusicDesc bgMusicDesc = {};
 	bgMusicDesc.pFilepath		= "../Assets/Sounds/project/birdsBG.wav";
@@ -268,7 +298,7 @@ void Sandbox::InitTestAudio()
 
 	m_pSoundEffect0 = ResourceManager::GetSoundEffect(m_SoundEffectGUID0);
 	m_pSoundEffect1 = ResourceManager::GetSoundEffect(m_SoundEffectGUID1);
-	//m_pSoundEffect2 = ResourceManager::GetSoundEffect(m_SoundEffectGUID2);
+	m_pSoundEffect2 = ResourceManager::GetSoundEffect(m_SoundEffectGUID2);
 	//m_pSoundEffect3 = ResourceManager::GetSoundEffect(m_SoundEffectGUID3);
 
 	SoundInstance3DDesc soundInstanceDesc0 = {};
@@ -278,6 +308,7 @@ void Sandbox::InitTestAudio()
 
 	m_pSoundInstance0 = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc0);
 	m_pSoundInstance0->SetPosition(glm::vec3(-12.0f, 1.0f, 0.0f));
+	m_pSoundInstance0->Pause();
 
 	SoundInstance3DDesc soundInstanceDesc1 = {};
 	soundInstanceDesc1.pName			= "Gun Shot";
@@ -286,6 +317,16 @@ void Sandbox::InitTestAudio()
 
 	m_pSoundInstance1 = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc1);
 	m_pSoundInstance1->SetPosition(glm::vec3(11.0f, 1.5f, 0.0f));
+	m_pSoundInstance1->Pause();
+
+	SoundInstance3DDesc soundInstanceDesc2 = {};
+	soundInstanceDesc2.pName			= "Car Honk";
+	soundInstanceDesc2.pSoundEffect		= m_pSoundEffect2;
+	soundInstanceDesc2.Flags			= FSoundModeFlags::SOUND_MODE_LOOPING;
+
+	m_pSoundInstance2 = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc2);
+	m_pSoundInstance2->SetPosition(glm::vec3(-0.8f, 0.0f, 2.0f));
+	m_pSoundInstance2->Pause();
 
 	m_Timer = 0.0f;
 
@@ -700,7 +741,7 @@ void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRep
 	static bool geometryAudioActive = true;
 	static bool reverbSphereActive = true;
 
-	if (key == EKey::KEY_KEYPAD_1)
+	/*if (key == EKey::KEY_KEYPAD_1)
 	{
 		AudioSystem::GetDevice()->SetMasterFilterEnabled(true);
 	}
@@ -712,6 +753,7 @@ void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRep
 	{
 		m_pSoundInstance0->Pause();
 		m_pSoundInstance1->Pause();
+		m_pSoundInstance2->Pause();
 		m_pBGMusic->Pause();
 
 		m_pBGTone->Play();
@@ -722,7 +764,7 @@ void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRep
 	else if (key == EKey::KEY_KEYPAD_4)
 	{
 		AudioSystem::GetDevice()->SetMasterFilterEnabled(true);
-	}
+	}*/
 	/*if (key == EKey::KEY_KEYPAD_1)
 	{
 		m_pToneSoundInstance->Toggle();
@@ -888,14 +930,286 @@ void Sandbox::Tick(LambdaEngine::Timestamp delta)
 	m_pScene->UpdateCamera(m_pCamera);
 
 	m_pRenderer->Begin(delta);
+	ImGui::SetNextWindowSize(ImVec2(430, 450), ImGuiCond_FirstUseEver);
+	if (ImGui::Begin("Audio Testing", NULL))
+	{
+		static bool masterFilterEnabled = false;
 
-	ImGui::ShowDemoWindow();
+		const char* items[] = { "BG Audio", "Normal", "Piano Tone" };
+		static int currentItem = 0;
+
+		if (ImGui::ListBox("", &currentItem, items, IM_ARRAYSIZE(items), 3))
+		{
+			masterFilterEnabled = false;
+			AudioSystem::GetDevice()->SetMasterFilterEnabled(masterFilterEnabled);
+
+			if (currentItem == 0)
+			{
+				m_pBGTone->Pause();
+				m_pSoundInstance0->Pause();
+				m_pSoundInstance1->Pause();
+				m_pSoundInstance2->Pause();
+
+				m_pBGMusic->Play();
+			}
+			if (currentItem == 1)
+			{
+				m_pBGTone->Pause();
+
+				m_pSoundInstance0->Play();
+				m_pSoundInstance1->Play();
+				m_pSoundInstance2->Play();
+				m_pBGMusic->Play();
+			}
+			else if (currentItem == 2)
+			{
+				m_pSoundInstance0->Pause();
+				m_pSoundInstance1->Pause();
+				m_pSoundInstance2->Pause();
+				m_pBGMusic->Pause();
+
+				m_pBGTone->Play();
+			}
+		}
+
+
+		if (ImGui::Button("Toggle Filter"))
+		{
+			masterFilterEnabled = !masterFilterEnabled;
+			AudioSystem::GetDevice()->SetMasterFilterEnabled(masterFilterEnabled);
+		}
+
+		ImGui::SameLine();
+		ImGui::Text("Current Filter: %s - %s", m_pMasterFilter != nullptr ? m_pMasterFilter->GetName() : "None", masterFilterEnabled ? "Enabled" : "Disabled");
+
+		if (ImGui::BeginTabBar("Filters"))
+		{
+			if (ImGui::BeginTabItem("FIR LP"))
+			{
+				static float32 cutoff = 200.0f;
+				static int32 order = 4;
+
+				ImGui::SliderFloat("Cutoff", &cutoff, 20.0f, 20000.0f);
+				ImGui::SliderInt("Order", &order, 1, 256);
+
+				if (ImGui::Button("Apply"))
+				{
+					SAFEDELETE(m_pMasterFilter);
+					m_pMasterFilter = AudioSystem::GetDevice()->CreateLowpassFIRFilter(cutoff, order);
+					AudioSystem::GetDevice()->SetMasterFilter(m_pMasterFilter);
+					masterFilterEnabled = true;
+				}
+
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("FIR HP"))
+			{
+				static float32 cutoff = 200.0f;
+				static int32 order = 4;
+
+				ImGui::SliderFloat("Cutoff", &cutoff, 20.0f, 20000.0f);
+				ImGui::SliderInt("Order", &order, 1, 256);
+
+				if (ImGui::Button("Apply"))
+				{
+					SAFEDELETE(m_pMasterFilter);
+					m_pMasterFilter = AudioSystem::GetDevice()->CreateHighpassFIRFilter(cutoff, order);
+					AudioSystem::GetDevice()->SetMasterFilter(m_pMasterFilter);
+					masterFilterEnabled = true;
+				}
+
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("FIR BP"))
+			{
+				static float32 lowCutoff = 200.0f;
+				static float32 highCutoff = 2000.0f;
+				static int32 order = 4;
+
+				ImGui::SliderFloat("Low Cutoff", &lowCutoff, 20.0f, highCutoff);
+				ImGui::SliderFloat("High Cutoff", &highCutoff, lowCutoff, 20000.0f);
+				ImGui::SliderInt("Order", &order, 1, 256);
+
+				if (ImGui::Button("Apply"))
+				{
+					SAFEDELETE(m_pMasterFilter);
+					m_pMasterFilter = AudioSystem::GetDevice()->CreateBandpassFIRFilter(lowCutoff, highCutoff, order);
+					AudioSystem::GetDevice()->SetMasterFilter(m_pMasterFilter);
+					masterFilterEnabled = true;
+				}
+
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("FIR BS"))
+			{
+				static float32 lowCutoff = 200.0f;
+				static float32 highCutoff = 2000.0f;
+				static int32 order = 4;
+
+				ImGui::SliderFloat("Low Cutoff", &lowCutoff, 20.0f, highCutoff);
+				ImGui::SliderFloat("High Cutoff", &highCutoff, lowCutoff, 20000.0f);
+				ImGui::SliderInt("Order", &order, 1, 256);
+
+				if (ImGui::Button("Apply"))
+				{
+					SAFEDELETE(m_pMasterFilter);
+					m_pMasterFilter = AudioSystem::GetDevice()->CreateBandstopFIRFilter(lowCutoff, highCutoff, order);
+					AudioSystem::GetDevice()->SetMasterFilter(m_pMasterFilter);
+					masterFilterEnabled = true;
+				}
+
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("IIR LP"))
+			{
+				static float32 cutoff = 200.0f;
+				static int32 order = 4;
+
+				ImGui::SliderFloat("Cutoff", &cutoff, 20.0f, 20000.0f);
+				ImGui::SliderInt("Order", &order, 1, 32);
+
+				if (ImGui::Button("Apply"))
+				{
+					SAFEDELETE(m_pMasterFilter);
+					m_pMasterFilter = AudioSystem::GetDevice()->CreateLowpassIIRFilter(cutoff, order);
+					AudioSystem::GetDevice()->SetMasterFilter(m_pMasterFilter);
+					masterFilterEnabled = true;
+				}
+
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("IIR HP"))
+			{
+				static float32 cutoff = 200.0f;
+				static int32 order = 4;
+
+				ImGui::SliderFloat("Cutoff", &cutoff, 20.0f, 20000.0f);
+				ImGui::SliderInt("Order", &order, 1, 32);
+
+				if (ImGui::Button("Apply"))
+				{
+					SAFEDELETE(m_pMasterFilter);
+					m_pMasterFilter = AudioSystem::GetDevice()->CreateHighpassIIRFilter(cutoff, order);
+					AudioSystem::GetDevice()->SetMasterFilter(m_pMasterFilter);
+					masterFilterEnabled = true;
+				}
+
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("IIR BP"))
+			{
+				static float32 lowCutoff = 200.0f;
+				static float32 highCutoff = 2000.0f;
+				static int32 order = 4;
+
+				ImGui::SliderFloat("Low Cutoff", &lowCutoff, 20.0f, highCutoff);
+				ImGui::SliderFloat("High Cutoff", &highCutoff, lowCutoff, 20000.0f);
+				ImGui::SliderInt("Order", &order, 1, 32);
+
+				if (ImGui::Button("Apply"))
+				{
+					SAFEDELETE(m_pMasterFilter);
+					m_pMasterFilter = AudioSystem::GetDevice()->CreateBandpassIIRFilter(lowCutoff, highCutoff, order);
+					AudioSystem::GetDevice()->SetMasterFilter(m_pMasterFilter);
+					masterFilterEnabled = true;
+				}
+
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("IIR BS"))
+			{
+				static float32 lowCutoff = 200.0f;
+				static float32 highCutoff = 2000.0f;
+				static int32 order = 4;
+
+				ImGui::SliderFloat("Low Cutoff", &lowCutoff, 20.0f, highCutoff);
+				ImGui::SliderFloat("High Cutoff", &highCutoff, lowCutoff, 20000.0f);
+				ImGui::SliderInt("Order", &order, 1, 32);
+
+				if (ImGui::Button("Apply"))
+				{
+					SAFEDELETE(m_pMasterFilter);
+					m_pMasterFilter = AudioSystem::GetDevice()->CreateBandstopIIRFilter(lowCutoff, highCutoff, order);
+					AudioSystem::GetDevice()->SetMasterFilter(m_pMasterFilter);
+					masterFilterEnabled = true;
+				}
+
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("Allpass"))
+			{
+				static float32 delay		= 0.2f;
+				static float32 multiplier	= 0.75f;
+
+				ImGui::SliderFloat("Delay", &delay, 0.01f, 2.0f);
+				ImGui::SliderFloat("Loop Gain", &multiplier, 0.01f, 0.95f);
+
+				if (ImGui::Button("Apply"))
+				{
+					SAFEDELETE(m_pMasterFilter);
+
+					AllPassFilterDesc allPassDesc = {};
+					allPassDesc.pName		= "All Pass Filter";
+					allPassDesc.Delay		= delay * AudioSystem::GetDevice()->GetSampleRate();
+					allPassDesc.Multiplier	= multiplier;
+
+					m_pMasterFilter = AudioSystem::GetDevice()->CreateAllPassFilter(&allPassDesc);
+					AudioSystem::GetDevice()->SetMasterFilter(m_pMasterFilter);
+					masterFilterEnabled = true;
+				}
+
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("Comb"))
+			{
+				static float32 delay = 0.2f;
+				static float32 multiplier = 0.75f;
+
+				const char* items[] = { "Feed Forward", "Feed Back" };
+				static int currentItem = 0;
+
+				ImGui::ListBox("", &currentItem, items, IM_ARRAYSIZE(items), 2);
+				ImGui::SliderFloat("Delay", &delay, 0.01f, 2.0f);
+				ImGui::SliderFloat("Loop Gain", &multiplier, 0.01f, 0.95f);
+
+				if (ImGui::Button("Apply"))
+				{
+					SAFEDELETE(m_pMasterFilter);
+
+					CombFilterDesc combDesc = {};
+					combDesc.pName			= "Comb Filter";
+					combDesc.FeedForward	= currentItem == 0 ? true : false;
+					combDesc.Delay			= delay * AudioSystem::GetDevice()->GetSampleRate();
+					combDesc.Multiplier		= multiplier;
+
+					m_pMasterFilter = AudioSystem::GetDevice()->CreateCombFilter(&combDesc);
+					AudioSystem::GetDevice()->SetMasterFilter(m_pMasterFilter);
+					masterFilterEnabled = true;
+				}
+
+				ImGui::EndTabItem();
+
+				ImGui::EndTabItem();
+			}
+
+			ImGui::EndTabBar();
+		}
+	}
+
+	ImGui::End();
 
 	ImGui::SetNextWindowSize(ImVec2(430, 450), ImGuiCond_FirstUseEver);
-	if (ImGui::Begin("Test Window", NULL))
+	if (ImGui::Begin("Graphics Debugging", NULL))
 	{
-		ImGui::Button("Test Button");
-
 		uint32 modFrameIndex = m_pRenderer->GetModFrameIndex();
 
 		ITextureView* const *	ppTextureViews		= nullptr;
@@ -1045,8 +1359,9 @@ void Sandbox::Tick(LambdaEngine::Timestamp delta)
 			ImGui::EndTabBar();
 		}
 	}
-	ImGui::End();
 
+	ImGui::End();
+	
 	m_pRenderer->Render(delta);
 
 	m_pRenderer->End(delta);

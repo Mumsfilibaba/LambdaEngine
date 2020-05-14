@@ -120,6 +120,8 @@ private:
 	LambdaEngine::IAudioFilter*				m_pCombFilter			= nullptr;
 	LambdaEngine::IAudioFilter*				m_pAllPassFilter		= nullptr;
 
+	LambdaEngine::IAudioFilter*				m_pMasterFilter			= nullptr;
+
 	GUID_Lambda								m_ImGuiPixelShaderNormalGUID		= GUID_NONE;
 	GUID_Lambda								m_ImGuiPixelShaderDepthGUID			= GUID_NONE;
 	GUID_Lambda								m_ImGuiPixelShaderRoughnessGUID		= GUID_NONE;
