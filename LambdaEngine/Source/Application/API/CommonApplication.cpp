@@ -1,5 +1,6 @@
 #include "Application/API/CommonApplication.h"
 #include "Application/API/PlatformApplication.h"
+#include "Application/API/IWindow.h"
 
 namespace LambdaEngine
 {
@@ -37,10 +38,15 @@ namespace LambdaEngine
 		//else
 		//{
 		//}
-
 		m_pPlatformApplication->SetInputMode(EInputMode::INPUT_MODE_STANDARD);
 
-		IWindow* pWindow = PlatformApplication::CreateWindow("Lambda Engine", 1440, 900);
+		WindowDesc windowDesc = { };
+		windowDesc.pTitle 	= "Lambda Engine";
+		windowDesc.Width 	= 1440;
+		windowDesc.Height 	= 900;
+		windowDesc.Style	= WINDOW_STYLE_FLAG_TITLED | WINDOW_STYLE_FLAG_CLOSABLE;
+
+		IWindow* pWindow = PlatformApplication::CreateWindow(&windowDesc);
 		if (pWindow)
 		{
 			m_pPlatformApplication->MakeMainWindow(pWindow);

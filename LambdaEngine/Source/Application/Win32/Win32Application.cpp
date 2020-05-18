@@ -6,6 +6,7 @@
 #include "Application/API/IEventHandler.h"
 
 #include "Application/Win32/Win32Application.h"
+#include "Application/Win32/Win32Window.h"
 #include "Application/Win32/IWin32MessageHandler.h"
 
 #include "Input/Win32/Win32InputCodeTable.h"
@@ -551,10 +552,10 @@ namespace LambdaEngine
 		}
 	}
 
-	IWindow* Win32Application::CreateWindow(const char* pTitle, uint32 width, uint32 height)
+	IWindow* Win32Application::CreateWindow(const WindowDesc* pDesc)
 	{
 		Win32Window* pWindow = DBG_NEW Win32Window();
-		if (!pWindow->Init(pTitle, width, height))
+		if (!pWindow->Init(pDesc))
 		{
 			SAFEDELETE(pWindow);
 		}
