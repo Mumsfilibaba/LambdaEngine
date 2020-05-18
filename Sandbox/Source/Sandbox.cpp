@@ -1,6 +1,6 @@
 #include "Sandbox.h"
 
-#include "Memory/Memory.h"
+#include "Memory/API/Malloc.h"
 
 #include "Log/Log.h"
 
@@ -9,6 +9,7 @@
 #include "Resources/ResourceManager.h"
 
 #include "Rendering/RenderSystem.h"
+#include "Rendering/ImGuiRenderer.h"
 #include "Rendering/Renderer.h"
 #include "Rendering/PipelineStateManager.h"
 #include "Rendering/RenderGraphDescriptionParser.h"
@@ -26,12 +27,15 @@
 #include "Audio/API/IMusicInstance.h"
 
 #include "Application/API/IWindow.h"
+#include "Application/API/CommonApplication.h"
 
 #include "Game/Scene.h"
 
 #include "Time/API/Clock.h"
 
 #include "Threading/API/Thread.h"
+
+#include <imgui.h>
 
 constexpr const uint32 BACK_BUFFER_COUNT = 3;
 #ifdef LAMBDA_PLATFORM_MACOS
@@ -42,11 +46,14 @@ constexpr const uint32 MAX_TEXTURES_PER_DESCRIPTOR_SET = 256;
 constexpr const bool RAY_TRACING_ENABLED		= false;
 constexpr const bool POST_PROCESSING_ENABLED	= false;
 
+constexpr const bool RENDERING_DEBUG_ENABLED	= true;
+
 Sandbox::Sandbox()
     : Game()
 {
 	using namespace LambdaEngine;
 
+	CommonApplication::Get()->AddEventHandler(this);	
 	m_pScene = DBG_NEW Scene(RenderSystem::GetDevice(), AudioSystem::GetDevice());
 
 	SceneDesc sceneDesc = {};
@@ -74,10 +81,12 @@ Sandbox::Sandbox()
 
 	m_pCamera = DBG_NEW Camera();
 
+	IWindow* pWindow = CommonApplication::Get()->GetMainWindow();
+
 	CameraDesc cameraDesc = {};
 	cameraDesc.FOVDegrees	= 90.0f;
-	cameraDesc.Width		= 1440.0f;
-	cameraDesc.Height		= 900.0f;
+	cameraDesc.Width		= pWindow->GetWidth();
+	cameraDesc.Height		= pWindow->GetHeight();
 	cameraDesc.NearPlane	= 0.001f;
 	cameraDesc.FarPlane		= 1000.0f;
 
@@ -118,14 +127,16 @@ Sandbox::Sandbox()
 
 	m_pNearestSampler = RenderSystem::GetDevice()->CreateSampler(&samplerNearestDesc);
 
+	//InitRendererForEmpty();
+
 	InitRendererForDeferred();
 	InitTestAudio();
 }
 
 Sandbox::~Sandbox()
-{    
-	SAFEDELETE(m_pAudioGeometry);
-
+{
+    LambdaEngine::CommonApplication::Get()->RemoveEventHandler(this);
+    
 	SAFEDELETE(m_pScene);
 	SAFEDELETE(m_pCamera);
 	SAFERELEASE(m_pLinearSampler);
@@ -192,11 +203,55 @@ void Sandbox::InitTestAudio()
 	m_pAudioListener = AudioSystem::GetDevice()->CreateAudioListener(&listenerDesc);
 }
 
+void Sandbox::FocusChanged(LambdaEngine::IWindow* pWindow, bool hasFocus)
+{
+	UNREFERENCED_VARIABLE(pWindow);
+	
+    LOG_MESSAGE("Window Moved: hasFocus=%s", hasFocus ? "true" : "false");
+}
+
+void Sandbox::WindowMoved(LambdaEngine::IWindow* pWindow, int16 x, int16 y)
+{
+	UNREFERENCED_VARIABLE(pWindow);
+	
+    LOG_MESSAGE("Window Moved: x=%d, y=%d", x, y);
+}
+
+void Sandbox::WindowResized(LambdaEngine::IWindow* pWindow, uint16 width, uint16 height, LambdaEngine::EResizeType type)
+{
+	UNREFERENCED_VARIABLE(pWindow);
+	
+    LOG_MESSAGE("Window Resized: width=%u, height=%u, type=%u", width, height, uint32(type));
+}
+
+void Sandbox::WindowClosed(LambdaEngine::IWindow* pWindow)
+{
+	UNREFERENCED_VARIABLE(pWindow);
+	
+    LOG_MESSAGE("Window closed");
+}
+
+void Sandbox::MouseEntered(LambdaEngine::IWindow* pWindow)
+{
+	UNREFERENCED_VARIABLE(pWindow);
+	
+    LOG_MESSAGE("Mouse Entered");
+}
+
+void Sandbox::MouseLeft(LambdaEngine::IWindow* pWindow)
+{
+	UNREFERENCED_VARIABLE(pWindow);
+	
+    LOG_MESSAGE("Mouse Left");
+}
+
 void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRepeat)
 {
+	UNREFERENCED_VARIABLE(modifierMask);
+	
     using namespace LambdaEngine;
 
-	if (!isRepeat)
+   if (!isRepeat)
 	{
 		if (key == EKey::KEY_7)
 		{
@@ -271,13 +326,13 @@ void Sandbox::ButtonPressed(LambdaEngine::EMouseButton button, uint32 modifierMa
 	UNREFERENCED_VARIABLE(button);
     UNREFERENCED_VARIABLE(modifierMask);
     
-	LOG_MESSAGE("Mouse Button Pressed: %d", button);
+	//LOG_MESSAGE("Mouse Button Pressed: %d", button);
 }
 
 void Sandbox::ButtonReleased(LambdaEngine::EMouseButton button)
 {
 	UNREFERENCED_VARIABLE(button);
-	LOG_MESSAGE("Mouse Button Released: %d", button);
+	//LOG_MESSAGE("Mouse Button Released: %d", button);
 }
 
 void Sandbox::MouseScrolled(int32 deltaX, int32 deltaY)
@@ -285,7 +340,7 @@ void Sandbox::MouseScrolled(int32 deltaX, int32 deltaY)
 	UNREFERENCED_VARIABLE(deltaX);
     UNREFERENCED_VARIABLE(deltaY);
     
-	LOG_MESSAGE("Mouse Scrolled: x=%d, y=%d", deltaX, deltaY);
+	//LOG_MESSAGE("Mouse Scrolled: x=%d, y=%d", deltaX, deltaY);
 }
 
 
@@ -350,8 +405,170 @@ void Sandbox::Tick(LambdaEngine::Timestamp delta)
 	m_pAudioListener->SetPosition(m_pCamera->GetPosition());
 
 	m_pScene->UpdateCamera(m_pCamera);
+
+	m_pRenderer->Begin(delta);
+
+	ImGui::ShowDemoWindow();
+
+	ImGui::SetNextWindowSize(ImVec2(430, 450), ImGuiCond_FirstUseEver);
+	if (ImGui::Begin("Test Window", NULL))
+	{
+		ImGui::Button("Test Button");
+
+		uint32 modFrameIndex = m_pRenderer->GetModFrameIndex();
+
+		ITextureView* const *	ppTextureViews		= nullptr;
+		uint32			textureViewCount		= 0;
+
+		static ImGuiTexture albedoTexture = {};
+		static ImGuiTexture normalTexture = {};
+		static ImGuiTexture depthStencilTexture = {};
+		 
 		
-	m_pRenderer->Render();
+
+		float windowWidth = ImGui::GetWindowWidth();
+
+		if (ImGui::BeginTabBar("G-Buffer"))
+		{
+			if (ImGui::BeginTabItem("Albedo AO"))
+			{
+				if (m_pRenderGraph->GetResourceTextureViews("GEOMETRY_ALBEDO_AO_BUFFER", &ppTextureViews, &textureViewCount))
+				{
+					ITextureView* pTextureView = ppTextureViews[modFrameIndex];
+					albedoTexture.pTextureView = pTextureView;
+
+					float32 aspectRatio = (float32)pTextureView->GetDesc().pTexture->GetDesc().Width / (float32)pTextureView->GetDesc().pTexture->GetDesc().Height;
+
+					ImGui::Image(&albedoTexture, ImVec2(windowWidth, windowWidth / aspectRatio));
+				}
+
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("Normal Metallic Roughness"))
+			{
+				if (m_pRenderGraph->GetResourceTextureViews("GEOMETRY_NORM_MET_ROUGH_BUFFER", &ppTextureViews, &textureViewCount))
+				{
+					ITextureView* pTextureView = ppTextureViews[modFrameIndex];
+
+					normalTexture.pTextureView = pTextureView;
+
+					const char* items[] = { "ALL", "Normal", "Metallic", "Roughness" };
+					static int currentItem = 0;
+					ImGui::ListBox("", &currentItem, items, IM_ARRAYSIZE(items), 4);
+
+					if (currentItem == 0)
+					{
+						normalTexture.ReservedIncludeMask = 0x00008421;
+
+						normalTexture.ChannelMult[0] = 0.5f;
+						normalTexture.ChannelMult[1] = 0.5f;
+						normalTexture.ChannelMult[2] = 0.5f;
+						normalTexture.ChannelMult[3] = 0.5f;
+
+						normalTexture.ChannelAdd[0] = 0.5f;
+						normalTexture.ChannelAdd[1] = 0.5f;
+						normalTexture.ChannelAdd[2] = 0.5f;
+						normalTexture.ChannelAdd[3] = 0.5f;
+
+						normalTexture.PixelShaderGUID = GUID_NONE;
+					}
+					else if (currentItem == 1)
+					{
+						normalTexture.ReservedIncludeMask = 0x00008420;
+
+						normalTexture.ChannelMult[0] = 1.0f;
+						normalTexture.ChannelMult[1] = 1.0f;
+						normalTexture.ChannelMult[2] = 1.0f;
+						normalTexture.ChannelMult[3] = 0.0f;
+
+						normalTexture.ChannelAdd[0] = 0.0f;
+						normalTexture.ChannelAdd[1] = 0.0f;
+						normalTexture.ChannelAdd[2] = 0.0f;
+						normalTexture.ChannelAdd[3] = 1.0f;
+
+						normalTexture.PixelShaderGUID = m_ImGuiPixelShaderNormalGUID;
+					}
+					else if (currentItem == 2)
+					{
+						normalTexture.ReservedIncludeMask = 0x00002220;
+
+						normalTexture.ChannelMult[0] = 0.5f;
+						normalTexture.ChannelMult[1] = 0.5f;
+						normalTexture.ChannelMult[2] = 0.5f;
+						normalTexture.ChannelMult[3] = 0.0f;
+
+						normalTexture.ChannelAdd[0] = 0.5f;
+						normalTexture.ChannelAdd[1] = 0.5f;
+						normalTexture.ChannelAdd[2] = 0.5f;
+						normalTexture.ChannelAdd[3] = 1.0f;
+
+						normalTexture.PixelShaderGUID = GUID_NONE;
+					}
+					else if (currentItem == 3)
+					{
+						normalTexture.ReservedIncludeMask = 0x00001110;
+
+						normalTexture.ChannelMult[0] = 1.0f;
+						normalTexture.ChannelMult[1] = 1.0f;
+						normalTexture.ChannelMult[2] = 1.0f;
+						normalTexture.ChannelMult[3] = 0.0f;
+
+						normalTexture.ChannelAdd[0] = 0.0f;
+						normalTexture.ChannelAdd[1] = 0.0f;
+						normalTexture.ChannelAdd[2] = 0.0f;
+						normalTexture.ChannelAdd[3] = 1.0f;
+
+						normalTexture.PixelShaderGUID = m_ImGuiPixelShaderRoughnessGUID;
+					}
+
+
+
+					float32 aspectRatio = (float32)pTextureView->GetDesc().pTexture->GetDesc().Width / (float32)pTextureView->GetDesc().pTexture->GetDesc().Height;
+
+					ImGui::Image(&normalTexture, ImVec2(windowWidth, windowWidth / aspectRatio));
+				}
+
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("Depth Stencil"))
+			{
+				if (m_pRenderGraph->GetResourceTextureViews("GEOMETRY_DEPTH_STENCIL", &ppTextureViews, &textureViewCount))
+				{
+					ITextureView* pTextureView = ppTextureViews[modFrameIndex];
+					depthStencilTexture.pTextureView = pTextureView;
+
+					depthStencilTexture.ReservedIncludeMask = 0x00008880;
+
+					depthStencilTexture.ChannelMult[0] = 1.0f;
+					depthStencilTexture.ChannelMult[1] = 1.0f;
+					depthStencilTexture.ChannelMult[2] = 1.0f;
+					depthStencilTexture.ChannelMult[3] = 0.0f;
+
+					depthStencilTexture.ChannelAdd[0] = 0.0f;
+					depthStencilTexture.ChannelAdd[1] = 0.0f;
+					depthStencilTexture.ChannelAdd[2] = 0.0f;
+					depthStencilTexture.ChannelAdd[3] = 1.0f;
+
+					depthStencilTexture.PixelShaderGUID = m_ImGuiPixelShaderDepthGUID;
+
+					float32 aspectRatio = (float32)pTextureView->GetDesc().pTexture->GetDesc().Width / (float32)pTextureView->GetDesc().pTexture->GetDesc().Height;
+
+					ImGui::Image(&depthStencilTexture, ImVec2(windowWidth, windowWidth / aspectRatio));
+				}
+
+				ImGui::EndTabItem();
+			}
+
+			ImGui::EndTabBar();
+		}
+	}
+	ImGui::End();
+
+	m_pRenderer->Render(delta);
+
+	m_pRenderer->End(delta);
 }
 
 void Sandbox::FixedTick(LambdaEngine::Timestamp delta)
@@ -363,29 +580,120 @@ namespace LambdaEngine
 {
     Game* CreateGame()
     {
-        Sandbox* pSandbox = DBG_NEW Sandbox();
-        Input::AddKeyboardHandler(pSandbox);
-        Input::AddMouseHandler(pSandbox);
-        
+        Sandbox* pSandbox = DBG_NEW Sandbox();        
         return pSandbox;
     }
+}
+
+bool Sandbox::InitRendererForEmpty()
+{
+	using namespace LambdaEngine;
+
+	GUID_Lambda fullscreenQuadShaderGUID		= ResourceManager::LoadShaderFromFile("../Assets/Shaders/FullscreenQuad.glsl",			FShaderStageFlags::SHADER_STAGE_FLAG_VERTEX_SHADER,			EShaderLang::GLSL);
+	GUID_Lambda shadingPixelShaderGUID			= ResourceManager::LoadShaderFromFile("../Assets/Shaders/StaticPixel.glsl",				FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,			EShaderLang::GLSL);
+
+	std::vector<RenderStageDesc> renderStages;
+
+	const char*									pShadingRenderStageName = "Shading Render Stage";
+	GraphicsManagedPipelineStateDesc			shadingPipelineStateDesc = {};
+	std::vector<RenderStageAttachment>			shadingRenderStageAttachments;
+
+	{
+		shadingRenderStageAttachments.push_back({ RENDER_GRAPH_BACK_BUFFER_ATTACHMENT,			EAttachmentType::OUTPUT_COLOR,									FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,	BACK_BUFFER_COUNT, EFormat::FORMAT_B8G8R8A8_UNORM });
+
+		RenderStagePushConstants pushConstants = {};
+		pushConstants.pName			= "Shading Pass Push Constants";
+		pushConstants.DataSize		= sizeof(int32) * 2;
+
+		RenderStageDesc renderStage = {};
+		renderStage.pName						= pShadingRenderStageName;
+		renderStage.pAttachments				= shadingRenderStageAttachments.data();
+		renderStage.AttachmentCount				= (uint32)shadingRenderStageAttachments.size();
+
+		shadingPipelineStateDesc.pName				= "Shading Pass Pipeline State";
+		shadingPipelineStateDesc.VertexShader		= fullscreenQuadShaderGUID;
+		shadingPipelineStateDesc.PixelShader		= shadingPixelShaderGUID;
+
+		renderStage.PipelineType						= EPipelineStateType::GRAPHICS;
+
+		renderStage.GraphicsPipeline.DrawType				= ERenderStageDrawType::FULLSCREEN_QUAD;
+		renderStage.GraphicsPipeline.pIndexBufferName		= nullptr;
+		renderStage.GraphicsPipeline.pMeshIndexBufferName	= nullptr;
+		renderStage.GraphicsPipeline.pGraphicsDesc			= &shadingPipelineStateDesc;
+
+		renderStages.push_back(renderStage);
+	}
+
+	RenderGraphDesc renderGraphDesc = {};
+	renderGraphDesc.pName						= "Render Graph";
+	renderGraphDesc.CreateDebugGraph			= RENDERING_DEBUG_ENABLED;
+	renderGraphDesc.pRenderStages				= renderStages.data();
+	renderGraphDesc.RenderStageCount			= (uint32)renderStages.size();
+	renderGraphDesc.BackBufferCount				= BACK_BUFFER_COUNT;
+	renderGraphDesc.MaxTexturesPerDescriptorSet = MAX_TEXTURES_PER_DESCRIPTOR_SET;
+	renderGraphDesc.pScene						= nullptr;
+
+	m_pRenderGraph = DBG_NEW RenderGraph(RenderSystem::GetDevice());
+
+	m_pRenderGraph->Init(renderGraphDesc);
+
+	IWindow* pWindow = CommonApplication::Get()->GetMainWindow();
+	uint32 renderWidth	= pWindow->GetWidth();
+	uint32 renderHeight = pWindow->GetHeight();
+
+	{
+		RenderStageParameters shadingRenderStageParameters = {};
+		shadingRenderStageParameters.pRenderStageName	= pShadingRenderStageName;
+		shadingRenderStageParameters.Graphics.Width		= renderWidth;
+		shadingRenderStageParameters.Graphics.Height	= renderHeight;
+
+		m_pRenderGraph->UpdateRenderStageParameters(shadingRenderStageParameters);
+	}
+
+	m_pRenderer = DBG_NEW Renderer(RenderSystem::GetDevice());
+
+	RendererDesc rendererDesc = {};
+	rendererDesc.pName				= "Renderer";
+	rendererDesc.Debug				= RENDERING_DEBUG_ENABLED;
+	rendererDesc.pRenderGraph		= m_pRenderGraph;
+	rendererDesc.pWindow			= CommonApplication::Get()->GetMainWindow();
+	rendererDesc.BackBufferCount	= BACK_BUFFER_COUNT;
+	
+	m_pRenderer->Init(&rendererDesc);
+
+	if (RENDERING_DEBUG_ENABLED)
+	{
+		ImGui::SetCurrentContext(ImGuiRenderer::GetImguiContext());
+	}
+
+	return true;
 }
 
 bool Sandbox::InitRendererForDeferred()
 {
 	using namespace LambdaEngine;
 
-	GUID_Lambda geometryVertexShaderGUID		= ResourceManager::LoadShaderFromFile("../Assets/Shaders/geometryDefVertex.glsl",		FShaderStageFlags::SHADER_STAGE_FLAG_VERTEX_SHADER,			EShaderLang::GLSL);
-	GUID_Lambda geometryPixelShaderGUID			= ResourceManager::LoadShaderFromFile("../Assets/Shaders/geometryDefPixel.glsl",		FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,			EShaderLang::GLSL);
+	GUID_Lambda geometryVertexShaderGUID		= ResourceManager::LoadShaderFromFile("../Assets/Shaders/GeometryDefVertex.glsl",		FShaderStageFlags::SHADER_STAGE_FLAG_VERTEX_SHADER,			EShaderLang::GLSL);
+	GUID_Lambda geometryPixelShaderGUID			= ResourceManager::LoadShaderFromFile("../Assets/Shaders/GeometryDefPixel.glsl",		FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,			EShaderLang::GLSL);
 
-	GUID_Lambda fullscreenQuadShaderGUID		= ResourceManager::LoadShaderFromFile("../Assets/Shaders/fullscreenQuad.glsl",			FShaderStageFlags::SHADER_STAGE_FLAG_VERTEX_SHADER,			EShaderLang::GLSL);
-	GUID_Lambda shadingPixelShaderGUID			= ResourceManager::LoadShaderFromFile("../Assets/Shaders/shadingDefPixel.glsl",			FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,			EShaderLang::GLSL);
+	GUID_Lambda fullscreenQuadShaderGUID		= ResourceManager::LoadShaderFromFile("../Assets/Shaders/FullscreenQuad.glsl",			FShaderStageFlags::SHADER_STAGE_FLAG_VERTEX_SHADER,			EShaderLang::GLSL);
+	GUID_Lambda shadingPixelShaderGUID			= ResourceManager::LoadShaderFromFile("../Assets/Shaders/ShadingDefPixel.glsl",			FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,			EShaderLang::GLSL);
 
-	GUID_Lambda raygenShaderGUID				= ResourceManager::LoadShaderFromFile("../Assets/Shaders/raygen.glsl",					FShaderStageFlags::SHADER_STAGE_FLAG_RAYGEN_SHADER,			EShaderLang::GLSL);
-	GUID_Lambda closestHitShaderGUID			= ResourceManager::LoadShaderFromFile("../Assets/Shaders/closestHit.glsl",				FShaderStageFlags::SHADER_STAGE_FLAG_CLOSEST_HIT_SHADER,	EShaderLang::GLSL);
-	GUID_Lambda missShaderGUID					= ResourceManager::LoadShaderFromFile("../Assets/Shaders/miss.glsl",					FShaderStageFlags::SHADER_STAGE_FLAG_MISS_SHADER,			EShaderLang::GLSL);
+	GUID_Lambda raygenShaderGUID				= ResourceManager::LoadShaderFromFile("../Assets/Shaders/Raygen.glsl",					FShaderStageFlags::SHADER_STAGE_FLAG_RAYGEN_SHADER,			EShaderLang::GLSL);
+	GUID_Lambda closestHitShaderGUID			= ResourceManager::LoadShaderFromFile("../Assets/Shaders/ClosestHit.glsl",				FShaderStageFlags::SHADER_STAGE_FLAG_CLOSEST_HIT_SHADER,	EShaderLang::GLSL);
+	GUID_Lambda missShaderGUID					= ResourceManager::LoadShaderFromFile("../Assets/Shaders/Miss.glsl",					FShaderStageFlags::SHADER_STAGE_FLAG_MISS_SHADER,			EShaderLang::GLSL);
 
-	GUID_Lambda postProcessShaderGUID			= ResourceManager::LoadShaderFromFile("../Assets/Shaders/postProcess.glsl",				FShaderStageFlags::SHADER_STAGE_FLAG_COMPUTE_SHADER,		EShaderLang::GLSL);
+	GUID_Lambda postProcessShaderGUID			= ResourceManager::LoadShaderFromFile("../Assets/Shaders/PostProcess.glsl",				FShaderStageFlags::SHADER_STAGE_FLAG_COMPUTE_SHADER,		EShaderLang::GLSL);
+
+	m_ImGuiPixelShaderNormalGUID				= ResourceManager::LoadShaderFromFile("../Assets/Shaders/ImGuiPixelNormal.glsl",		FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,			EShaderLang::GLSL);
+	m_ImGuiPixelShaderDepthGUID					= ResourceManager::LoadShaderFromFile("../Assets/Shaders/ImGuiPixelDepth.glsl",			FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,			EShaderLang::GLSL);
+	m_ImGuiPixelShaderRoughnessGUID				= ResourceManager::LoadShaderFromFile("../Assets/Shaders/ImGuiPixelRoughness.glsl",		FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,			EShaderLang::GLSL);
+
+	//GUID_Lambda geometryVertexShaderGUID		= ResourceManager::LoadShaderFromFile("../Assets/Shaders/geometryDefVertex.spv",			FShaderStageFlags::SHADER_STAGE_FLAG_VERTEX_SHADER,			EShaderLang::SPIRV);
+	//GUID_Lambda geometryPixelShaderGUID			= ResourceManager::LoadShaderFromFile("../Assets/Shaders/geometryDefPixel.spv",			FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,			EShaderLang::SPIRV);
+
+	//GUID_Lambda fullscreenQuadShaderGUID		= ResourceManager::LoadShaderFromFile("../Assets/Shaders/fullscreenQuad.spv",			FShaderStageFlags::SHADER_STAGE_FLAG_VERTEX_SHADER,			EShaderLang::SPIRV);
+	//GUID_Lambda shadingPixelShaderGUID			= ResourceManager::LoadShaderFromFile("../Assets/Shaders/shadingDefPixel.spv",			FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,			EShaderLang::SPIRV);
 	
 	std::vector<RenderStageDesc> renderStages;
 
@@ -405,8 +713,8 @@ bool Sandbox::InitRendererForDeferred()
 		geometryRenderStageAttachments.push_back({ SCENE_ALBEDO_MAPS,							EAttachmentType::EXTERNAL_INPUT_SHADER_RESOURCE_COMBINED_SAMPLER,	FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,	MAX_UNIQUE_MATERIALS, EFormat::FORMAT_R8G8B8A8_UNORM });
 		geometryRenderStageAttachments.push_back({ SCENE_NORMAL_MAPS,							EAttachmentType::EXTERNAL_INPUT_SHADER_RESOURCE_COMBINED_SAMPLER,	FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,	MAX_UNIQUE_MATERIALS, EFormat::FORMAT_R8G8B8A8_UNORM });
 		geometryRenderStageAttachments.push_back({ SCENE_AO_MAPS,								EAttachmentType::EXTERNAL_INPUT_SHADER_RESOURCE_COMBINED_SAMPLER,	FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,	MAX_UNIQUE_MATERIALS, EFormat::FORMAT_R8G8B8A8_UNORM });
-		geometryRenderStageAttachments.push_back({ SCENE_ROUGHNESS_MAPS,						EAttachmentType::EXTERNAL_INPUT_SHADER_RESOURCE_COMBINED_SAMPLER,	FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,	MAX_UNIQUE_MATERIALS, EFormat::FORMAT_R8G8B8A8_UNORM });
 		geometryRenderStageAttachments.push_back({ SCENE_METALLIC_MAPS,							EAttachmentType::EXTERNAL_INPUT_SHADER_RESOURCE_COMBINED_SAMPLER,	FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,	MAX_UNIQUE_MATERIALS, EFormat::FORMAT_R8G8B8A8_UNORM });
+		geometryRenderStageAttachments.push_back({ SCENE_ROUGHNESS_MAPS,						EAttachmentType::EXTERNAL_INPUT_SHADER_RESOURCE_COMBINED_SAMPLER,	FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,	MAX_UNIQUE_MATERIALS, EFormat::FORMAT_R8G8B8A8_UNORM });
 
 		
 		geometryRenderStageAttachments.push_back({ "GEOMETRY_ALBEDO_AO_BUFFER",					EAttachmentType::OUTPUT_COLOR,										FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,	BACK_BUFFER_COUNT, EFormat::FORMAT_R8G8B8A8_UNORM		});
@@ -548,7 +856,7 @@ bool Sandbox::InitRendererForDeferred()
 
 	RenderGraphDesc renderGraphDesc = {};
 	renderGraphDesc.pName						= "Render Graph";
-	renderGraphDesc.CreateDebugGraph			= true;
+	renderGraphDesc.CreateDebugGraph			= RENDERING_DEBUG_ENABLED;
 	renderGraphDesc.pRenderStages				= renderStages.data();
 	renderGraphDesc.RenderStageCount			= (uint32)renderStages.size();
 	renderGraphDesc.BackBufferCount				= BACK_BUFFER_COUNT;
@@ -566,8 +874,9 @@ bool Sandbox::InitRendererForDeferred()
 	clock.Tick();
 	LOG_INFO("Render Graph Build Time: %f milliseconds", clock.GetDeltaTime().AsMilliSeconds());
 
-	uint32 renderWidth	= PlatformApplication::Get()->GetMainWindow()->GetWidth();
-	uint32 renderHeight = PlatformApplication::Get()->GetMainWindow()->GetHeight();
+	IWindow* pWindow	= CommonApplication::Get()->GetMainWindow();
+	uint32 renderWidth	= pWindow->GetWidth();
+	uint32 renderHeight = pWindow->GetHeight();
 	
 	{
 		RenderStageParameters geometryRenderStageParameters = {};
@@ -691,8 +1000,8 @@ bool Sandbox::InitRendererForDeferred()
 		textureDesc.MemoryType			= EMemoryType::MEMORY_GPU;
 		textureDesc.Format				= EFormat::FORMAT_R8G8B8A8_UNORM;
 		textureDesc.Flags				= FTextureFlags::TEXTURE_FLAG_RENDER_TARGET | FTextureFlags::TEXTURE_FLAG_SHADER_RESOURCE;
-		textureDesc.Width				= PlatformApplication::Get()->GetMainWindow()->GetWidth();
-		textureDesc.Height				= PlatformApplication::Get()->GetMainWindow()->GetHeight();
+		textureDesc.Width				= CommonApplication::Get()->GetMainWindow()->GetWidth();
+		textureDesc.Height				= CommonApplication::Get()->GetMainWindow()->GetHeight();
 		textureDesc.Depth				= 1;
 		textureDesc.SampleCount			= 1;
 		textureDesc.Miplevels			= 1;
@@ -742,8 +1051,8 @@ bool Sandbox::InitRendererForDeferred()
 		textureDesc.MemoryType			= EMemoryType::MEMORY_GPU;
 		textureDesc.Format				= EFormat::FORMAT_R16G16B16A16_SFLOAT;
 		textureDesc.Flags				= FTextureFlags::TEXTURE_FLAG_RENDER_TARGET | FTextureFlags::TEXTURE_FLAG_SHADER_RESOURCE;
-		textureDesc.Width				= PlatformApplication::Get()->GetMainWindow()->GetWidth();
-		textureDesc.Height				= PlatformApplication::Get()->GetMainWindow()->GetHeight();
+		textureDesc.Width				= CommonApplication::Get()->GetMainWindow()->GetWidth();
+		textureDesc.Height				= CommonApplication::Get()->GetMainWindow()->GetHeight();
 		textureDesc.Depth				= 1;
 		textureDesc.SampleCount			= 1;
 		textureDesc.Miplevels			= 1;
@@ -793,8 +1102,8 @@ bool Sandbox::InitRendererForDeferred()
 		textureDesc.MemoryType			= EMemoryType::MEMORY_GPU;
 		textureDesc.Format				= EFormat::FORMAT_D24_UNORM_S8_UINT;
 		textureDesc.Flags				= FTextureFlags::TEXTURE_FLAG_DEPTH_STENCIL | FTextureFlags::TEXTURE_FLAG_SHADER_RESOURCE;
-		textureDesc.Width				= PlatformApplication::Get()->GetMainWindow()->GetWidth();
-		textureDesc.Height				= PlatformApplication::Get()->GetMainWindow()->GetHeight();
+		textureDesc.Width				= CommonApplication::Get()->GetMainWindow()->GetWidth();
+		textureDesc.Height				= CommonApplication::Get()->GetMainWindow()->GetHeight();
 		textureDesc.Depth				= 1;
 		textureDesc.SampleCount			= 1;
 		textureDesc.Miplevels			= 1;
@@ -845,8 +1154,8 @@ bool Sandbox::InitRendererForDeferred()
 		textureDesc.MemoryType			= EMemoryType::MEMORY_GPU;
 		textureDesc.Format				= EFormat::FORMAT_R8G8B8A8_UNORM;
 		textureDesc.Flags				= FTextureFlags::TEXTURE_FLAG_UNORDERED_ACCESS | FTextureFlags::TEXTURE_FLAG_SHADER_RESOURCE;
-		textureDesc.Width				= PlatformApplication::Get()->GetMainWindow()->GetWidth();
-		textureDesc.Height				= PlatformApplication::Get()->GetMainWindow()->GetHeight();
+		textureDesc.Width				= CommonApplication::Get()->GetMainWindow()->GetWidth();
+		textureDesc.Height				= CommonApplication::Get()->GetMainWindow()->GetHeight();
 		textureDesc.Depth				= 1;
 		textureDesc.SampleCount			= 1;
 		textureDesc.Miplevels			= 1;
@@ -897,8 +1206,8 @@ bool Sandbox::InitRendererForDeferred()
 		textureDesc.MemoryType			= EMemoryType::MEMORY_GPU;
 		textureDesc.Format				= EFormat::FORMAT_R8G8B8A8_UNORM;
 		textureDesc.Flags				= FTextureFlags::TEXTURE_FLAG_RENDER_TARGET | FTextureFlags::TEXTURE_FLAG_SHADER_RESOURCE;
-		textureDesc.Width				= PlatformApplication::Get()->GetMainWindow()->GetWidth();
-		textureDesc.Height				= PlatformApplication::Get()->GetMainWindow()->GetHeight();
+		textureDesc.Width				= CommonApplication::Get()->GetMainWindow()->GetWidth();
+		textureDesc.Height				= CommonApplication::Get()->GetMainWindow()->GetHeight();
 		textureDesc.Depth				= 1;
 		textureDesc.SampleCount			= 1;
 		textureDesc.Miplevels			= 1;
@@ -997,11 +1306,17 @@ bool Sandbox::InitRendererForDeferred()
 
 	RendererDesc rendererDesc = {};
 	rendererDesc.pName				= "Renderer";
+	rendererDesc.Debug				= RENDERING_DEBUG_ENABLED;
 	rendererDesc.pRenderGraph		= m_pRenderGraph;
-	rendererDesc.pWindow			= PlatformApplication::Get()->GetMainWindow();
+	rendererDesc.pWindow			= CommonApplication::Get()->GetMainWindow();
 	rendererDesc.BackBufferCount	= BACK_BUFFER_COUNT;
 	
-	m_pRenderer->Init(rendererDesc);
+	m_pRenderer->Init(&rendererDesc);
+
+	if (RENDERING_DEBUG_ENABLED)
+	{
+		ImGui::SetCurrentContext(ImGuiRenderer::GetImguiContext());
+	}
 
 	m_pRenderGraph->Update();
 

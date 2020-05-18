@@ -20,11 +20,7 @@ namespace LambdaEngine
 		* Initializes modules that are needed in EngineLoop::Init()
 		*	return - Returns true if successfull
 		*/
-#ifdef LAMBDA_PLATFORM_WINDOWS
-		static bool PreInit(HINSTANCE hInstance);
-#else
 		static bool PreInit();
-#endif
 
 		/*
 		* Initializes all engine modules
@@ -54,8 +50,8 @@ namespace LambdaEngine
 	private:
 		/*
 		* Engine tick, advances the whole engine one frame. Should only be called from run
-		*	delta - The time between this frame and the last frame
-		*	return - Returns true if the engine should perform next tick
+		*	delta	- The time between this frame and the last frame
+		*	return	- Returns true if the engine should perform next tick
 		*/
 		static bool Tick(Timestamp delta);
         
