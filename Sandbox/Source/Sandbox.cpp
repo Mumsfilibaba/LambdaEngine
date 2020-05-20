@@ -291,7 +291,15 @@ void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRep
 		}
 		else if (key == EKey::KEY_1)
 		{
-			m_pCamera->SetPosition(glm::vec3(0.0f));
+			camPos[0] = 0.0f;
+			camPos[1] = 6.0f;
+			camPos[2] = -10.0f;
+			m_pCamera->SetPosition(glm::vec3(camPos[0], camPos[1], camPos[2]));
+
+			camRot[0] = 0.0f;
+			camRot[1] = -90.0f;
+			camRot[2] = 0.0f;
+			m_pCamera->SetRotation(glm::vec3(camRot[0], camRot[1], camRot[2]));
 		}
 		else if (key == EKey::KEY_KEYPAD_5)
 		{
@@ -299,6 +307,10 @@ void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRep
 			RenderSystem::GetComputeQueue()->Flush();
 			ResourceManager::ReloadAllShaders();
 			PipelineStateManager::ReloadPipelineStates();
+		}
+		else if (key == EKey::KEY_ESCAPE)
+		{
+			CommonApplication::Terminate();
 		}
 	}
 }
@@ -609,7 +621,7 @@ void Sandbox::Tick(LambdaEngine::Timestamp delta)
 	}
 	ImGui::End();
 
-#if 1
+#if 0
 	ImGui::SetNextWindowSize(ImVec2(430, 450), ImGuiCond_FirstUseEver);
 	if (ImGui::Begin("Test Window", NULL))
 	{
