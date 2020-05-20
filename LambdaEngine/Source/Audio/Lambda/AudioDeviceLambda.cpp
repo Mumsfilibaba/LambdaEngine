@@ -236,7 +236,7 @@ namespace LambdaEngine
         float32 volumeLeft  = glm::abs(glm::cos(glm::half_pi<float32>() * b) * volume);
         float32 volumeRight = glm::abs(glm::sin(glm::half_pi<float32>() * b) * volume);
 
-        LOG_INFO("right: x=%.3f y=%.3f z=%.3f sourceDir: x=%.3f y=%.3f z=%.3f, angle=%.3f, dot=%.3f, VL=%.3f, VR=%.3f", right.x, right.y, right.z, sourceDir.x, sourceDir.y, sourceDir.z, angle, dot, volumeLeft, volumeRight);
+        // LOG_INFO("right: x=%.3f y=%.3f z=%.3f sourceDir: x=%.3f y=%.3f z=%.3f, angle=%.3f, dot=%.3f, VL=%.3f, VR=%.3f", right.x, right.y, right.z, sourceDir.x, sourceDir.y, sourceDir.z, angle, dot, volumeLeft, volumeRight);
         
 		// Add samples to buffer
 		for (uint32_t i = 0; i < SAMPLES_PER_CHANNEL; i++)

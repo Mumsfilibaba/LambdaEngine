@@ -126,22 +126,24 @@ namespace LambdaEngine
 		if (m_GUIDToMappedMeshes.count(gameObject.Mesh) == 0)
 		{
 			const Mesh* pMesh = ResourceManager::GetMesh(gameObject.Mesh);
+			if (pMesh)
+			{
+				uint32 currentNumSceneVertices = (uint32)m_SceneVertexArray.size();
+				m_SceneVertexArray.resize(currentNumSceneVertices + pMesh->VertexCount);
+				memcpy(&m_SceneVertexArray[currentNumSceneVertices], pMesh->pVertexArray, pMesh->VertexCount * sizeof(Vertex));
 
-			uint32 currentNumSceneVertices = (uint32)m_SceneVertexArray.size();
-			m_SceneVertexArray.resize(currentNumSceneVertices + pMesh->VertexCount);
-			memcpy(&m_SceneVertexArray[currentNumSceneVertices], pMesh->pVertexArray, pMesh->VertexCount * sizeof(Vertex));
+				uint32 currentNumSceneIndices = (uint32)m_SceneIndexArray.size();
+				m_SceneIndexArray.resize(currentNumSceneIndices + pMesh->IndexCount);
+				memcpy(&m_SceneIndexArray[currentNumSceneIndices], pMesh->pIndexArray, pMesh->IndexCount * sizeof(uint32));
 
-			uint32 currentNumSceneIndices = (uint32)m_SceneIndexArray.size();
-			m_SceneIndexArray.resize(currentNumSceneIndices + pMesh->IndexCount);
-			memcpy(&m_SceneIndexArray[currentNumSceneIndices], pMesh->pIndexArray, pMesh->IndexCount * sizeof(uint32));
+				m_Meshes.push_back(pMesh);
+				meshIndex = uint32(m_Meshes.size() - 1);
 
-			m_Meshes.push_back(pMesh);
-			meshIndex = uint32(m_Meshes.size() - 1);
+				MappedMesh newMappedMesh = {};
+				m_MappedMeshes.push_back(newMappedMesh);
 
-			MappedMesh newMappedMesh = {};
-			m_MappedMeshes.push_back(newMappedMesh);
-
-			m_GUIDToMappedMeshes[gameObject.Mesh] = meshIndex;
+				m_GUIDToMappedMeshes[gameObject.Mesh] = meshIndex;
+			}
 		}
 		else
 		{

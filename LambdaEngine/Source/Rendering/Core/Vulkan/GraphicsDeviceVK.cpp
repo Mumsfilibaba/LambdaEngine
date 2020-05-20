@@ -637,17 +637,17 @@ namespace LambdaEngine
 
     void GraphicsDeviceVK::CopyDescriptorSet(const IDescriptorSet* pSrc, IDescriptorSet* pDst) const
     {
-        DescriptorSetVK*        pDstVk            = reinterpret_cast<DescriptorSetVK*>(pDst);
-        const DescriptorSetVK*    pSrcVk            = reinterpret_cast<const DescriptorSetVK*>(pSrc);
-        uint32                    bindingCount    = pSrcVk->GetDescriptorBindingDescCount();
+        DescriptorSetVK*		pDstVk			= reinterpret_cast<DescriptorSetVK*>(pDst);
+        const DescriptorSetVK*	pSrcVk			= reinterpret_cast<const DescriptorSetVK*>(pSrc);
+        uint32					bindingCount	= pSrcVk->GetDescriptorBindingDescCount();
 
         VkCopyDescriptorSet copyDescriptorSet = {};
-        copyDescriptorSet.sType                = VK_STRUCTURE_TYPE_COPY_DESCRIPTOR_SET;
-        copyDescriptorSet.pNext                = nullptr;
-        copyDescriptorSet.dstSet            = pDstVk->GetDescriptorSet();
-        copyDescriptorSet.srcSet            = pSrcVk->GetDescriptorSet();
-        copyDescriptorSet.srcArrayElement    = 0;
-        copyDescriptorSet.dstArrayElement    = 0;
+        copyDescriptorSet.sType				= VK_STRUCTURE_TYPE_COPY_DESCRIPTOR_SET;
+        copyDescriptorSet.pNext				= nullptr;
+        copyDescriptorSet.dstSet			= pDstVk->GetDescriptorSet();
+        copyDescriptorSet.srcSet			= pSrcVk->GetDescriptorSet();
+        copyDescriptorSet.srcArrayElement	= 0;
+        copyDescriptorSet.dstArrayElement	= 0;
 
         std::vector<VkCopyDescriptorSet> descriptorSetCopies;
         descriptorSetCopies.reserve(bindingCount);

@@ -549,10 +549,11 @@ namespace LambdaEngine
 
 	bool RenderGraph::CreateDescriptorHeap()
 	{
-		constexpr uint32 DESCRIPTOR_COUNT = 1024;
+		constexpr uint32 DESCRIPTOR_COUNT 		= 3072;
+		constexpr uint32 DESCRIPTOR_SET_COUNT 	= 256;
 
 		DescriptorCountDesc descriptorCountDesc = { };
-		descriptorCountDesc.DescriptorSetCount							= DESCRIPTOR_COUNT;
+		descriptorCountDesc.DescriptorSetCount							= DESCRIPTOR_SET_COUNT;
 		descriptorCountDesc.SamplerDescriptorCount						= DESCRIPTOR_COUNT;
 		descriptorCountDesc.TextureDescriptorCount						= DESCRIPTOR_COUNT;
 		descriptorCountDesc.TextureCombinedSamplerDescriptorCount		= DESCRIPTOR_COUNT;

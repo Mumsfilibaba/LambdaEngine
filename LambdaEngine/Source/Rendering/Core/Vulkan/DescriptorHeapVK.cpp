@@ -91,6 +91,8 @@ namespace LambdaEngine
 
 	VkDescriptorSet DescriptorHeapVK::AllocateDescriptorSet(const IPipelineLayout* pPipelineLayout, uint32 descriptorLayoutIndex)
 	{
+		VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
+		
 		const PipelineLayoutVK* pPipelineLayoutVk	= reinterpret_cast<const PipelineLayoutVK*>(pPipelineLayout);
 		VkDescriptorSetLayout	descriptorSetLayout = pPipelineLayoutVk->GetDescriptorSetLayout(descriptorLayoutIndex);
 
@@ -105,12 +107,14 @@ namespace LambdaEngine
 		newStatus.UnorderedAccessBufferDescriptorCount	-= count.UnorderedAccessBufferDescriptorCount;
 		newStatus.UnorderedAccessTextureDescriptorCount	-= count.UnorderedAccessTextureDescriptorCount;
 
+#if 0
 #ifndef LAMBDA_PRODUCTION
 		if (!CheckValidDescriptorCount(newStatus))
 		{
 			LOG_ERROR("[DescriptorHeapVK]: Not enough descriptors in DescriptorHeap for allocation");
 			return VK_NULL_HANDLE;
 		}
+#endif
 #endif
 
 		VkDescriptorSetAllocateInfo allocate = {};
@@ -120,11 +124,18 @@ namespace LambdaEngine
 		allocate.descriptorSetCount = 1;
 		allocate.descriptorPool		= m_DescriptorHeap;
 
-		VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
 		VkResult result = vkAllocateDescriptorSets(m_pDevice->Device, &allocate, &descriptorSet);
 		if (result != VK_SUCCESS)
 		{
-			LOG_VULKAN_ERROR(result, "[DescriptorHeapVK]: Failed to allocate descriptorset");
+			if (result != VK_ERROR_OUT_OF_POOL_MEMORY)
+			{
+				LOG_ERROR("[DescriptorHeapVK]: Not enough descriptors in DescriptorHeap for allocation");
+			}
+			else
+			{
+				LOG_VULKAN_ERROR(result, "[DescriptorHeapVK]: Failed to allocate descriptorset");
+			}
+			
 			return VK_NULL_HANDLE;
 		}
 		else
