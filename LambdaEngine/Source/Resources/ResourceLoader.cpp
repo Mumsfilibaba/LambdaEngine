@@ -231,13 +231,11 @@ namespace LambdaEngine
 		loadedMaterials.resize(materials.size());
 
 		std::unordered_map<std::string, ITexture*> loadedTexturesMap;
-
 		for (uint32 m = 0; m < materials.size(); m++)
 		{
 			tinyobj::material_t& material = materials[m];
 
 			Material* pMaterial = DBG_NEW Material();
-
 			if (material.diffuse_texname.length() > 0)
 			{
 				std::string texturePath = pDir + material.diffuse_texname;
@@ -247,10 +245,13 @@ namespace LambdaEngine
 				if (loadedTexture == loadedTexturesMap.end())
 				{
 					ITexture* pTexture = LoadTextureFromFile(texturePath.c_str(), EFormat::FORMAT_R8G8B8A8_UNORM, true);
-					loadedTexturesMap[texturePath]	= pTexture;
-					pMaterial->pAlbedoMap			= pTexture;
+					if (pTexture)
+					{
+						loadedTexturesMap[texturePath]	= pTexture;
+						pMaterial->pAlbedoMap			= pTexture;
 
-					loadedTextures.push_back(pTexture);
+						loadedTextures.push_back(pTexture);
+					}
 				}
 				else
 				{
@@ -267,10 +268,13 @@ namespace LambdaEngine
 				if (loadedTexture == loadedTexturesMap.end())
 				{
 					ITexture* pTexture = LoadTextureFromFile(texturePath.c_str(), EFormat::FORMAT_R8G8B8A8_UNORM, true);
-					loadedTexturesMap[texturePath]	= pTexture;
-					pMaterial->pNormalMap			= pTexture;
+					if (pTexture)
+					{
+						loadedTexturesMap[texturePath] = pTexture;
+						pMaterial->pNormalMap = pTexture;
 
-					loadedTextures.push_back(pTexture);
+						loadedTextures.push_back(pTexture);
+					}
 				}
 				else
 				{
@@ -287,10 +291,13 @@ namespace LambdaEngine
 				if (loadedTexture == loadedTexturesMap.end())
 				{
 					ITexture* pTexture = LoadTextureFromFile(texturePath.c_str(), EFormat::FORMAT_R8G8B8A8_UNORM, true);
-					loadedTexturesMap[texturePath]	= pTexture;
-					pMaterial->pMetallicMap			= pTexture;
+					if (pTexture)
+					{
+						loadedTexturesMap[texturePath] = pTexture;
+						pMaterial->pMetallicMap = pTexture;
 
-					loadedTextures.push_back(pTexture);
+						loadedTextures.push_back(pTexture);
+					}
 				}
 				else
 				{
@@ -307,10 +314,36 @@ namespace LambdaEngine
 				if (loadedTexture == loadedTexturesMap.end())
 				{
 					ITexture* pTexture = LoadTextureFromFile(texturePath.c_str(), EFormat::FORMAT_R8G8B8A8_UNORM, true);
-					loadedTexturesMap[texturePath]	= pTexture;
-					pMaterial->pRoughnessMap		= pTexture;
+					if (pTexture)
+					{
+						loadedTexturesMap[texturePath] = pTexture;
+						pMaterial->pRoughnessMap = pTexture;
 
-					loadedTextures.push_back(pTexture);
+						loadedTextures.push_back(pTexture);
+					}
+				}
+				else
+				{
+					pMaterial->pRoughnessMap = loadedTexture->second;
+				}
+			}
+
+			if (material.specular_texname.length() > 0)
+			{
+				std::string texturePath = pDir + material.specular_texname;
+				ConvertBackslashes(texturePath);
+
+				auto loadedTexture = loadedTexturesMap.find(texturePath);
+				if (loadedTexture == loadedTexturesMap.end())
+				{
+					ITexture* pTexture = LoadTextureFromFile(texturePath.c_str(), EFormat::FORMAT_R8G8B8A8_UNORM, true);
+					if (pTexture)
+					{
+						loadedTexturesMap[texturePath] = pTexture;
+						pMaterial->pRoughnessMap = pTexture;
+
+						loadedTextures.push_back(pTexture);
+					}
 				}
 				else
 				{
@@ -518,32 +551,31 @@ namespace LambdaEngine
 		int32 bpp = 0;
 
 		void* pPixels = nullptr;
-
 		if (format == EFormat::FORMAT_R8G8B8A8_UNORM)
 		{
 			pPixels = (void*)stbi_load(pFilepath, &texWidth, &texHeight, &bpp, STBI_rgb_alpha);
 		}
-		/*else if (format == EFormat::FORMAT_R32G32B32A32_FLOAT)
-		{
-			pPixels = (void*)stbi_loadf(filename.c_str(), &texWidth, &texHeight, &bpp, STBI_rgb_alpha);
-		}*/
+		//else if (format == EFormat::FORMAT_R32G32B32A32_FLOAT)
+		//{
+		//	pPixels = (void*)stbi_loadf(filename.c_str(), &texWidth, &texHeight, &bpp, STBI_rgb_alpha);
+		//}
 		else
 		{
-			LOG_ERROR("[ResourceLoader]: Texture format not supported for \"%s\"", pFilepath);
+			LOG_ERROR("[ResourceLoader]: Texture format not supported for '%s'", pFilepath);
 			return nullptr;
 		}
 
 		if (pPixels == nullptr)
 		{
-			LOG_ERROR("[ResourceLoader]: Failed to load texture file: \"%s\"", pFilepath);
+			LOG_ERROR("[ResourceLoader]: Failed to load texture file: '%s'", pFilepath);
 			return nullptr;
 		}
 
 		D_LOG_MESSAGE("[ResourceDevice]: Loaded Texture \"%s\"", pFilepath);
 
 		ITexture* pTexture = LoadTextureFromMemory(pFilepath, pPixels, texWidth, texHeight, format, FTextureFlags::TEXTURE_FLAG_SHADER_RESOURCE, generateMips);
-		stbi_image_free(pPixels);
 
+		stbi_image_free(pPixels);
 		return pTexture;
 	}
 

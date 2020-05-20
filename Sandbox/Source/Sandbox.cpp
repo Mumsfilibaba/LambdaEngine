@@ -41,12 +41,20 @@ constexpr const uint32 BACK_BUFFER_COUNT = 3;
 #ifdef LAMBDA_PLATFORM_MACOS
 constexpr const uint32 MAX_TEXTURES_PER_DESCRIPTOR_SET = 8;
 #else
-constexpr const uint32 MAX_TEXTURES_PER_DESCRIPTOR_SET = 256;
+constexpr const uint32 MAX_TEXTURES_PER_DESCRIPTOR_SET = 512;
 #endif
 constexpr const bool RAY_TRACING_ENABLED		= false;
 constexpr const bool POST_PROCESSING_ENABLED	= false;
 
 constexpr const bool RENDERING_DEBUG_ENABLED	= true;
+
+static float goblinPos[3] = { 0.0f, 0.5f, 65.0f };
+static float camPos[3] = { 0.0f, 6.0f, -10.0f };
+static float camRot[3] = { 0.0f, -90.0f, 0.0f };
+
+static float rollOff				= 4.0f;
+static float maxDistance			= 40.0f;
+static float referenceDistance		= 2.0f;
 
 Sandbox::Sandbox()
     : Game()
@@ -61,23 +69,31 @@ Sandbox::Sandbox()
 	sceneDesc.RayTracingEnabled = RAY_TRACING_ENABLED;
 	m_pScene->Init(sceneDesc);
 
-	uint32 bunnyMeshGUID = ResourceManager::LoadMeshFromFile("../Assets/Meshes/bunny.obj");
+	GUID_Lambda goblinGUID			= ResourceManager::LoadMeshFromFile("../Assets/Meshes/Goblin.obj");
+	GUID_Lambda goblinDiffGUID		= ResourceManager::LoadTextureFromFile("../Assets/Textures/goblin_diffuse.png", EFormat::FORMAT_R8G8B8A8_UNORM, true);
+	GUID_Lambda goblinNormalGUID	= ResourceManager::LoadTextureFromFile("../Assets/Textures/goblin_normal.png", EFormat::FORMAT_R8G8B8A8_UNORM, true);
+	GUID_Lambda goblinSpecularGUID	= ResourceManager::LoadTextureFromFile("../Assets/Textures/goblin_specular.png", EFormat::FORMAT_R8G8B8A8_UNORM, true);
 
-	GameObject bunnyGameObject = {};
-	bunnyGameObject.Mesh = bunnyMeshGUID;
-	bunnyGameObject.Material = DEFAULT_MATERIAL;
+	MaterialProperties goblinProp = { };
+	GUID_Lambda goblinMatGUID = ResourceManager::LoadMaterialFromMemory(goblinDiffGUID, goblinNormalGUID, GUID_NONE, GUID_NONE, goblinSpecularGUID, goblinProp);
 
-	m_pScene->AddDynamicGameObject(bunnyGameObject, glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f)));
+	GameObject goblinObject = {};
+	goblinObject.Mesh		= goblinGUID;
+	goblinObject.Material	= goblinMatGUID;
 
-	uint32 gunMeshGUID = ResourceManager::LoadMeshFromFile("../Assets/Meshes/gun.obj");
+	glm::mat4 transform = glm::scale(glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(goblinPos[0], goblinPos[1], goblinPos[2])), glm::pi<float32>(), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.01f));
+	m_pScene->AddDynamicGameObject(goblinObject, transform);
 
-	GameObject gunGameObject = {};
-	gunGameObject.Mesh = gunMeshGUID;
-	gunGameObject.Material = DEFAULT_MATERIAL;
+	TArray<GameObject> sceneGameObjects;
+	ResourceManager::LoadSceneFromFile("../Assets/Scenes/suntemple/", "suntemple.obj", sceneGameObjects);
 
+	for (GameObject& gameObject : sceneGameObjects)
+	{
+		m_pScene->AddDynamicGameObject(gameObject, glm::scale(glm::mat4(1.0f), glm::vec3(1.0f)));
+	}
+
+	m_pScene->UpdateDirectionalLight(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(300.0f));	
 	m_pScene->Finalize();
-
-	m_pScene->UpdateDirectionalLight(glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(30.0f));
 
 	m_pCamera = DBG_NEW Camera();
 
@@ -87,10 +103,12 @@ Sandbox::Sandbox()
 	cameraDesc.FOVDegrees	= 90.0f;
 	cameraDesc.Width		= pWindow->GetWidth();
 	cameraDesc.Height		= pWindow->GetHeight();
-	cameraDesc.NearPlane	= 0.001f;
-	cameraDesc.FarPlane		= 1000.0f;
+	cameraDesc.NearPlane	= 0.01f;
+	cameraDesc.FarPlane		= 500.0f;
 
 	m_pCamera->Init(cameraDesc);
+	m_pCamera->SetPosition(glm::vec3(camPos[0], camPos[1], camPos[2]));
+	m_pCamera->SetRotation(glm::vec3(camRot[0], camRot[1], camRot[2]));
 	m_pCamera->Update();
 
 	m_pScene->UpdateCamera(m_pCamera);
@@ -145,7 +163,7 @@ Sandbox::~Sandbox()
 	SAFEDELETE(m_pRenderGraph);
 	SAFEDELETE(m_pRenderer);
 
-	SAFERELEASE(m_pGunInstance);
+	SAFERELEASE(m_pLaughInstance);
 	SAFERELEASE(m_pMusicInstance);
 	SAFERELEASE(m_pAudioListener);
 }
@@ -154,46 +172,31 @@ void Sandbox::InitTestAudio()
 {
 	using namespace LambdaEngine;
 
-	m_MusicGUID	= ResourceManager::LoadMusicFromFile("../Assets/Sounds/avicii.wav");
+	m_MusicGUID	= ResourceManager::LoadMusicFromFile("../Assets/Sounds/mountain.wav");
 	m_pMusic	= ResourceManager::GetMusic(m_MusicGUID);
 
-	m_GunSoundEffectGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/Gun_low.wav");
-	m_pGunSoundEffect		= ResourceManager::GetSoundEffect(m_GunSoundEffectGUID);
-    
-    m_MusicEffectGUID    = ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/avicii.wav");
-    m_pMusicEffect       = ResourceManager::GetSoundEffect(m_MusicEffectGUID);
+	m_LaughSoundEffectGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/laugh.wav");
+	m_pLaughSoundEffect		= ResourceManager::GetSoundEffect(m_LaughSoundEffectGUID);
 
 	MusicInstanceDesc musicInstanceDesc = { };
 	musicInstanceDesc.pMusic	= m_pMusic;
-	musicInstanceDesc.Volume	= 0.05f;
+	musicInstanceDesc.Volume	= m_MusicVolume;
 	musicInstanceDesc.Pitch		= 1.0f;
 
 	m_pMusicInstance = AudioSystem::GetDevice()->CreateMusicInstance(&musicInstanceDesc);
-	// m_pMusicInstance->Play();
+	m_pMusicInstance->Play();
 
 	SoundInstance3DDesc soundInstanceDesc = { };
-	soundInstanceDesc.pSoundEffect		= m_pGunSoundEffect;
+	soundInstanceDesc.pSoundEffect		= m_pLaughSoundEffect;
 	soundInstanceDesc.Mode				= ESoundMode::SOUND_MODE_LOOPING;
-	soundInstanceDesc.ReferenceDistance = 1.0f;
-	soundInstanceDesc.MaxDistance		= 30.0f;
-	soundInstanceDesc.RollOff			= 3.0f;
-	soundInstanceDesc.Volume			= 1.0f;
-	soundInstanceDesc.Position			= glm::vec3(0.0f, 0.0f, 0.0f);
+	soundInstanceDesc.ReferenceDistance = referenceDistance;
+	soundInstanceDesc.MaxDistance		= maxDistance;
+	soundInstanceDesc.RollOff			= rollOff;
+	soundInstanceDesc.Volume			= m_LaughVolume;
+	soundInstanceDesc.Position			= glm::vec3(goblinPos[0], goblinPos[1], goblinPos[2]);
 
-	m_pGunInstance = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
-	// m_pGunInstance->Play();
-    
-    soundInstanceDesc = { };
-    soundInstanceDesc.pSoundEffect          = m_pMusicEffect;
-    soundInstanceDesc.Mode                  = ESoundMode::SOUND_MODE_LOOPING;
-    soundInstanceDesc.ReferenceDistance     = 1.0f;
-    soundInstanceDesc.MaxDistance           = 30.0f;
-    soundInstanceDesc.RollOff               = 3.0f;
-    soundInstanceDesc.Volume                = 1.0f;
-    soundInstanceDesc.Position              = glm::vec3(0.0f, 0.0f, 0.0f);
-
-    m_pMusicEffectInstance = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
-    m_pMusicEffectInstance->Play();
+	m_pLaughInstance = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
+	m_pLaughInstance->Play();
 
 	AudioListenerDesc listenerDesc = { };
 	listenerDesc.Position	= m_pCamera->GetPosition();
@@ -201,48 +204,8 @@ void Sandbox::InitTestAudio()
 	listenerDesc.Forward	= m_pCamera->GetForwardVec();
 	listenerDesc.Up			= m_pCamera->GetUpVec();
 	m_pAudioListener = AudioSystem::GetDevice()->CreateAudioListener(&listenerDesc);
-}
 
-void Sandbox::FocusChanged(LambdaEngine::IWindow* pWindow, bool hasFocus)
-{
-	UNREFERENCED_VARIABLE(pWindow);
-	
-    LOG_MESSAGE("Window Moved: hasFocus=%s", hasFocus ? "true" : "false");
-}
-
-void Sandbox::WindowMoved(LambdaEngine::IWindow* pWindow, int16 x, int16 y)
-{
-	UNREFERENCED_VARIABLE(pWindow);
-	
-    LOG_MESSAGE("Window Moved: x=%d, y=%d", x, y);
-}
-
-void Sandbox::WindowResized(LambdaEngine::IWindow* pWindow, uint16 width, uint16 height, LambdaEngine::EResizeType type)
-{
-	UNREFERENCED_VARIABLE(pWindow);
-	
-    LOG_MESSAGE("Window Resized: width=%u, height=%u, type=%u", width, height, uint32(type));
-}
-
-void Sandbox::WindowClosed(LambdaEngine::IWindow* pWindow)
-{
-	UNREFERENCED_VARIABLE(pWindow);
-	
-    LOG_MESSAGE("Window closed");
-}
-
-void Sandbox::MouseEntered(LambdaEngine::IWindow* pWindow)
-{
-	UNREFERENCED_VARIABLE(pWindow);
-	
-    LOG_MESSAGE("Mouse Entered");
-}
-
-void Sandbox::MouseLeft(LambdaEngine::IWindow* pWindow)
-{
-	UNREFERENCED_VARIABLE(pWindow);
-	
-    LOG_MESSAGE("Mouse Left");
+	AudioSystem::GetDevice()->SetMasterVolume(m_MasterVolume);
 }
 
 void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRepeat)
@@ -250,6 +213,8 @@ void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRep
 	UNREFERENCED_VARIABLE(modifierMask);
 	
     using namespace LambdaEngine;
+
+	LOG_INFO("KeyPressed=%s", KeyToString(key));
 
    if (!isRepeat)
 	{
@@ -271,19 +236,6 @@ void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRep
 
 			m_pMusicInstance->SetVolume(volume);
 		}
-		else if (key == EKey::KEY_4)
-		{
-			SoundInstance3DDesc gunInstanceDesc = { };
-			gunInstanceDesc.pSoundEffect		= m_pGunSoundEffect;
-			gunInstanceDesc.Mode				= ESoundMode::SOUND_MODE_LOOPING;
-			gunInstanceDesc.ReferenceDistance	= 1.0f;
-			gunInstanceDesc.MaxDistance			= 30.0f;
-			gunInstanceDesc.RollOff				= 3.0f;
-			gunInstanceDesc.Volume				= 1.0f;
-			gunInstanceDesc.Position			= m_pCamera->GetPosition();
-
-			m_pGunSoundEffect->PlayOnce(&gunInstanceDesc);
-		}
 		else if (key == EKey::KEY_5)
 		{
 			m_pMusicInstance->Stop();
@@ -292,93 +244,53 @@ void Sandbox::KeyPressed(LambdaEngine::EKey key, uint32 modifierMask, bool isRep
 		{
 			m_pCamera->SetPosition(glm::vec3(0.0f));
 		}
+		else if (key == EKey::KEY_KEYPAD_5)
+		{
+			RenderSystem::GetGraphicsQueue()->Flush();
+			RenderSystem::GetComputeQueue()->Flush();
+			ResourceManager::ReloadAllShaders();
+			PipelineStateManager::ReloadPipelineStates();
+		}
 	}
 }
-
-void Sandbox::KeyReleased(LambdaEngine::EKey key)
-{
-    using namespace LambdaEngine;
-    
-	UNREFERENCED_VARIABLE(key);
-	
-    LOG_MESSAGE("Key Released: %s", KeyToString(key));
-}
-
-void Sandbox::KeyTyped(uint32 character)
-{
-    using namespace LambdaEngine;
-    
-    UNREFERENCED_VARIABLE(character);
-    
-    //LOG_MESSAGE("Key Text: %c", char(character));
-}
-
-void Sandbox::MouseMoved(int32 x, int32 y)
-{
-	UNREFERENCED_VARIABLE(x);
-	UNREFERENCED_VARIABLE(y);
-    
-	//LOG_MESSAGE("Mouse Moved: x=%d, y=%d", x, y);
-}
-
-void Sandbox::ButtonPressed(LambdaEngine::EMouseButton button, uint32 modifierMask)
-{
-	UNREFERENCED_VARIABLE(button);
-    UNREFERENCED_VARIABLE(modifierMask);
-    
-	//LOG_MESSAGE("Mouse Button Pressed: %d", button);
-}
-
-void Sandbox::ButtonReleased(LambdaEngine::EMouseButton button)
-{
-	UNREFERENCED_VARIABLE(button);
-	//LOG_MESSAGE("Mouse Button Released: %d", button);
-}
-
-void Sandbox::MouseScrolled(int32 deltaX, int32 deltaY)
-{
-	UNREFERENCED_VARIABLE(deltaX);
-    UNREFERENCED_VARIABLE(deltaY);
-    
-	//LOG_MESSAGE("Mouse Scrolled: x=%d, y=%d", deltaX, deltaY);
-}
-
 
 void Sandbox::Tick(LambdaEngine::Timestamp delta)
 {
 	using namespace LambdaEngine;
 
-	float dt = (float)delta.AsSeconds();
-	m_Timer += dt;
-
-	constexpr float CAMERA_MOVEMENT_SPEED = 1.4f;
 	constexpr float CAMERA_ROTATION_SPEED = 45.0f;
+
+	float cameraMovementSpeed = 1.0f;
+	if (Input::IsKeyDown(EKey::KEY_LEFT_SHIFT))
+	{
+		cameraMovementSpeed = 5.0f;
+	}
 
 	if (Input::IsKeyDown(EKey::KEY_W) && Input::IsKeyUp(EKey::KEY_S))
 	{
-		m_pCamera->Translate(glm::vec3(0.0f, 0.0f, CAMERA_MOVEMENT_SPEED * delta.AsSeconds()));
+		m_pCamera->Translate(glm::vec3(0.0f, 0.0f, cameraMovementSpeed * delta.AsSeconds()));
 	}
 	else if (Input::IsKeyDown(EKey::KEY_S) && Input::IsKeyUp(EKey::KEY_W))
 	{
-		m_pCamera->Translate(glm::vec3(0.0f, 0.0f, -CAMERA_MOVEMENT_SPEED * delta.AsSeconds()));
+		m_pCamera->Translate(glm::vec3(0.0f, 0.0f, -cameraMovementSpeed * delta.AsSeconds()));
 	}
 
 	if (Input::IsKeyDown(EKey::KEY_A) && Input::IsKeyUp(EKey::KEY_D))
 	{
-		m_pCamera->Translate(glm::vec3(-CAMERA_MOVEMENT_SPEED * delta.AsSeconds(), 0.0f, 0.0f));
+		m_pCamera->Translate(glm::vec3(-cameraMovementSpeed * delta.AsSeconds(), 0.0f, 0.0f));
 	}
 	else if (Input::IsKeyDown(EKey::KEY_D) && Input::IsKeyUp(EKey::KEY_A))
 	{
-		m_pCamera->Translate(glm::vec3(CAMERA_MOVEMENT_SPEED * delta.AsSeconds(), 0.0f, 0.0f));
+		m_pCamera->Translate(glm::vec3(cameraMovementSpeed * delta.AsSeconds(), 0.0f, 0.0f));
 	}
 
 	if (Input::IsKeyDown(EKey::KEY_Q) && Input::IsKeyUp(EKey::KEY_E))
 	{
-		m_pCamera->Translate(glm::vec3(0.0f, CAMERA_MOVEMENT_SPEED * delta.AsSeconds(), 0.0f));
+		m_pCamera->Translate(glm::vec3(0.0f, cameraMovementSpeed * delta.AsSeconds(), 0.0f));
 	}
 	else if (Input::IsKeyDown(EKey::KEY_E) && Input::IsKeyUp(EKey::KEY_Q))
 	{
-		m_pCamera->Translate(glm::vec3(0.0f, -CAMERA_MOVEMENT_SPEED * delta.AsSeconds(), 0.0f));
+		m_pCamera->Translate(glm::vec3(0.0f, -cameraMovementSpeed * delta.AsSeconds(), 0.0f));
 	}
 
 	if (Input::IsKeyDown(EKey::KEY_UP) && Input::IsKeyUp(EKey::KEY_DOWN))
@@ -399,6 +311,30 @@ void Sandbox::Tick(LambdaEngine::Timestamp delta)
 		m_pCamera->Rotate(glm::vec3(0.0f, CAMERA_ROTATION_SPEED * delta.AsSeconds(), 0.0f));
 	}
 
+	m_pRenderer->Begin(delta);
+
+	// ImGui Camera
+	glm::vec3 cameraPos = m_pCamera->GetPosition();
+	camPos[0] = cameraPos.x;
+	camPos[1] = cameraPos.y;
+	camPos[2] = cameraPos.z;
+
+	ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
+	if (ImGui::Begin("Camera", NULL))
+	{
+		if (ImGui::DragFloat3("Position", camPos, 0.1f))
+		{
+			m_pCamera->SetPosition(glm::vec3(camPos[0], camPos[1], camPos[2]));
+		}
+
+		if (ImGui::DragFloat3("Rotation", camRot, 0.1f))
+		{
+			m_pCamera->SetRotation(glm::vec3(camRot[0], camRot[1], camRot[2]));
+		}
+	}
+	ImGui::End();
+
+	// Update camera
 	m_pCamera->Update();
 	
 	m_pAudioListener->SetDirectionVectors(m_pCamera->GetUpVec(), m_pCamera->GetForwardVec());
@@ -406,10 +342,111 @@ void Sandbox::Tick(LambdaEngine::Timestamp delta)
 
 	m_pScene->UpdateCamera(m_pCamera);
 
-	m_pRenderer->Begin(delta);
+	// Imgui
+	ImGui::SetNextWindowSize(ImVec2(430, 450), ImGuiCond_FirstUseEver);
+	if (ImGui::Begin("Settings", NULL))
+	{
+		// Settings
+		ImGui::Text("Settings:");
 
-	ImGui::ShowDemoWindow();
+		if (ImGui::SliderFloat("Master Volume", &m_MasterVolume, 0.0f, 1.0f, "%.2f"))
+		{
+			AudioSystem::GetDevice()->SetMasterVolume(m_MasterVolume);
+		}
 
+		// Music
+		ImGui::PushID(0);
+		{
+			ImGui::Text("Music:");
+			if (ImGui::SliderFloat("Volume", &m_MusicVolume, 0.0f, 1.0f, "%.2f"))
+			{
+				m_pMusicInstance->SetVolume(m_MusicVolume);
+			}
+
+			if (ImGui::Button("Play"))
+			{
+				m_pMusicInstance->Play();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Pause"))
+			{
+				m_pMusicInstance->Pause();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Stop"))
+			{
+				m_pMusicInstance->Stop();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Toggle"))
+			{
+				m_pMusicInstance->Toggle();
+			}
+		}
+		ImGui::PopID();
+
+		// Sound Effect
+		ImGui::PushID(1);
+		{
+			ImGui::Text("Laugh Effect:");
+
+			if (ImGui::SliderFloat("Volume", &m_LaughVolume, 0.0f, 1.0f, "%.2f"))
+			{
+				m_pLaughInstance->SetVolume(m_LaughVolume);
+			}
+
+			if (ImGui::DragFloat("Roll Off", &rollOff))
+			{
+				m_pLaughInstance->SetRollOff(rollOff);
+			}
+
+			if (ImGui::DragFloat("Max Distance", &maxDistance))
+			{
+				m_pLaughInstance->SetMaxDistance(maxDistance);
+			}
+
+			if (ImGui::DragFloat("Reference Distance", &referenceDistance))
+			{
+				m_pLaughInstance->SetReferenceDistance(referenceDistance);
+			}
+
+			if (ImGui::Button("Play"))
+			{
+				m_pLaughInstance->Play();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Pause"))
+			{
+				m_pLaughInstance->Pause();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Stop"))
+			{
+				m_pLaughInstance->Stop();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Toggle"))
+			{
+				m_pLaughInstance->Toggle();
+			}
+		}
+		ImGui::PopID();
+	}
+	ImGui::End();
+
+#if 1
 	ImGui::SetNextWindowSize(ImVec2(430, 450), ImGuiCond_FirstUseEver);
 	if (ImGui::Begin("Test Window", NULL))
 	{
@@ -417,17 +454,14 @@ void Sandbox::Tick(LambdaEngine::Timestamp delta)
 
 		uint32 modFrameIndex = m_pRenderer->GetModFrameIndex();
 
-		ITextureView* const *	ppTextureViews		= nullptr;
-		uint32			textureViewCount		= 0;
+		ITextureView* const*	ppTextureViews		= nullptr;
+		uint32					textureViewCount	= 0;
 
 		static ImGuiTexture albedoTexture = {};
 		static ImGuiTexture normalTexture = {};
 		static ImGuiTexture depthStencilTexture = {};
-		 
-		
 
 		float windowWidth = ImGui::GetWindowWidth();
-
 		if (ImGui::BeginTabBar("G-Buffer"))
 		{
 			if (ImGui::BeginTabItem("Albedo AO"))
@@ -522,10 +556,7 @@ void Sandbox::Tick(LambdaEngine::Timestamp delta)
 						normalTexture.PixelShaderGUID = m_ImGuiPixelShaderRoughnessGUID;
 					}
 
-
-
 					float32 aspectRatio = (float32)pTextureView->GetDesc().pTexture->GetDesc().Width / (float32)pTextureView->GetDesc().pTexture->GetDesc().Height;
-
 					ImGui::Image(&normalTexture, ImVec2(windowWidth, windowWidth / aspectRatio));
 				}
 
@@ -565,9 +596,9 @@ void Sandbox::Tick(LambdaEngine::Timestamp delta)
 		}
 	}
 	ImGui::End();
+#endif
 
 	m_pRenderer->Render(delta);
-
 	m_pRenderer->End(delta);
 }
 
@@ -583,90 +614,6 @@ namespace LambdaEngine
         Sandbox* pSandbox = DBG_NEW Sandbox();        
         return pSandbox;
     }
-}
-
-bool Sandbox::InitRendererForEmpty()
-{
-	using namespace LambdaEngine;
-
-	GUID_Lambda fullscreenQuadShaderGUID		= ResourceManager::LoadShaderFromFile("../Assets/Shaders/FullscreenQuad.glsl",			FShaderStageFlags::SHADER_STAGE_FLAG_VERTEX_SHADER,			EShaderLang::GLSL);
-	GUID_Lambda shadingPixelShaderGUID			= ResourceManager::LoadShaderFromFile("../Assets/Shaders/StaticPixel.glsl",				FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,			EShaderLang::GLSL);
-
-	std::vector<RenderStageDesc> renderStages;
-
-	const char*									pShadingRenderStageName = "Shading Render Stage";
-	GraphicsManagedPipelineStateDesc			shadingPipelineStateDesc = {};
-	std::vector<RenderStageAttachment>			shadingRenderStageAttachments;
-
-	{
-		shadingRenderStageAttachments.push_back({ RENDER_GRAPH_BACK_BUFFER_ATTACHMENT,			EAttachmentType::OUTPUT_COLOR,									FShaderStageFlags::SHADER_STAGE_FLAG_PIXEL_SHADER,	BACK_BUFFER_COUNT, EFormat::FORMAT_B8G8R8A8_UNORM });
-
-		RenderStagePushConstants pushConstants = {};
-		pushConstants.pName			= "Shading Pass Push Constants";
-		pushConstants.DataSize		= sizeof(int32) * 2;
-
-		RenderStageDesc renderStage = {};
-		renderStage.pName						= pShadingRenderStageName;
-		renderStage.pAttachments				= shadingRenderStageAttachments.data();
-		renderStage.AttachmentCount				= (uint32)shadingRenderStageAttachments.size();
-
-		shadingPipelineStateDesc.pName				= "Shading Pass Pipeline State";
-		shadingPipelineStateDesc.VertexShader		= fullscreenQuadShaderGUID;
-		shadingPipelineStateDesc.PixelShader		= shadingPixelShaderGUID;
-
-		renderStage.PipelineType						= EPipelineStateType::GRAPHICS;
-
-		renderStage.GraphicsPipeline.DrawType				= ERenderStageDrawType::FULLSCREEN_QUAD;
-		renderStage.GraphicsPipeline.pIndexBufferName		= nullptr;
-		renderStage.GraphicsPipeline.pMeshIndexBufferName	= nullptr;
-		renderStage.GraphicsPipeline.pGraphicsDesc			= &shadingPipelineStateDesc;
-
-		renderStages.push_back(renderStage);
-	}
-
-	RenderGraphDesc renderGraphDesc = {};
-	renderGraphDesc.pName						= "Render Graph";
-	renderGraphDesc.CreateDebugGraph			= RENDERING_DEBUG_ENABLED;
-	renderGraphDesc.pRenderStages				= renderStages.data();
-	renderGraphDesc.RenderStageCount			= (uint32)renderStages.size();
-	renderGraphDesc.BackBufferCount				= BACK_BUFFER_COUNT;
-	renderGraphDesc.MaxTexturesPerDescriptorSet = MAX_TEXTURES_PER_DESCRIPTOR_SET;
-	renderGraphDesc.pScene						= nullptr;
-
-	m_pRenderGraph = DBG_NEW RenderGraph(RenderSystem::GetDevice());
-
-	m_pRenderGraph->Init(renderGraphDesc);
-
-	IWindow* pWindow = CommonApplication::Get()->GetMainWindow();
-	uint32 renderWidth	= pWindow->GetWidth();
-	uint32 renderHeight = pWindow->GetHeight();
-
-	{
-		RenderStageParameters shadingRenderStageParameters = {};
-		shadingRenderStageParameters.pRenderStageName	= pShadingRenderStageName;
-		shadingRenderStageParameters.Graphics.Width		= renderWidth;
-		shadingRenderStageParameters.Graphics.Height	= renderHeight;
-
-		m_pRenderGraph->UpdateRenderStageParameters(shadingRenderStageParameters);
-	}
-
-	m_pRenderer = DBG_NEW Renderer(RenderSystem::GetDevice());
-
-	RendererDesc rendererDesc = {};
-	rendererDesc.pName				= "Renderer";
-	rendererDesc.Debug				= RENDERING_DEBUG_ENABLED;
-	rendererDesc.pRenderGraph		= m_pRenderGraph;
-	rendererDesc.pWindow			= CommonApplication::Get()->GetMainWindow();
-	rendererDesc.BackBufferCount	= BACK_BUFFER_COUNT;
-	
-	m_pRenderer->Init(&rendererDesc);
-
-	if (RENDERING_DEBUG_ENABLED)
-	{
-		ImGui::SetCurrentContext(ImGuiRenderer::GetImguiContext());
-	}
-
-	return true;
 }
 
 bool Sandbox::InitRendererForDeferred()
@@ -1264,7 +1211,6 @@ bool Sandbox::InitRendererForDeferred()
 		ITextureView** ppRoughnessMapViews			= m_pScene->GetRoughnessMapViews();
 
 		std::vector<ISampler*> samplers(MAX_UNIQUE_MATERIALS, m_pLinearSampler);
-
 		ResourceUpdateDesc albedoMapsUpdateDesc = {};
 		albedoMapsUpdateDesc.pResourceName								= SCENE_ALBEDO_MAPS;
 		albedoMapsUpdateDesc.ExternalTextureUpdate.ppTextures			= ppAlbedoMaps;

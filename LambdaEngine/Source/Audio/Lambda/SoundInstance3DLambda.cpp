@@ -83,6 +83,11 @@ namespace LambdaEngine
 		Pitch = pitch;
 	}
 
+	void SoundInstance3DLambda::SetRollOff(float32 rollOff)
+	{
+		RollOff = rollOff;
+	}
+
 	void SoundInstance3DLambda::SetReferenceDistance(float32 referenceDistance)
 	{
 		ReferenceDistance = referenceDistance;

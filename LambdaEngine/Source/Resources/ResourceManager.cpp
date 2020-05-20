@@ -67,7 +67,7 @@ namespace LambdaEngine
 
 			GUID_Lambda guid = RegisterLoadedTexture(pTexture);
 
-			//RegisterLoadedTexture will create a TextureView for the texture, this needs to be registered in the correct materials
+			// RegisterLoadedTexture will create a TextureView for the texture, this needs to be registered in the correct materials
 			for (uint32 j = 0; j < materials.size(); j++)
 			{
 				Material* pMaterial = materials[j];
@@ -167,12 +167,13 @@ namespace LambdaEngine
 	GUID_Lambda ResourceManager::LoadMaterialFromMemory(GUID_Lambda albedoMap, GUID_Lambda normalMap, GUID_Lambda ambientOcclusionMap, GUID_Lambda metallicMap, GUID_Lambda roughnessMap, const MaterialProperties& properties)
 	{
 		GUID_Lambda guid = GUID_NONE;
-		Material* pMappedMaterial = nullptr;
+		Material** pMappedMaterial = nullptr;
 
 		//Spinlock
 		{
 			guid = s_NextFreeGUID++;
-			pMappedMaterial = s_Materials[guid]; //Creates new entry if not existing
+			pMappedMaterial = &s_Materials[guid]; // Creates new entry if not existing
+			(*pMappedMaterial) = DBG_NEW Material();
 		}
 
 		ITexture* pAlbedoMap						= albedoMap				!= GUID_NONE ? s_Textures[albedoMap]			: s_Textures[DEFAULT_COLOR_MAP];
@@ -187,19 +188,19 @@ namespace LambdaEngine
 		ITextureView* pMetallicMapView				= metallicMap			!= GUID_NONE ? s_TextureViews[metallicMap]			: s_TextureViews[DEFAULT_COLOR_MAP];
 		ITextureView* pRoughnessMapView				= roughnessMap			!= GUID_NONE ? s_TextureViews[roughnessMap]			: s_TextureViews[DEFAULT_COLOR_MAP];
 		
-		pMappedMaterial->Properties					= properties;
+		(*pMappedMaterial)->Properties					= properties;
 
-		pMappedMaterial->pAlbedoMap					= pAlbedoMap;
-		pMappedMaterial->pNormalMap					= pNormalMap;
-		pMappedMaterial->pAmbientOcclusionMap		= pAmbientOcclusionMap;
-		pMappedMaterial->pMetallicMap				= pMetallicMap;
-		pMappedMaterial->pRoughnessMap				= pRoughnessMap;
+		(*pMappedMaterial)->pAlbedoMap					= pAlbedoMap;
+		(*pMappedMaterial)->pNormalMap					= pNormalMap;
+		(*pMappedMaterial)->pAmbientOcclusionMap		= pAmbientOcclusionMap;
+		(*pMappedMaterial)->pMetallicMap				= pMetallicMap;
+		(*pMappedMaterial)->pRoughnessMap				= pRoughnessMap;
 
-		pMappedMaterial->pAlbedoMapView				= pAlbedoMapView;
-		pMappedMaterial->pNormalMapView				= pNormalMapView;
-		pMappedMaterial->pAmbientOcclusionMapView	= pAmbientOcclusionMapView;
-		pMappedMaterial->pMetallicMapView			= pMetallicMapView;
-		pMappedMaterial->pRoughnessMapView			= pRoughnessMapView;
+		(*pMappedMaterial)->pAlbedoMapView				= pAlbedoMapView;
+		(*pMappedMaterial)->pNormalMapView				= pNormalMapView;
+		(*pMappedMaterial)->pAmbientOcclusionMapView	= pAmbientOcclusionMapView;
+		(*pMappedMaterial)->pMetallicMapView			= pMetallicMapView;
+		(*pMappedMaterial)->pRoughnessMapView			= pRoughnessMapView;
 		
 		return guid;
 	}
@@ -210,31 +211,37 @@ namespace LambdaEngine
 		ITexture** ppMappedTexture = nullptr;
 		ITextureView** ppMappedTextureView = nullptr;
 
-		//Spinlock
-		{
-			guid = s_NextFreeGUID++;
-			ppMappedTexture = &s_Textures[guid]; //Creates new entry if not existing
-			ppMappedTextureView = &s_TextureViews[guid]; //Creates new entry if not existing
-		}
-
 		ITexture* pTexture = ResourceLoader::LoadTextureFromFile(pFilepath, format, generateMips);
+		if (pTexture)
+		{
+			//Spinlock
+			{
+				guid				= s_NextFreeGUID++;
+				ppMappedTexture		= &s_Textures[guid]; //Creates new entry if not existing
+				ppMappedTextureView = &s_TextureViews[guid]; //Creates new entry if not existing
+			}
 
-		(*ppMappedTexture) = pTexture;
+			(*ppMappedTexture) = pTexture;
 
-		TextureViewDesc textureViewDesc = {};
-		textureViewDesc.pName			= "Resource Manager Texture View";
-		textureViewDesc.pTexture		= pTexture;
-		textureViewDesc.Flags			= FTextureViewFlags::TEXTURE_VIEW_FLAG_SHADER_RESOURCE;
-		textureViewDesc.Format			= format;
-		textureViewDesc.Type			= ETextureViewType::TEXTURE_VIEW_2D;
-		textureViewDesc.MiplevelCount	= pTexture->GetDesc().Miplevels;
-		textureViewDesc.ArrayCount		= pTexture->GetDesc().ArrayCount;
-		textureViewDesc.Miplevel		= 0;
-		textureViewDesc.ArrayIndex		= 0;
+			TextureViewDesc textureViewDesc = {};
+			textureViewDesc.pName			= "Resource Manager Texture View";
+			textureViewDesc.pTexture		= pTexture;
+			textureViewDesc.Flags			= FTextureViewFlags::TEXTURE_VIEW_FLAG_SHADER_RESOURCE;
+			textureViewDesc.Format			= format;
+			textureViewDesc.Type			= ETextureViewType::TEXTURE_VIEW_2D;
+			textureViewDesc.MiplevelCount	= pTexture->GetDesc().Miplevels;
+			textureViewDesc.ArrayCount		= pTexture->GetDesc().ArrayCount;
+			textureViewDesc.Miplevel		= 0;
+			textureViewDesc.ArrayIndex		= 0;
 
-		(*ppMappedTextureView) = RenderSystem::GetDevice()->CreateTextureView(&textureViewDesc);
+			(*ppMappedTextureView) = RenderSystem::GetDevice()->CreateTextureView(&textureViewDesc);
 
-		return guid;
+			return guid;
+		}
+		else
+		{
+			return GUID_NONE;
+		}
 	}
 
 	GUID_Lambda ResourceManager::LoadTextureFromMemory(const char* pName, const void* pData, uint32_t width, uint32_t height, EFormat format, uint32_t usageFlags, bool generateMips)

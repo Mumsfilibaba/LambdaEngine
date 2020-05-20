@@ -28,6 +28,7 @@ namespace LambdaEngine
 		virtual void SetPosition(const glm::vec3& position)				override final;
 		virtual void SetVolume(float32 volume)							override final;
 		virtual void SetPitch(float32 pitch)							override final;
+		virtual void SetRollOff(float32 rollOff)						override final;
 		virtual void SetReferenceDistance(float32 referenceDistance)	override final;
 		virtual void SetMaxDistance(float32 maxDistance)				override final;
 

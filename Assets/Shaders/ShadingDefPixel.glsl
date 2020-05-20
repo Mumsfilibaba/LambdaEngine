@@ -53,27 +53,26 @@ void main()
 
     vec3 albedo         = sampledAlbedoAO.rgb;
     vec3 normal         = CalculateNormal(sampledNormalMetallicRoughness);
-    float ao            = sampledAlbedoAO.a;
+    float ao            = 1.0f;//sampledAlbedoAO.a;
     float metallic      = sampledNormalMetallicRoughness.b * 0.5f + 0.5f;
-    float roughness     = abs(sampledNormalMetallicRoughness.a);
+    float roughness     = sampledNormalMetallicRoughness.a;
 
     SLightsBuffer lightsBuffer                  = u_LightsBuffer.val;
     SPerFrameBuffer perFrameBuffer              = u_PerFrameBuffer.val;
 
     SPositions positions            = CalculatePositionsFromDepth(in_TexCoord, sampledDepthStencil.r, perFrameBuffer.ProjectionInv, perFrameBuffer.ViewInv);
-    vec3 viewDir = normalize(perFrameBuffer.Position.xyz - positions.WorldPos);
+    vec3 viewDir    = normalize(perFrameBuffer.Position.xyz - positions.WorldPos);
     float NdotV     = max(dot(normal, viewDir), 0.0f);
 
     vec3 F_0 = vec3(0.04f);
     F_0 = mix(F_0, albedo, metallic);
 
     vec3 L_o = vec3(0.0f);
-
     //Directional Light
     {
-        vec3 lightDir       = normalize(lightsBuffer.Direction.xyz);
+        vec3 lightDir       = normalize(vec3(0.0f, 1.0f, 0.5f));//(lightsBuffer.Direction.xyz);
         vec3 halfway        = normalize(viewDir + lightDir);
-        vec3 radiance       = vec3(lightsBuffer.SpectralIntensity.rgb);
+        vec3 radiance       = vec3(30.0f);//lightsBuffer.SpectralIntensity.rgb);
 
         float NdotL         = max(dot(normal, lightDir), 0.0f);
         float HdotV         = max(dot(halfway, viewDir), 0.0f);
@@ -92,10 +91,10 @@ void main()
         L_o += (refracted * albedo / PI + specular) * radiance * NdotL; 
     }
 
-    vec3 ambient    = vec3(0.03f) * albedo * ao;
+    vec3 ambient    = vec3(0.1f) * albedo * ao;
     vec3 colorHDR   = ambient + L_o;
     
     vec3 colorLDR   = ToneMap(colorHDR, GAMMA);
 
-    out_Color = vec4(colorLDR, 1.0f);
+    out_Color = vec4(vec3(colorLDR), 1.0f);
 }

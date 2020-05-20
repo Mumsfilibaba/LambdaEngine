@@ -25,7 +25,7 @@ namespace LambdaEngine
 		m_RasterizerState.pNext                     = nullptr;
 		m_RasterizerState.polygonMode               = VK_POLYGON_MODE_FILL;
 		m_RasterizerState.lineWidth                 = 1.0f;
-		m_RasterizerState.cullMode                  = VK_CULL_MODE_BACK_BIT;
+		m_RasterizerState.cullMode                  = VK_CULL_MODE_NONE;
 		m_RasterizerState.frontFace                 = VK_FRONT_FACE_CLOCKWISE;
 		m_RasterizerState.depthBiasEnable           = VK_FALSE;
 		m_RasterizerState.depthClampEnable          = VK_FALSE;

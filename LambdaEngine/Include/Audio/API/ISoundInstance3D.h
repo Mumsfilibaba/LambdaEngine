@@ -51,6 +51,11 @@ namespace LambdaEngine
 		virtual void SetReferenceDistance(float32 referenceDistance) = 0;
 
 		/*
+		* Set how quickly the audio fades off
+		*/
+		virtual void SetRollOff(float32 rollOff) = 0;
+
+		/*
 		* Set the distance at were the volume will be 0.0
 		*/
 		virtual void SetMaxDistance(float32 maxDistance) = 0;

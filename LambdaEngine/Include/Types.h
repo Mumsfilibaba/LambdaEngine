@@ -91,6 +91,6 @@ typedef unsigned int GUID_Lambda;
 	#define FLT64_MIN 2.2250738585072014e-308
 #endif
 
-constexpr uint32 MAX_UNIQUE_MATERIALS = 32;
+constexpr uint32 MAX_UNIQUE_MATERIALS = 64;
 
 constexpr GUID_Lambda GUID_NONE = UINT32_MAX;

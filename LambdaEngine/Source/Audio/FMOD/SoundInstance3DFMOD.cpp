@@ -125,6 +125,10 @@ namespace LambdaEngine
 		}
 	}
 
+	void SoundInstance3DFMOD::SetRollOff(float32 rollOff)
+	{
+	}
+
 	const glm::vec3& SoundInstance3DFMOD::GetPosition() const
 	{
 		return m_Position;
