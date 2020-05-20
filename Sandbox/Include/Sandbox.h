@@ -45,7 +45,16 @@ private:
 private:
 	GUID_Lambda						m_LaughSoundEffectGUID	= 0;
 	LambdaEngine::ISoundEffect3D*	m_pLaughSoundEffect		= nullptr;
-	LambdaEngine::ISoundInstance3D* m_pLaughInstance			= nullptr;
+	LambdaEngine::ISoundInstance3D* m_pLaughInstance		= nullptr;
+
+	GUID_Lambda						m_CricketSoundEffectGUID	= 0;
+	LambdaEngine::ISoundEffect3D*	m_pCricketSoundEffect		= nullptr;
+	LambdaEngine::ISoundInstance3D* m_pCricketInstance			= nullptr;
+	
+	GUID_Lambda						m_ArrowKneeSoundEffectGUID	= 0;
+	LambdaEngine::ISoundEffect3D*	m_pArrowKneeSoundEffect		= nullptr;
+	LambdaEngine::ISoundInstance3D* m_pArrowKneeInstance1		= nullptr;
+	LambdaEngine::ISoundInstance3D* m_pArrowKneeInstance2		= nullptr;
 
 	GUID_Lambda						m_MusicGUID			= 0;
 	LambdaEngine::IMusic*			m_pMusic			= nullptr;
@@ -65,7 +74,18 @@ private:
 	GUID_Lambda	m_ImGuiPixelShaderDepthGUID			= GUID_NONE;
 	GUID_Lambda	m_ImGuiPixelShaderRoughnessGUID		= GUID_NONE;
 
-	float m_MasterVolume	= 0.5f;
-	float m_MusicVolume		= 0.5f;
-	float m_LaughVolume		= 0.5f;
+	float32 m_MasterVolume					= 0.5f;
+	float32 m_MusicVolume					= 0.1f;
+	float32 m_LaughVolume					= 0.6f;
+	float32 m_LaughRollOff					= 2.0f;
+	float32 m_LaughMaxDistance				= 65.0f;
+	float32 m_LaughReferenceDistance		= 6.0f;
+	float32 m_CricketsVolume				= 0.5f;
+	float32 m_CricketsRollOff				= 12.0f;
+	float32 m_CricketsMaxDistance			= 70.0f;
+	float32 m_CricketsReferenceDistance		= 3.0f;
+	float32 m_ArrowKneeVolume				= 0.5f;
+	float32 m_ArrowKneeRollOff				= 12.0f;
+	float32 m_ArrowKneeMaxDistance			= 70.0f;
+	float32 m_ArrowKneeReferenceDistance	= 3.0f;
 };

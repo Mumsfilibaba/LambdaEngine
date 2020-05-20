@@ -49,12 +49,11 @@ constexpr const bool POST_PROCESSING_ENABLED	= false;
 constexpr const bool RENDERING_DEBUG_ENABLED	= true;
 
 static float goblinPos[3] = { 0.0f, 0.5f, 65.0f };
+static float guardPos1[3] = { -5.0f, 0.3f, 30.0f };
+static float guardPos2[3] = {  5.0f, 0.3f, 30.0f };
+static float cricketPos[3] = { -4.5f, 2.0f, -12.0f };
 static float camPos[3] = { 0.0f, 6.0f, -10.0f };
 static float camRot[3] = { 0.0f, -90.0f, 0.0f };
-
-static float rollOff				= 4.0f;
-static float maxDistance			= 40.0f;
-static float referenceDistance		= 2.0f;
 
 Sandbox::Sandbox()
     : Game()
@@ -74,6 +73,11 @@ Sandbox::Sandbox()
 	GUID_Lambda goblinNormalGUID	= ResourceManager::LoadTextureFromFile("../Assets/Textures/goblin_normal.png", EFormat::FORMAT_R8G8B8A8_UNORM, true);
 	GUID_Lambda goblinSpecularGUID	= ResourceManager::LoadTextureFromFile("../Assets/Textures/goblin_specular.png", EFormat::FORMAT_R8G8B8A8_UNORM, true);
 
+	GUID_Lambda guardGUID			= ResourceManager::LoadMeshFromFile("../Assets/Meshes/guard.obj");
+	GUID_Lambda guardDiffGUID		= ResourceManager::LoadTextureFromFile("../Assets/Textures/guard_diffuse.png", EFormat::FORMAT_R8G8B8A8_UNORM, true);
+	GUID_Lambda guardNormalGUID		= ResourceManager::LoadTextureFromFile("../Assets/Textures/guard_normal.png", EFormat::FORMAT_R8G8B8A8_UNORM, true);
+	GUID_Lambda guardSpecularGUID	= ResourceManager::LoadTextureFromFile("../Assets/Textures/guard_specular.png", EFormat::FORMAT_R8G8B8A8_UNORM, true);
+
 	MaterialProperties goblinProp = { };
 	GUID_Lambda goblinMatGUID = ResourceManager::LoadMaterialFromMemory(goblinDiffGUID, goblinNormalGUID, GUID_NONE, GUID_NONE, goblinSpecularGUID, goblinProp);
 
@@ -83,6 +87,19 @@ Sandbox::Sandbox()
 
 	glm::mat4 transform = glm::scale(glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(goblinPos[0], goblinPos[1], goblinPos[2])), glm::pi<float32>(), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.01f));
 	m_pScene->AddDynamicGameObject(goblinObject, transform);
+
+	MaterialProperties guardProp = { };
+	GUID_Lambda guardMatGUID = ResourceManager::LoadMaterialFromMemory(guardDiffGUID, guardNormalGUID, GUID_NONE, GUID_NONE, guardSpecularGUID, guardProp);
+
+	GameObject guardObject = {};
+	guardObject.Mesh		= guardGUID;
+	guardObject.Material	= guardMatGUID;
+
+	transform = glm::scale(glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(guardPos1[0], guardPos1[1], guardPos1[2])), glm::pi<float32>(), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.015f));
+	m_pScene->AddDynamicGameObject(guardObject, transform);
+
+	transform = glm::scale(glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(guardPos2[0], guardPos2[1], guardPos2[2])), glm::pi<float32>(), glm::vec3(0.0f, 1.0f, 0.0f)), glm::vec3(0.015f));
+	m_pScene->AddDynamicGameObject(guardObject, transform);
 
 	TArray<GameObject> sceneGameObjects;
 	ResourceManager::LoadSceneFromFile("../Assets/Scenes/suntemple/", "suntemple.obj", sceneGameObjects);
@@ -178,6 +195,12 @@ void Sandbox::InitTestAudio()
 	m_LaughSoundEffectGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/laugh.wav");
 	m_pLaughSoundEffect		= ResourceManager::GetSoundEffect(m_LaughSoundEffectGUID);
 
+	m_CricketSoundEffectGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/crickets.wav");
+	m_pCricketSoundEffect		= ResourceManager::GetSoundEffect(m_CricketSoundEffectGUID);
+
+	m_ArrowKneeSoundEffectGUID	= ResourceManager::LoadSoundEffectFromFile("../Assets/Sounds/arrow_knee.wav");
+	m_pArrowKneeSoundEffect		= ResourceManager::GetSoundEffect(m_ArrowKneeSoundEffectGUID);
+
 	MusicInstanceDesc musicInstanceDesc = { };
 	musicInstanceDesc.pMusic	= m_pMusic;
 	musicInstanceDesc.Volume	= m_MusicVolume;
@@ -189,14 +212,40 @@ void Sandbox::InitTestAudio()
 	SoundInstance3DDesc soundInstanceDesc = { };
 	soundInstanceDesc.pSoundEffect		= m_pLaughSoundEffect;
 	soundInstanceDesc.Mode				= ESoundMode::SOUND_MODE_LOOPING;
-	soundInstanceDesc.ReferenceDistance = referenceDistance;
-	soundInstanceDesc.MaxDistance		= maxDistance;
-	soundInstanceDesc.RollOff			= rollOff;
+	soundInstanceDesc.ReferenceDistance = m_LaughReferenceDistance;
+	soundInstanceDesc.MaxDistance		= m_LaughMaxDistance;
+	soundInstanceDesc.RollOff			= m_LaughRollOff;
 	soundInstanceDesc.Volume			= m_LaughVolume;
 	soundInstanceDesc.Position			= glm::vec3(goblinPos[0], goblinPos[1], goblinPos[2]);
 
 	m_pLaughInstance = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
 	m_pLaughInstance->Play();
+
+	soundInstanceDesc.pSoundEffect		= m_pCricketSoundEffect;
+	soundInstanceDesc.Mode				= ESoundMode::SOUND_MODE_LOOPING;
+	soundInstanceDesc.ReferenceDistance = m_CricketsReferenceDistance;
+	soundInstanceDesc.MaxDistance		= m_CricketsMaxDistance;
+	soundInstanceDesc.RollOff			= m_CricketsRollOff;
+	soundInstanceDesc.Volume			= m_CricketsVolume;
+	soundInstanceDesc.Position			= glm::vec3(cricketPos[0], cricketPos[1], cricketPos[2]);
+
+	m_pCricketInstance = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
+	m_pCricketInstance->Play();
+
+	soundInstanceDesc.pSoundEffect		= m_pArrowKneeSoundEffect;
+	soundInstanceDesc.Mode				= ESoundMode::SOUND_MODE_LOOPING;
+	soundInstanceDesc.ReferenceDistance = m_ArrowKneeReferenceDistance;
+	soundInstanceDesc.MaxDistance		= m_ArrowKneeMaxDistance;
+	soundInstanceDesc.RollOff			= m_ArrowKneeRollOff;
+	soundInstanceDesc.Volume			= m_ArrowKneeVolume;
+	soundInstanceDesc.Position			= glm::vec3(guardPos1[0], guardPos1[1], guardPos1[2]);
+
+	m_pArrowKneeInstance1 = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
+	m_pArrowKneeInstance1->Play();
+
+	soundInstanceDesc.Position = glm::vec3(guardPos2[0], guardPos2[1], guardPos2[2]);
+	m_pArrowKneeInstance2 = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
+	m_pArrowKneeInstance2->Play();
 
 	AudioListenerDesc listenerDesc = { };
 	listenerDesc.Position	= m_pCamera->GetPosition();
@@ -391,29 +440,29 @@ void Sandbox::Tick(LambdaEngine::Timestamp delta)
 		}
 		ImGui::PopID();
 
-		// Sound Effect
+		// Laugh Sound Effect
 		ImGui::PushID(1);
 		{
-			ImGui::Text("Laugh Effect:");
+			ImGui::Text("Laugh Sound Effect:");
 
 			if (ImGui::SliderFloat("Volume", &m_LaughVolume, 0.0f, 1.0f, "%.2f"))
 			{
 				m_pLaughInstance->SetVolume(m_LaughVolume);
 			}
 
-			if (ImGui::DragFloat("Roll Off", &rollOff))
+			if (ImGui::DragFloat("Roll Off", &m_LaughRollOff, 0.1f, 1.0f, 20.0f, "%.1f"))
 			{
-				m_pLaughInstance->SetRollOff(rollOff);
+				m_pLaughInstance->SetRollOff(m_LaughRollOff);
 			}
 
-			if (ImGui::DragFloat("Max Distance", &maxDistance))
+			if (ImGui::DragFloat("Max Distance", &m_LaughMaxDistance, 0.1f, 1.0f, 100.0f, "%.1f"))
 			{
-				m_pLaughInstance->SetMaxDistance(maxDistance);
+				m_pLaughInstance->SetMaxDistance(m_LaughMaxDistance);
 			}
 
-			if (ImGui::DragFloat("Reference Distance", &referenceDistance))
+			if (ImGui::DragFloat("Reference Distance", &m_LaughReferenceDistance, 0.1f, 0.0f, m_LaughMaxDistance, "%.1f"))
 			{
-				m_pLaughInstance->SetReferenceDistance(referenceDistance);
+				m_pLaughInstance->SetReferenceDistance(m_LaughReferenceDistance);
 			}
 
 			if (ImGui::Button("Play"))
@@ -440,6 +489,120 @@ void Sandbox::Tick(LambdaEngine::Timestamp delta)
 			if (ImGui::Button("Toggle"))
 			{
 				m_pLaughInstance->Toggle();
+			}
+		}
+		ImGui::PopID();
+
+		// Cricket effect
+		ImGui::PushID(2);
+		{
+			ImGui::Text("Cricket Sound Effect:");
+
+			if (ImGui::SliderFloat("Volume", &m_CricketsVolume, 0.0f, 1.0f, "%.2f"))
+			{
+				m_pCricketInstance->SetVolume(m_CricketsVolume);
+			}
+
+			if (ImGui::DragFloat("Roll Off", &m_CricketsRollOff, 0.1f, 1.0f, 20.0f, "%.1f"))
+			{
+				m_pCricketInstance->SetRollOff(m_CricketsRollOff);
+			}
+
+			if (ImGui::DragFloat("Max Distance", &m_CricketsMaxDistance, 0.1f, 1.0f, 100.0f, "%.1f"))
+			{
+				m_pCricketInstance->SetMaxDistance(m_CricketsMaxDistance);
+			}
+
+			if (ImGui::DragFloat("Reference Distance", &m_CricketsReferenceDistance, 0.1f, 0.0f, m_CricketsMaxDistance, "%.1f"))
+			{
+				m_pCricketInstance->SetReferenceDistance(m_CricketsReferenceDistance);
+			}
+
+			if (ImGui::Button("Play"))
+			{
+				m_pCricketInstance->Play();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Pause"))
+			{
+				m_pCricketInstance->Pause();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Stop"))
+			{
+				m_pCricketInstance->Stop();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Toggle"))
+			{
+				m_pCricketInstance->Toggle();
+			}
+		}
+		ImGui::PopID();
+
+		// Guard Sound Effect
+		ImGui::PushID(3);
+		{
+			ImGui::Text("Guard Sound Effect:");
+
+			if (ImGui::SliderFloat("Volume", &m_ArrowKneeVolume, 0.0f, 1.0f, "%.2f"))
+			{
+				m_pArrowKneeInstance1->SetVolume(m_ArrowKneeVolume);
+				m_pArrowKneeInstance2->SetVolume(m_ArrowKneeVolume);
+			}
+
+			if (ImGui::DragFloat("Roll Off", &m_ArrowKneeRollOff, 0.1f, 1.0f, 20.0f, "%.1f"))
+			{
+				m_pArrowKneeInstance1->SetRollOff(m_ArrowKneeRollOff);
+				m_pArrowKneeInstance2->SetRollOff(m_ArrowKneeRollOff);
+			}
+
+			if (ImGui::DragFloat("Max Distance", &m_ArrowKneeMaxDistance, 0.1f, 1.0f, 100.0f, "%.1f"))
+			{
+				m_pArrowKneeInstance1->SetMaxDistance(m_ArrowKneeMaxDistance);
+				m_pArrowKneeInstance2->SetMaxDistance(m_ArrowKneeMaxDistance);
+			}
+
+			if (ImGui::DragFloat("Reference Distance", &m_ArrowKneeReferenceDistance, 0.1f, 0.0f, m_ArrowKneeMaxDistance, "%.1f"))
+			{
+				m_pArrowKneeInstance1->SetReferenceDistance(m_ArrowKneeReferenceDistance);
+				m_pArrowKneeInstance2->SetReferenceDistance(m_ArrowKneeReferenceDistance);
+			}
+
+			if (ImGui::Button("Play"))
+			{
+				m_pArrowKneeInstance1->Play();
+				m_pArrowKneeInstance2->Play();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Pause"))
+			{
+				m_pArrowKneeInstance1->Pause();
+				m_pArrowKneeInstance2->Pause();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Stop"))
+			{
+				m_pArrowKneeInstance1->Pause();
+				m_pArrowKneeInstance2->Pause();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Toggle"))
+			{
+				m_pArrowKneeInstance1->Toggle();
+				m_pArrowKneeInstance2->Toggle();
 			}
 		}
 		ImGui::PopID();
