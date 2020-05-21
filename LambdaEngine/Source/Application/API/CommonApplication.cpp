@@ -42,9 +42,9 @@ namespace LambdaEngine
 
 		WindowDesc windowDesc = { };
 		windowDesc.pTitle 	= "Lambda Engine";
-		windowDesc.Width 	= 1920;
-		windowDesc.Height 	= 1080;
-		windowDesc.Style	= WINDOW_STYLE_FLAG_TITLED | WINDOW_STYLE_FLAG_CLOSABLE;
+		windowDesc.Width 	= 2560;
+		windowDesc.Height 	= 1440;
+		windowDesc.Style	= 0;
 
 		IWindow* pWindow = PlatformApplication::CreateWindow(&windowDesc);
 		if (pWindow)
