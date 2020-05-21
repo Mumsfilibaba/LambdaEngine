@@ -200,7 +200,7 @@ namespace LambdaEngine
         // Calculate panning
         glm::vec3 listPos		= pAudioListener->Desc.Position;
         glm::vec3 sourcePos		= pSoundInstance->Position;
-        glm::vec3 forward		= glm::normalize(pAudioListener->Desc.Forward);
+        // glm::vec3 forward		= glm::normalize(pAudioListener->Desc.Forward);
 		glm::vec3 right			= glm::normalize(pAudioListener->Right);
         glm::vec3 sourceDir		= listPos - sourcePos;
         
@@ -209,10 +209,9 @@ namespace LambdaEngine
         float32 dot             = 0.0f;
         if (sourceDirLen > 0)
         {
-            sourceDir = sourceDir / sourceDirLen;
-            
-            dot     = glm::dot(right, sourceDir);
-            angle   = glm::acos(dot) - glm::half_pi<float32>();
+            sourceDir	= sourceDir / sourceDirLen;         
+            dot			= glm::dot(right, sourceDir);
+            angle		= glm::acos(dot) - glm::half_pi<float32>();
         }
         else
         {
@@ -236,8 +235,14 @@ namespace LambdaEngine
         float32 volumeLeft  = glm::abs(glm::cos(glm::half_pi<float32>() * b) * volume);
         float32 volumeRight = glm::abs(glm::sin(glm::half_pi<float32>() * b) * volume);
 
-        // LOG_INFO("right: x=%.3f y=%.3f z=%.3f sourceDir: x=%.3f y=%.3f z=%.3f, angle=%.3f, dot=%.3f, VL=%.3f, VR=%.3f", right.x, right.y, right.z, sourceDir.x, sourceDir.y, sourceDir.z, angle, dot, volumeLeft, volumeRight);
-        
+        //LOG_INFO("right: x=%.3f y=%.3f z=%.3f sourceDir: x=%.3f y=%.3f z=%.3f, angle=%.3f, dot=%.3f, VL=%.3f, VR=%.3f", right.x, right.y, right.z, sourceDir.x, sourceDir.y, sourceDir.z, angle, dot, volumeLeft, volumeRight);
+#ifdef LAMBDA_DEVELOPMENT	
+		if (sourceDirLen < 6)
+		{
+			LOG_INFO("angle=%.3f, dot=%.3f, VL=%.3f, VR=%.3f", angle, dot, volumeLeft, volumeRight);
+		}
+#endif
+
 		// Add samples to buffer
 		for (uint32_t i = 0; i < SAMPLES_PER_CHANNEL; i++)
 		{

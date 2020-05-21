@@ -75,17 +75,17 @@ private:
 	GUID_Lambda	m_ImGuiPixelShaderRoughnessGUID		= GUID_NONE;
 
 	float32 m_MasterVolume					= 0.5f;
-	float32 m_MusicVolume					= 0.1f;
-	float32 m_LaughVolume					= 0.6f;
-	float32 m_LaughRollOff					= 2.0f;
-	float32 m_LaughMaxDistance				= 65.0f;
+	float32 m_MusicVolume					= 0.025f;
+	float32 m_LaughVolume					= 0.55f;
+	float32 m_LaughRollOff					= 9.0f;
+	float32 m_LaughMaxDistance				= 70.0f;
 	float32 m_LaughReferenceDistance		= 6.0f;
-	float32 m_CricketsVolume				= 0.5f;
-	float32 m_CricketsRollOff				= 12.0f;
+	float32 m_CricketsVolume				= 0.45f;
+	float32 m_CricketsRollOff				= 15.0f;
 	float32 m_CricketsMaxDistance			= 70.0f;
 	float32 m_CricketsReferenceDistance		= 3.0f;
-	float32 m_ArrowKneeVolume				= 0.5f;
+	float32 m_ArrowKneeVolume				= 0.6f;
 	float32 m_ArrowKneeRollOff				= 12.0f;
 	float32 m_ArrowKneeMaxDistance			= 70.0f;
-	float32 m_ArrowKneeReferenceDistance	= 3.0f;
+	float32 m_ArrowKneeReferenceDistance	= 2.5f;
 };

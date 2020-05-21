@@ -216,7 +216,7 @@ void Sandbox::InitTestAudio()
 	soundInstanceDesc.MaxDistance		= m_LaughMaxDistance;
 	soundInstanceDesc.RollOff			= m_LaughRollOff;
 	soundInstanceDesc.Volume			= m_LaughVolume;
-	soundInstanceDesc.Position			= glm::vec3(goblinPos[0], goblinPos[1], goblinPos[2]);
+	soundInstanceDesc.Position			= glm::vec3(goblinPos[0], goblinPos[1] + 1.0f, goblinPos[2]);
 
 	m_pLaughInstance = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
 	m_pLaughInstance->Play();
@@ -238,12 +238,12 @@ void Sandbox::InitTestAudio()
 	soundInstanceDesc.MaxDistance		= m_ArrowKneeMaxDistance;
 	soundInstanceDesc.RollOff			= m_ArrowKneeRollOff;
 	soundInstanceDesc.Volume			= m_ArrowKneeVolume;
-	soundInstanceDesc.Position			= glm::vec3(guardPos1[0], guardPos1[1], guardPos1[2]);
+	soundInstanceDesc.Position			= glm::vec3(guardPos1[0], guardPos1[1] + 1.0f, guardPos1[2]);
 
 	m_pArrowKneeInstance1 = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
 	m_pArrowKneeInstance1->Play();
 
-	soundInstanceDesc.Position = glm::vec3(guardPos2[0], guardPos2[1], guardPos2[2]);
+	soundInstanceDesc.Position = glm::vec3(guardPos2[0], guardPos2[1] + 1.0f, guardPos2[2]);
 	m_pArrowKneeInstance2 = AudioSystem::GetDevice()->CreateSoundInstance(&soundInstanceDesc);
 	m_pArrowKneeInstance2->Play();
 

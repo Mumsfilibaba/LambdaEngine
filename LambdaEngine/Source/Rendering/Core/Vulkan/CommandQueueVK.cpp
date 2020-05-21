@@ -220,7 +220,7 @@ namespace LambdaEngine
     {
         std::scoped_lock<SpinLock> lock(m_SpinLock);
         
-        //Flush all pending barriers (Semaphores) and then wait for queue to become idle
+        // Flush all pending barriers (Semaphores) and then wait for queue to become idle
         InternalFlushBarriers();
 		vkQueueWaitIdle(m_Queue);
 	}
